@@ -18,6 +18,15 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 }
+// El lint de AGP falla por un error interno al analizar in_app_purchase_android
+// en Release; se omite solo en los plugins, no en :app.
+subprojects {
+    if (name != "app") {
+        tasks.matching { it.name.startsWith("lintVital") }.configureEach {
+            enabled = false
+        }
+    }
+}
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)

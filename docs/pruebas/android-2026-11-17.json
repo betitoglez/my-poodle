@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-17",
+  "artifact": "build/app/outputs/flutter-apk/app-release.apk",
+  "sha256": "67931282378ca5efe6f49772348033ccfb9652009bdee21df8fff6621a8c7212",
+  "minSdk": 24,
+  "targetSdk": 36,
+  "billingResolved": "9.1.0",
+  "billingManifest": "9.1.0",
+  "permissions": [
+    "com.android.vending.BILLING",
+    "dev.mypoodle.my_poodle.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.INTERNET"
+  ],
+  "provenance": {
+    "com.android.vending.BILLING": "App + Google Play Billing",
+    "android.permission.INTERNET": "Billing transitive transport-backend-cct:3.1.8",
+    "android.permission.ACCESS_NETWORK_STATE": "Billing transitive transport-backend-cct/transport-runtime:3.1.8",
+    "DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "androidx.core:core:1.15.0, signature"
+  },
+  "device": "Xiaomi Redmi A5",
+  "os": "Android 15 (API 35)",
+  "smokeTest": {
+    "mode": "profile",
+    "firstProcess": {
+      "result": "passed",
+      "bootToScreenMs": 299880,
+      "phase": "first",
+      "platform": "android",
+      "bootToSceneMs": 300289,
+      "timingValid": false,
+      "timingExclusionReason": "Device asleep; includes wait until owner unlocked"
+    },
+    "secondProcess": {
+      "result": "passed",
+      "bootToScreenMs": 40,
+      "phase": "reopen",
+      "platform": "android",
+      "bootToSceneMs": 375,
+      "timingScope": "MyPoodleApp to Home/Flame scene, excludes native process startup"
+    }
+  },
+  "manualOffline": {
+    "source": "owner",
+    "result": "passed",
+    "steps": [
+      "Airplane mode and Wi-Fi off",
+      "Complete feeding",
+      "Close from task switcher and reopen",
+      "Pet and changes retained"
+    ]
+  },
+  "physicalBackground": {
+    "source": "owner",
+    "result": "passed",
+    "steps": [
+      "Launch Frisbee",
+      "Go to Android home",
+      "Wait about 10 seconds",
+      "Return to app: En pausa visible",
+      "Game continues only after Continuar"
+    ]
+  },
+  "storePurchases": "not tested; no store product configured",
+  "lint": "Existing workaround disables lintVital in plugin subprojects; app lint maintained. Full plugin lint not credited.",
+  "normalAppDelivery": {
+    "mode": "release",
+    "install": "adb install -r: Success",
+    "launch": "am start -W: Status ok",
+    "source": "lib/main.dart with local resume fix",
+    "signature": "template debug key; not for store distribution"
+  }
+}

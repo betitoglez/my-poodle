@@ -63,10 +63,8 @@ class ActivityFrameState extends State<ActivityFrame>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      AppScope.read(context).onResumed();
-      return;
-    }
+    // AppRoot refresca el estado compartido al volver, en cualquier ruta.
+    if (state == AppLifecycleState.resumed) return;
     // Inactiva, oculta o en segundo plano: congelar hasta Continuar.
     if (!widget.game.paused) pause();
   }

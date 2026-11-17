@@ -46,9 +46,9 @@ Future<void> tap(WidgetTester t, Finder finder) async {
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'iPhone · arranque, cuidados, tienda y persistencia entre procesos',
+    'móvil · arranque, cuidados, tienda y persistencia entre procesos',
     (t) async {
-      expect(Platform.isIOS, isTrue);
+      expect(Platform.isIOS || Platform.isAndroid, isTrue);
       // Profile no admite el client -1 de TestTextInput sin registrar.
       // La entrada de texto es del harness; teclado iOS real se revisa aparte.
       t.testTextInput.register();
@@ -87,6 +87,7 @@ void main() {
       binding.reportData = {
         'bootToScreenMs': bootWatch.elapsedMilliseconds,
         'phase': reopen ? 'reopen' : 'first',
+        'platform': Platform.operatingSystem,
       };
       debugPrint('QA_BOOT_TO_SCREEN_MS=${bootWatch.elapsedMilliseconds}');
       await waitFor(

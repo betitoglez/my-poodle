@@ -59,3 +59,6 @@ android/local.properties
 
 # Configuración local del asistente
 .claude/
+
+# Caché generada por el compilador Kotlin
+/android/.kotlin/

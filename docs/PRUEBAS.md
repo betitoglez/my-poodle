@@ -15,7 +15,7 @@ flutter devices
 # Para iPhone: usar los comandos con --keep-app-running de la sección final.
 ```
 
-El validador y `integration_test/device_smoke_test.dart` existen. El recorrido de integración actual cubre solo el smoke test iOS descrito abajo; no acredita toda la matriz de aceptación. Sustituir device-id por dispositivo real/emulador disponible. Exigir salida correcta y casos realmente ejecutados; conservar informes y logs con fecha/revisión. Avanzar componentes con tiempo controlado; evitar pumpAndSettle sobre un bucle Flame infinito. Una prueba de widgets no acredita backup nativo ni firma. [Pruebas de integración Flutter](https://docs.flutter.dev/testing/integration-tests).
+El validador y `integration_test/device_smoke_test.dart` existen. El recorrido de integración actual cubre solo el smoke test móvil iOS/Android descrito abajo; no acredita toda la matriz de aceptación. Sustituir device-id por dispositivo real/emulador disponible. Exigir salida correcta y casos realmente ejecutados; conservar informes y logs con fecha/revisión. Avanzar componentes con tiempo controlado; evitar pumpAndSettle sobre un bucle Flame infinito. Una prueba de widgets no acredita backup nativo ni firma. [Pruebas de integración Flutter](https://docs.flutter.dev/testing/integration-tests).
 
 ## Casos de dominio y disco
 
@@ -104,3 +104,32 @@ flutter run --profile --no-resident -d <device-id>
 ```
 
 Mantener el iPhone desbloqueado al instalar/lanzar. Nunca interpretar el tiempo de compilación, instalación, espera de desbloqueo o conexión del depurador como tiempo de carga del juego. El modo Profile se usa para aproximar el rendimiento; las pruebas de teclado, segundo plano real, modo avión, transferencia de datos, tienda sandbox y medición de 60 s por escena siguen siendo comprobaciones distintas.
+
+
+## Reanudación y comprobación manual offline
+
+`test/ui/lifecycle_test.dart` verifica en widgets que Casa refresca necesidades al recibir resumed y que el Frisbee no avanza ni premia mientras está pausado, incluso al volver del segundo plano sin pulsar Continuar. AppRoot observa la reanudación para todas las rutas; ActivityFrame mantiene su pausa explícita. Estas pruebas inyectan eventos y no sustituyen la prueba física.
+
+En el iPhone normal, sin reinstalar ni reiniciar la partida:
+
+1. Activar modo avión y apagar también Wi-Fi; mantener el cable USB si se está depurando. Completar una comida, volver a Casa, cerrar la app desde el selector y reabrir. Comprobar caniche y estado conservados, y que se puede seguir jugando.
+2. Abrir Frisbee y lanzar; salir a la pantalla de inicio de iOS, esperar y volver. Debe aparecer «En pausa». El juego debe seguir congelado hasta Continuar y no otorgar monedas por la interrupción. Terminar o abandonar según el flujo normal.
+3. Volver a Casa tras una ausencia real; verificar que los indicadores se recalculan al regresar. Las necesidades cambian en bloques de 15 minutos: una ausencia corta puede no cambiar ningún valor y no acredita por sí sola este caso.
+
+Registrar dispositivo, versión instalada, pasos, resultado y quién los observó. Un reporte del propietario se identifica como comprobación manual; una prueba de widgets no se etiqueta como prueba física. Al terminar, restaurar la conectividad del teléfono según la preferencia del propietario.
+
+
+## Recorrido físico Android
+
+El mismo `integration_test/device_smoke_test.dart` soporta Android. Usar un QA_RUN nuevo con prefijo android y el ID mostrado por flutter devices. Repetir con QA_REOPEN=true para conservar y leer el mismo subdirectorio QA:
+
+```sh
+flutter drive --profile --keep-app-running -d <android-id> --driver=test_driver/integration_test.dart --target=integration_test/device_smoke_test.dart --dart-define=QA_RUN=android_qa_unico
+flutter drive --profile --keep-app-running -d <android-id> --driver=test_driver/integration_test.dart --target=integration_test/device_smoke_test.dart --dart-define=QA_RUN=android_qa_unico --dart-define=QA_REOPEN=true
+```
+
+Mantener el dispositivo desbloqueado y la app en primer plano. Una muestra que incluye suspensión de pantalla se descarta para rendimiento. Guardar el informe JSON tras cada proceso. No omitir --keep-app-running.
+
+Al terminar, reconstruir `flutter build apk --release --target=lib/main.dart` e instalar mediante `adb -s <android-id> install -r build/app/outputs/flutter-apk/app-release.apk`; conservar la identidad y firma de la instalación. No desinstalar para solucionar una incompatibilidad de firma sin autorización del propietario. La clave debug de la plantilla no acredita firma de distribución.
+
+Para validar Billing revisar `aapt dump permissions <apk>`, el manifiesto fusionado y `:app:dependencyInsight --configuration releaseRuntimeClasspath --dependency com.android.billingclient:billing`. Los permisos esperados y su procedencia constan en la sesión Android de ESTADO. La consulta de producto no acredita compra, aprobación, cancelación, restauración ni reembolso.

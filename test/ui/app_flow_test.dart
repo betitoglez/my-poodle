@@ -38,6 +38,7 @@ Future<void> boot(
   MemoryBackend backend, {
   Size size = const Size(390, 844),
   int? now,
+  Clock? clock,
   StoreProvider? store,
 }) async {
   t.view.physicalSize = size;
@@ -46,7 +47,7 @@ Future<void> boot(
   await t.pumpWidget(
     MyPoodleApp(
       backend: backend,
-      clock: FakeClock(now ?? t0),
+      clock: clock ?? FakeClock(now ?? t0),
       storeProvider: store ?? SimulatedStore(delay: Duration.zero),
     ),
   );

@@ -2,7 +2,7 @@
 
 Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (smoke test en iPhone; ver última sesión).
 
-**Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 124 pruebas Flutter correctas y builds web/iOS correctos. Smoke test físico iPhone en Profile y persistencia entre procesos correctos. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y falta Android SDK. Ver el registro F07.5 al final; las tablas de sesiones anteriores son históricas.
+**Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
 ## Sesión 2026-11-16 · Prototipo completo Flutter + Flame
 
@@ -301,3 +301,67 @@ Evidencia resumida versionada en [pruebas/iphone-2026-11-17.json](pruebas/iphone
 **Incidencias del harness:** los primeros intentos fallaron en la automatización de texto; corregido el registro de TestTextInput para Profile. El primer intento de verificar reapertura falló porque `flutter drive` desinstala la app al terminar por defecto (`FlutterDriverService.stop` en el SDK), no porque fallase el lector de la partida. Los intentos iniciales retiraron la instalación del teléfono y sus datos; no se debe afirmar que una partida normal creada durante esos intentos se conservó. Se corrigieron comandos y documentación con `--keep-app-running`; la repetición definitiva conservó los archivos y pasó. No se borró ninguna partida mediante el código del test. Los comandos reproducibles están en [PRUEBAS](PRUEBAS.md#recorrido-físico-ios).
 
 **Pendientes:** teclado iOS real, modo avión, interrupciones/segundo plano, restauración/transferencia de backup, muestreo de 60 s por escena, StoreKit local/sandbox (F07.5/07.6), Android SDK y aceptación Android. El smoke test físico cubre parte de F07.7, no cierra esa fase ni F07.5.
+
+
+## Sesión 2026-11-17 · Reanudación corregida; offline y pausa Android comprobados
+
+**Base:** 0a87e95; repositorio limpio al comenzar la corrección de reanudación. La continuación Android posterior usa Flutter drive con --keep-app-running; no se ha desinstalado la app en esas pruebas.
+
+**Hallazgo y corrección:** AppController.onResumed solo se invocaba desde ActivityFrame. En Casa, Armario, Juegos o Ajustes, volver del segundo plano no notificaba inmediatamente al estado compartido; podía esperar al temporizador de 30 s. AppRoot ahora registra un WidgetsBindingObserver y notifica al controlador en resumed, retirándolo en dispose. ActivityFrame conserva la pausa de la escena y la obligación de pulsar Continuar, delegando el refresco compartido en AppRoot para evitar duplicarlo. No cambia guardado, balance, compras ni física.
+
+**Pruebas:** `test/ui/lifecycle_test.dart` añade regreso a Casa tras una hora con FakeClock (saciedad 31→28, hambre visible al primer refresco, sin escribir una revisión) y frisbee congelado durante inactive/paused y tras resumed hasta Continuar, sin monedas. El helper de app_flow_test acepta un Clock inyectable. La prueba de Casa falla con AppRoot de 0a87e95 y pasa con la corrección. La batería completa pasa **126/126**; flutter analyze, validate_content y git diff --check correctos.
+
+**Alcance de la evidencia:** los eventos de ciclo de vida de estas dos pruebas se inyectan desde el binding de widgets en el Mac. No acreditan interrupciones reales de iOS ni modo avión. Los logs temporales están en `/private/tmp/my-poodle-lifecycle/`.
+
+**Validación física:** el propietario confirmó modo avión/Wi-Fi desactivado, comida y conservación al cerrar/reabrir en el Xiaomi (ver sesión Android); offline iPhone sigue pendiente. Build Profile compilada correctamente con `flutter build ios --profile` (Runner.app, 33,3 MB), preparada sin instalarla mientras el propietario hace esa comprobación. El propietario confirmó después en el Xiaomi que, tras salir al inicio de Android durante Frisbee y volver, aparece «En pausa» y solo continúa al pulsar Continuar. No se extiende esa prueba física a iOS. El refresco de necesidades tras una ausencia suficientemente larga requiere tiempo real o fixture controlada y sigue sin acreditarse físicamente.
+
+
+## Sesión 2026-11-17 · Primera instalación en Android físico (Release)
+
+**Base:** 0a87e95. Entorno instalado en el Mac: JDK 17 (Homebrew `openjdk@17`), SDK de Android en `~/Library/Android/sdk` con platform-tools 37.0.1, plataforma 36 y build-tools 36.0.0; `flutter config --android-sdk/--jdk-dir` apuntando a ellos y `flutter doctor` con Android correcto.
+
+**Build:** `flutter build apk --release` → `app-release.apk` de 58,0 MB, firmado con la clave de depuración de la plantilla (no apto para tienda). El primer intento falló en `:in_app_purchase_android:lintVitalAnalyzeRelease` por un error interno de lint de AGP («Unexpected failure during lint analysis»). [android/build.gradle.kts](../android/build.gradle.kts) desactiva `lintVital*` solo en subproyectos distintos de `:app`; el lint de la app se mantiene. Con eso compila.
+
+| Comprobación | Resultado |
+| --- | --- |
+| Dispositivo | Xiaomi Redmi A5 (25028RN03Y), Android 15, GPU Mali, Impeller sobre Vulkan |
+| Instalación | `adb install -r` → Success |
+| Arranque en frío | `am start -W`: 683 ms hasta la primera actividad dibujada; proceso estable |
+| Primera pantalla | Adopción visible con arte, textos, sugerencias y botones sin desbordes |
+| Errores | Ninguno de Flutter ni `AndroidRuntime`; solo avisos `mali_gralloc` de formatos no soportados, del driver y sin efecto visible |
+
+**No acreditado todavía:** splash nativo de Android 12+ (el arranque es demasiado rápido para capturarlo) e icono adaptativo en el lanzador; adopción y recorrido completo; consulta del producto en Google Play (sin producto en consola, F07.6); modo avión, segundo plano y rendimiento de 60 s (F07.7). Implementado e instalado no equivale a aceptación Android.
+
+
+## Sesión 2026-11-17 · Verificación Android en Redmi A5
+
+**Entorno:** confirmado `flutter doctor -v` sin incidencias: Android SDK 36 / build-tools 36.0.0, JDK 17.0.21, dispositivo Xiaomi Redmi A5 (25028RN03Y), Android 15/API 35, arm64. Se conservan los cambios Android de la sesión anterior, incluido el workaround de lint; no se han reescrito ni revertido.
+
+**Verificación del APK Release existente y del grafo:** `:app:dependencyInsight --configuration releaseRuntimeClasspath --dependency com.android.billingclient:billing --offline` correcto, versión **9.1.0** resuelta. El manifiesto fusionado y `aapt dump permissions` del APK confirman mínimo 24, objetivo 36 y metadato `com.google.android.play.billingclient.version=9.1.0`.
+
+| Permiso en Release | Procedencia comprobada |
+|---|---|
+| `com.android.vending.BILLING` | Declaración de la app y Billing |
+| `android.permission.INTERNET` | `transport-backend-cct:3.1.8`, transitivo de Billing |
+| `android.permission.ACCESS_NETWORK_STATE` | `transport-backend-cct` / `transport-runtime:3.1.8`, transitivos de Billing |
+| `dev.mypoodle.my_poodle.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | AndroidX core 1.15.0, protección signature para receptores internos |
+
+La procedencia se comprobó en el reporte de fusión y en el POM de Billing descargado. No aparecen permisos de cámara, micrófono, ubicación ni AD_ID. Se corrige la expectativa documental anterior de «solo BILLING»; no se han eliminado dependencias a ciegas ni atribuido al SDK un comportamiento de recogida de datos no medido. La ficha de seguridad de datos y los textos definitivos deberán considerar también el tratamiento del SDK de facturación, como ya prevé F08. Se añade `/android/.kotlin/` a .gitignore por ser caché generada.
+
+**Pruebas físicas automatizadas:** `integration_test/device_smoke_test.dart` ahora admite Android/iOS e informa la plataforma. Mismos datos QA aislados, IapStore real, sin comprar/restaurar; ambas invocaciones Profile usaron **--keep-app-running**, sin desinstalar ni reiniciar la partida normal.
+
+| Caso | Resultado observado |
+|---|---|
+| Primer proceso Profile | **Pasa**: adopción, nombre, comida 65→85, monedas 0, guardado nativo, puerta adulta, consulta de producto y documento de prueba |
+| Segundo proceso Profile | **Pasa**: conserva nombre, monedas, revisión y alimentación en un proceso nuevo; IapStore y rechazo de derechos simulados |
+| Tiempos de reapertura desde MyPoodleApp | 40 ms a Casa, 375 ms a escena Flame cargada; excluyen arranque nativo y no acreditan todas las capas finales |
+| Tiempo del primer proceso | **Descartado**: incluye varios minutos con pantalla apagada hasta desbloqueo del propietario; no se interpreta como carga lenta de la app |
+| Offline manual | **Pasa, confirmado por el propietario**: modo avión, Wi-Fi desactivado, comida, cerrar desde selector y reabrir; conserva caniche y cambios |
+| Segundo plano físico manual | **Pasa, confirmado por el propietario**: salir al inicio de Android durante un lanzamiento de Frisbee, esperar y volver; aparece «En pausa» y solo sigue al pulsar Continuar |
+| Análisis estático | Correcto al ampliar el harness a Android |
+
+El teléfono se detectó en reposo durante el primer recorrido (`mWakefulness=Asleep`); tras desbloquearlo el recorrido avanzó y terminó correctamente. Los avisos Mali de formatos R8/RGBA no se acompañaron de errores de Flutter/AndroidRuntime en la comprobación de ese proceso. Se conserva evidencia resumida en [pruebas/android-2026-11-17.json](pruebas/android-2026-11-17.json); logs temporales en `/private/tmp/my-poodle-android-qa/`.
+
+**Entrega en el teléfono:** `flutter build apk --release --target=lib/main.dart` correcto (58,0 MB), `adb install -r` → Success, parada y lanzamiento de la actividad normal con `am start -W` → Status ok. Se conserva la instalación y sus datos; queda la entrada normal Release con la corrección de reanudación, no el harness. La firma sigue siendo la de depuración de la plantilla: no es un paquete publicable. Se mantiene el workaround de lint añadido antes de esta sesión; el lint completo de los plugins no se acredita.
+
+**Pendientes:** compra real de prueba, pendiente/cancelación/restauración/reembolso en Play Internal (producto y cuenta del propietario, F07.6); StoreKit local/sandbox iOS; offline/segundo plano iPhone; teclado real, transferencia/restauración de backup y rendimiento de 60 s por escena. Android SDK, APK, grafo y manifiesto dejan de estar bloqueados. La confirmación offline corresponde al Xiaomi y no acredita offline en iPhone.

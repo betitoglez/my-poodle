@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-17",
+  "baseline": "0a87e95",
+  "scope": "widget lifecycle events on Mac, not native iOS events",
+  "tests": {
+    "homeRefreshOnResume": {
+      "baseline": "failed",
+      "fixed": "passed"
+    },
+    "frisbeeFreezeUntilContinue": "passed",
+    "fullSuite": {
+      "passed": 126,
+      "failed": 0
+    }
+  },
+  "physicalOffline": {
+    "device": "Xiaomi Redmi A5",
+    "source": "owner",
+    "result": "passed"
+  },
+  "physicalBackground": {
+    "device": "Xiaomi Redmi A5",
+    "source": "owner",
+    "result": "passed: paused until Continue"
+  },
+  "installedOnPhone": true,
+  "delivery": {
+    "android": "normal Release installed, data retained",
+    "ios": "Profile prepared; latest resume fix not installed in this session"
+  }
+}

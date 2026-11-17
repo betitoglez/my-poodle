@@ -47,9 +47,9 @@ Comprobaciones antes de compilar:
 flutter analyze && dart run tool/validate_content.dart && flutter test
 ```
 
-Pruebas de integración en iPhone conectado: ver [recorrido físico iOS](docs/PRUEBAS.md#recorrido-físico-ios).
+Pruebas de integración en iPhone y Android conectados: ver [recorrido físico iOS](docs/PRUEBAS.md#recorrido-físico-ios).
 
-Compilaciones verificadas en esta máquina: `flutter build web --release` y `flutter build ios --simulator --debug`. Android necesita instalar el Android SDK (`flutter doctor`); el APK y su manifiesto fusionado siguen pendientes de validar.
+Compilaciones verificadas en esta máquina: `flutter build web --release` y `flutter build ios --simulator --debug`. Android SDK 36 y JDK 17 ya están instalados. Hay APK Release de desarrollo, y Billing 9.1.0 está verificada en el grafo y el manifiesto del binario; ver ESTADO para los recorridos físicos.
 
 ### Estructura
 
@@ -101,6 +101,6 @@ Casa → Ajustes → «Soy un adulto» → puerta numérica → Zona adulta → 
 | Acceso adulto | Puerta con número escrito en letras y espera tras tres fallos | Revisión de aceptación en teléfonos |
 | Monetización | Sin anuncios. 18 artículos y Frisbee gratis; 24 artículos y Huerto requieren versión completa. Adaptador nativo y StoreKit local implementados | Validaciones pendientes de F07.5 y producto real/sandbox en F07.6 ([estado](docs/ESTADO.md)) |
 
-Falta además para publicar: Android SDK y pruebas en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), producto «Versión completa» y precios en ambas tiendas, firma, fichas y autorización de distribución del propietario.
+Falta además para publicar: completar la aceptación en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), producto «Versión completa» y precios en ambas tiendas, firma, fichas y autorización de distribución del propietario.
 
 Capturas: [escenas ilustradas](docs/capturas/escenas-ilustradas.jpg) · [poses del caniche](docs/capturas/poses-caniche.jpg) · [armario con el caniche ilustrado](docs/capturas/armario-sprites.jpg) · [16 combinaciones](docs/capturas/meshy-16-combinaciones.jpg) · [comparativa con Meshy](docs/capturas/comparativa-meshy.jpg) · [Casa](docs/capturas/casa-salas.jpg) · [Casa antes](docs/capturas/casa.jpg) · [Cuidados](docs/capturas/cuidados.jpg) · [Baño](docs/capturas/bano.jpg) · [Huerto](docs/capturas/huerto.jpg) · [Frisbee](docs/capturas/frisbee.jpg) · [Resultado](docs/capturas/resultado-juego.jpg) · [Armario](docs/capturas/armario.jpg).

@@ -117,7 +117,7 @@ class MyPoodleApp extends StatefulWidget {
   State<MyPoodleApp> createState() => _MyPoodleAppState();
 }
 
-class _MyPoodleAppState extends State<MyPoodleApp> {
+class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
   AppServices? _services;
   Object? _error;
   final _feedback = FeedbackService();
@@ -126,7 +126,15 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _services?.controller.onResumed();
+    }
   }
 
   Future<void> _start() async {
@@ -157,6 +165,7 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _services?.controller.dispose();
     _services?.controller.purchases.dispose();
     super.dispose();
