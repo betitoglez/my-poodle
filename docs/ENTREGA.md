@@ -17,7 +17,7 @@ flutter build ios --debug --no-codesign
 flutter build ipa --release
 ```
 
-Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. iOS sin codesign comprueba compilación y no produce una app distribuible. Salidas habituales: build/app/outputs/flutter-apk/app-debug.apk, build/app/outputs/bundle/release/app-release.aab, build/ios/archive/ y build/ios/ipa/. Registrar la ruta efectiva devuelta por el SDK fijado. Guardar logs, hashes y símbolos generados junto a la candidata. Referencias: [Android con Flutter](https://docs.flutter.dev/deployment/android), [iOS con Flutter](https://docs.flutter.dev/deployment/ios).
+Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. La compra real solo funciona en builds instaladas desde la tienda o con el entorno de pruebas de cada plataforma. iOS sin codesign comprueba compilación y no produce una app distribuible. Salidas habituales: build/app/outputs/flutter-apk/app-debug.apk, build/app/outputs/bundle/release/app-release.aab, build/ios/archive/ y build/ios/ipa/. Registrar la ruta efectiva devuelta por el SDK fijado. Guardar logs, hashes y símbolos generados junto a la candidata. Referencias: [Android con Flutter](https://docs.flutter.dev/deployment/android), [iOS con Flutter](https://docs.flutter.dev/deployment/ios).
 
 ## Android
 
@@ -25,25 +25,47 @@ Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. iOS sin
 2. Ejecutar flutter run -d <device-id> o instalar APK con adb install -r build/app/outputs/flutter-apk/app-debug.apk. Aceptar autorización USB en el teléfono. Probar offline, ciclo de vida y almacenamiento; diagnosticar logs filtrados sin datos de partida.
 3. Configurar firma Release en Gradle con clave de subida y propiedades locales excluidas de Git. El propietario conserva alias, credenciales y copia segura. Activar Play App Signing en la ficha. [Firma Android](https://developer.android.com/studio/publish/app-signing).
 4. Generar AAB, validar con bundletool y comprobar firma/hash/versionCode. Instalar desde pruebas internas de Play; AAB no se instala directamente con adb. Probar actualización con identidad de firma compatible.
-5. Completar audiencia, privacidad, seguridad de datos, anuncios, clasificación, países, soporte, capturas reales y pruebas que exija la cuenta. Publicar candidata probada cuando el propietario autorice distribución. [Lanzamiento Play](https://support.google.com/googleplay/android-developer/answer/9859348).
+5. Completar audiencia, privacidad, seguridad de datos, anuncios (ninguno), compras integradas, clasificación, países, soporte, capturas reales y pruebas que exija la cuenta. Publicar candidata probada cuando el propietario autorice distribución. [Lanzamiento Play](https://support.google.com/googleplay/android-developer/answer/9859348).
 
 ## iOS
 
 1. Preparar Xcode y toolchain iOS de Flutter. Mantener configuración y puente Swift en ios/; resolver dependencias nativas según el método soportado por el SDK/plugins elegidos. Bundle ID, versión y build number deben coincidir con ficha.
 2. Abrir ios/Runner.xcworkspace cuando corresponda al proyecto generado. Seleccionar Team autorizado y provisioning, conectar iPhone y ejecutar Runner o flutter run -d <device-id>. Probar teclado, audio, interrupciones y exclusión de backup en hardware.
 3. Ejecutar flutter build ipa --release con firma válida. Inspeccionar archivo en Organizer y validar/distribuir a TestFlight/App Store. Conservar dSYM y metadatos de exportación. [Carga de builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/).
-4. Probar instalación/actualización vía TestFlight. Preparar privacidad, licencias, capturas, clasificación y notas sobre adopción, juegos y publicidad. Enviar la build exacta verificada y liberar según decisión del propietario.
+4. Probar instalación/actualización vía TestFlight. Preparar privacidad, licencias, capturas, clasificación y notas sobre adopción, juegos, versión completa y puerta adulta. Enviar la build exacta verificada y liberar según decisión del propietario.
 
-## Publicidad y variantes
+## Compra integrada, precios y fichas
 
-Mantener NoAds y SimulatedAds para desarrollo; aislar proveedor real. Antes de escogerlo, documentar soporte Flutter mantenido o puente nativo necesario, coste de mantenimiento, SDKs transitivos, iOS/Android y compatibilidad con audiencia infantil. SuperAwesome/KIDOZ son candidatos pendientes; no asumir integración directa Flutter por su soporte de otros motores. Si se evalúa mediación, inventariar también sus SDKs. No incorporar dependencia nativa solo para una simulación.
+Una sola variante de build, sin publicidad. La versión completa es un producto no consumible (`mypoodle.full_version`, ver [TECNICA](TECNICA.md#versión-completa-compra-única)). Crear el producto, firmar acuerdos y fijar precios requiere la cuenta del propietario; mientras falte, desarrollar con SimulatedStore y el archivo StoreKit local, y registrar en ESTADO el dato pendiente.
 
-Para una variante monetizada implementar configuración nativa separada (flavor/configuración) que excluya SDK y permisos publicitarios del binario NoAds; las variables Dart por sí solas no eliminan plugins nativos. Registrar comandos efectivos por variante al incorporarla. F07 verifica versiones, formatos, datos recogidos, configuración infantil, inventario de prueba y reanudación. Sin admisión/configuración válida, entregar NoAds. La variante de tienda debe coincidir con ficha de privacidad y anuncios.
+**Precio.** 1,99 € y 1,99 US$, impuestos incluidos. Resto de divisas: equivalente de 1,99 € del día de configuración, redondeado al punto de precio más cercano terminado en ,49 o ,99 (empate: el más bajo). Divisas sin decimales: terminación 49 o 99 en la última cifra que admita la tienda. Si una tienda no ofrece ese punto, usar el más cercano y anotarlo como excepción. Registrar aquí, al configurar, la tabla aplicada (divisa, precio, fecha y tipo de cambio de referencia):
 
-Verificar reglas actuales antes de publicar: [Apple Kids](https://developer.apple.com/app-store/review/guidelines/#kids-category), [Google Play Families](https://support.google.com/googleplay/android-developer/answer/9893335). Un SDK técnicamente integrable no acredita admisión comercial ni aceptación de tienda.
+| Divisa | Precio | Origen |
+|---|---:|---|
+| EUR | 1,99 | Fijado por el propietario |
+| USD | 1,99 | Fijado por el propietario |
+| Otras | Pendiente | Calcular al crear el producto con la regla anterior |
+
+**Google Play.**
+
+1. Completar el perfil de pagos (cuenta de comerciante) del propietario.
+2. Subir una build con el plugin a un canal de prueba interna; Play solo deja crear productos integrados en apps que declaren la facturación.
+3. Crear el producto único `mypoodle.full_version` (compra única, no consumible), nombre «Versión completa», descripción en español y activo.
+4. Fijar 1,99 € como precio base y revisar país por país la conversión automática: sustituir los precios que no terminen en ,49 o ,99 según la regla.
+5. Añadir cuentas de prueba de licencias e instalar desde la prueba interna para comprar sin cargo. Probar compra, pendiente (método de pago lento), cancelación, reembolso desde la consola y reinstalación.
+
+**App Store.**
+
+1. Aceptar el acuerdo de apps de pago y completar datos bancarios y fiscales del propietario.
+2. Crear la compra integrada de tipo **No consumible** con ID `mypoodle.full_version`, nombre y descripción en español, captura para revisión y **Compartir en familia** activado.
+3. Elegir 1,99 € como precio base y ajustar manualmente los storefronts cuyo precio no termine en ,49 o ,99, dentro de los puntos de precio de Apple.
+4. Probar con el archivo StoreKit local, después con cuentas sandbox (incluida aprobación familiar) y con TestFlight.
+5. Enviar la primera compra integrada junto con la versión de la app que la usa.
+
+**Fichas y normas.** Declarar «Contiene compras integradas» y «Sin anuncios». Si se elige la categoría Kids de Apple o el programa Families de Play: compra solo tras la puerta adulta, sin publicidad ni analítica de terceros, sin enlaces externos sin puerta y sin presión de compra. Seguridad de datos y privacidad: la app no recoge datos; revisar cómo declara cada tienda los datos que procesa su propio sistema de pago. Verificar las normas vigentes antes de publicar: [Apple Kids](https://developer.apple.com/app-store/review/guidelines/#kids-category), [compras integradas de Apple](https://developer.apple.com/app-store/review/guidelines/#in-app-purchase), [Google Play Families](https://support.google.com/googleplay/android-developer/answer/9893335), [in_app_purchase](https://pub.dev/packages/in_app_purchase).
 
 ## Candidata y recuperación
 
-Ejecutar validación de catálogos, referencias, poses, fuentes, rutas registradas y permisos antes de Release. Bloquear variante monetizada con IDs de prueba o configuración incompleta. Registrar SHA Git, hashes, esquema, versiones, teléfonos y QA; diferenciar comprobaciones pendientes.
+Ejecutar validación de catálogos, referencias, poses, fuentes, rutas registradas y permisos antes de Release. Bloquear Release si el ID del producto falta, si SimulatedStore o un documento de derecho `simulated` pueden activarse, o si el manifiesto contiene permisos distintos de los previstos. Registrar SHA Git, hashes, esquema, versiones, teléfonos y QA; diferenciar comprobaciones pendientes.
 
-Ante incidencia, detener distribución gradual si está disponible, preparar actualización con número superior y lector compatible con partida ya escrita, usando NoAds si procede. Probar sobre la build afectada antes de distribuir. No se ha compilado ni publicado ninguna candidata por actualizar esta documentación.
+Ante incidencia, detener distribución gradual si está disponible, preparar actualización con número superior y lector compatible con partida ya escrita, conservando el documento de derecho existente. Probar sobre la build afectada antes de distribuir. No se ha compilado ni publicado ninguna candidata por actualizar esta documentación.

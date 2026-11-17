@@ -1,6 +1,6 @@
 # Producto y economía de la primera versión
 
-Juego móvil completamente 2D con Flutter + Flame: caniche, ropa, cortes, escenarios y minijuegos. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni compras integradas.
+Juego móvil completamente 2D con Flutter + Flame: caniche, ropa, cortes, escenarios y minijuegos. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni publicidad. La descarga es gratuita y una única compra integrada desbloquea la versión completa (ver [Versión gratuita y versión completa](#versión-gratuita-y-versión-completa)).
 
 ## La primera sesión
 
@@ -38,9 +38,50 @@ La mascota puede ponerse **malita**. Se comprueba por bloque de 15 minutos (en s
 
 Los cuidados no otorgan monedas. Antes de confirmar se puede salir sin modificar atributos. Si el proceso se cierra después de confirmar, la próxima sesión muestra el efecto ya aplicado. Un indicador al máximo no impide disfrutar de la animación.
 
+## Versión gratuita y versión completa
+
+Decisión del propietario del 17 de noviembre de 2026. Descarga gratuita con lo básico jugable para siempre. Una compra única, **«Versión completa»**, desbloquea el resto del contenido y las novedades futuras. Sin publicidad, suscripciones, venta de monedas, consumibles, cajas sorpresa, ofertas por tiempo ni temporizadores que se aceleren pagando.
+
+| Gratis para siempre | Versión completa |
+|---|---|
+| Adopción, Casa, los cuatro ángulos del caniche y los seis cuidados (comer, bañar, pasear, peluquería, dormir y veterinario) | Todo lo gratuito |
+| Salud, iconos de estado y sugerencias | **Huerto saltarín** (`fruit`) y los minijuegos que se añadan |
+| **Frisbee en el prado** (`frisbee`) y sus monedas | 24 artículos más del armario (lista abajo) |
+| 18 artículos del armario: los 8 iniciales y 10 que se compran con monedas | Novedades de catálogo, escenarios y actividades futuras, sin volver a pagar |
+
+**Artículos por versión** (los ID y los precios en monedas no cambian; la versión solo decide si se pueden comprar):
+
+| Ranura | Gratis | Versión completa |
+|---|---|---|
+| Color | coat.apricot, coat.silver | coat.lightgray, coat.white, coat.black |
+| Peinado | hair.natural, hair.pom | hair.teddy, hair.puppy |
+| Ropa | outfit.none y el peto en sus tres colores (outfit.teal, outfit.overalls_red, outfit.overalls_yellow) | Jersey, impermeable y vestido en todos sus colores |
+| Cabeza | head.none, head.bow | head.beanie, head.crown |
+| Ojos | eyes.none, eyes.round | eyes.sun, eyes.heart |
+| Collares | collar.none, collar.tag | collar.bell, collar.pearls |
+| Cuello | neck.none, neck.coral | neck.bowtie, neck.knit |
+| Patucos | paws.none, paws.booties | paws.sneakers, paws.rain |
+
+Con la versión gratuita hay 190 monedas de artículos por conseguir, con algo comprable en cada pestaña del armario.
+
+**Reglas**
+
+1. **Los cuidados y la salud nunca se bloquean.** Ninguna parte de la versión completa afecta a necesidades, salud ni a la velocidad del reloj. Un caniche nunca sufre por no pagar.
+2. **Las monedas solo se ganan jugando.** La compra no da ni vende monedas, y los precios en monedas son iguales en las dos versiones.
+3. **Contenido bloqueado visible y sin presión.** Los artículos y juegos de la versión completa aparecen con un candado y la etiqueta «Versión completa». En el armario se pueden probar en la vista previa sin coste, pero no comprarlos con monedas. La tarjeta del Huerto muestra el candado y no abre el juego.
+4. **El adulto es quien compra.** Tocar un candado abre «Pide ayuda a un adulto». Desde ahí, la [puerta adulta](UI-UX.md#puerta-adulta) lleva a la pantalla Versión completa, que muestra lo que incluye, el precio que da la tienda, «Desbloquear» y «Restaurar compras». La pantalla también está en Ajustes → Zona adulta.
+5. **Nunca se ofrece sin pedirlo.** Ni al arrancar, ni sobre un resultado o un premio, ni durante un cuidado o un juego, ni con avisos repetidos. La única puerta de entrada es que el jugador toque un candado o el adulto abra la pantalla.
+6. **La compra es de la cuenta de la tienda, no de la partida.** Reiniciar la partida conserva la versión completa. En una reinstalación o en otro dispositivo, Android la recupera al arrancar con conexión e iOS con «Restaurar compras». En iOS se activa Compartir en familia.
+7. **Sin conexión** se usa el último estado conocido. La versión gratuita funciona siempre offline. Comprar o restaurar necesita conexión. Si la tienda no responde, el botón dice «No disponible ahora. Inténtalo con conexión» y el juego sigue igual.
+8. **Compra pendiente** (aprobación familiar de iOS o pago pendiente en Play): se muestra «Esperando la aprobación» y no se desbloquea nada hasta que la tienda confirme el pago.
+9. **Reembolso o revocación confirmados por la tienda:** vuelve a bloquear el Huerto y la compra de artículos de la versión completa. Los artículos ya comprados con monedas se conservan y se pueden seguir usando: nunca se le quita nada al caniche.
+10. **Contenido nuevo.** Por defecto entra en la versión completa. También se puede añadir contenido gratuito a criterio del propietario, siguiendo estas mismas reglas.
+
+**Precio.** Pago único de **1,99 €** en la zona euro y **1,99 US$** en Estados Unidos, impuestos incluidos. En las demás divisas se usa el equivalente de 1,99 € del día de configuración, redondeado al punto de precio más cercano que termine en **,49 o ,99**; si dos quedan a la misma distancia, se elige el más bajo. En divisas sin decimales (JPY, KRW, CLP, COP, HUF…) la terminación es 49 o 99 en la última cifra que admita la tienda (por ejemplo, 249 o 299). Si la tienda no ofrece ninguno, se usa el punto más cercano y se registra la excepción. La app muestra siempre el precio localizado que entrega la tienda, nunca un importe escrito en el código. Configuración y tabla aplicada en [ENTREGA](ENTREGA.md#compra-integrada-precios-y-fichas).
+
 ## Monedas y vestuario
 
-Las monedas se ganan completando los dos minijuegos. La función de recompensa está en [Minijuegos](JUEGOS.md). El cuenco, el baño, el parque, la consulta y los juegos son gratuitos. Saldo inicial 0. El primer premio perfecto de frisbee permite comprar el pañuelo de coral.
+Las monedas se ganan completando los minijuegos (con la versión gratuita, el frisbee). La función de recompensa está en [Minijuegos](JUEGOS.md). El cuenco, el baño, el parque, la consulta, la cama y el frisbee son gratuitos; el Huerto es de la versión completa. Saldo inicial 0. El primer premio perfecto de frisbee permite comprar el pañuelo de coral.
 
 | ID inmutable | Categoría / ranura | Coste | Representación |
 |---|---|---:|---|
@@ -55,6 +96,6 @@ Las monedas se ganan completando los dos minijuegos. La función de recompensa e
 
 **Ampliación del catálogo** (42 artículos, ocho ranuras; los ID y precios originales no cambian, y una partida anterior sigue cargando con las ranuras nuevas vacías). El precio sube de un artículo al siguiente dentro de cada categoría. Categorías del armario: **Colores** (albaricoque, plata, gris claro, blanco, negro), **Peinados** (rizo natural, pompón, osito, cachorro), **Ropa** (peto, jersey, impermeable, vestido; **todos los colores de una misma prenda cuestan lo mismo**, el precio lo marca el tipo de prenda: peto 18, jersey 32, impermeable 46, vestido 64) y **Accesorios** con submenús **Cabeza**, **Ojos**, **Collares**, **Cuello** y **Patucos**. El caniche se puede girar con el control «De frente / Lado derecho / De espaldas / Lado izquierdo» en Casa y en el armario. Los precios exactos son los de `docs/datos/balance-v1.json`.
 
-El armario empieza con los artículos iniciales en propiedad. Elegir una categoría y una ficha actualiza la previsualización en una copia del aspecto. «Comprar y usar» muestra coste y saldo restante. Confirmar valida saldo, propiedad y ranura y guarda en una operación. «Usar» sobre un artículo en propiedad cuesta cero. Volver o cancelar restaura el aspecto anterior. Se pueden combinar todas las ranuras. Reemplazar una ranura conserva las demás. Si faltan monedas, mostrar la diferencia exacta y un acceso a Juegos. Reabrir el armario conserva la propiedad de artículos desequipados.
+El armario empieza con los artículos iniciales en propiedad. Elegir una categoría y una ficha actualiza la previsualización en una copia del aspecto. «Comprar y usar» muestra coste y saldo restante. Confirmar valida saldo, propiedad y ranura y guarda en una operación. «Usar» sobre un artículo en propiedad cuesta cero. Volver o cancelar restaura el aspecto anterior. Se pueden combinar todas las ranuras. Reemplazar una ranura conserva las demás. Si faltan monedas, mostrar la diferencia exacta y un acceso a Juegos. Un artículo de la versión completa sin la compra se puede probar en la vista previa, pero muestra el candado en lugar de «Comprar y usar». Reabrir el armario conserva la propiedad de artículos desequipados.
 
 **Ejemplo reproducible.** Adoptar a Miel, terminar un frisbee con tres aciertos (12 monedas), comprar el pañuelo (quedan 2), equipar cuello libre y volver a equipar el pañuelo (siguen quedando 2). Un nuevo dispositivo comienza por Adopción.

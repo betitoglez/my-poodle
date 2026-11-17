@@ -144,7 +144,7 @@ void main() {
     final scarf = adopt().appearance.withSlot(Slot.neck, 'neck.coral');
     test('9 insuficiente, 10 → 0, 12 → 2', () {
       final s9 = adopt().copyWith(coins: 9);
-      final r9 = rules.applyLook(s9, scarf, 'x', t0);
+      final r9 = rules.applyLook(s9, scarf, 'x', t0, fullVersion: true);
       expect(r9, isA<InsufficientCoins>());
       expect((r9 as InsufficientCoins).missing, 1);
       final r10 = rules.applyLook(
@@ -152,6 +152,7 @@ void main() {
         scarf,
         'y',
         t0,
+        fullVersion: true,
       ) as Purchased;
       expect(r10.receipt.after.coins, 0);
       final r12 = rules.applyLook(
@@ -159,6 +160,7 @@ void main() {
         scarf,
         'z',
         t0,
+        fullVersion: true,
       ) as Purchased;
       final after = r12.receipt.after;
       expect(after.coins, 2);
@@ -169,12 +171,14 @@ void main() {
         after.appearance.withSlot(Slot.neck, 'neck.none'),
         'q',
         t0,
+        fullVersion: true,
       ) as Purchased).receipt.after;
       final on = (rules.applyLook(
         off,
         off.appearance.withSlot(Slot.neck, 'neck.coral'),
         'r',
         t0,
+        fullVersion: true,
       ) as Purchased).receipt.after;
       expect([off.coins, on.coins, on.appearance.neck], [2, 2, 'neck.coral']);
       expect(on.owned.where((i) => i == 'neck.coral').length, 1);
@@ -254,6 +258,7 @@ void main() {
         s.appearance.withSlot(Slot.neck, 'neck.coral'),
         'b1',
         t0,
+        fullVersion: true,
       ) as Purchased).receipt.after;
       expect(s.coins, 2);
       s = rules.finishGame(s, GameId.fruit, 7, 'o1', t0).after;
@@ -263,6 +268,7 @@ void main() {
         s.appearance.withSlot(Slot.neck, 'neck.coral'),
         'e1',
         t0,
+        fullVersion: true,
       ) as Purchased).receipt.after;
       expect(s.coins, 11);
     });

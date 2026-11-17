@@ -2,6 +2,9 @@
   "schemaVersion": 1,
   "currency": "coins",
   "startCoins": 0,
+  "fullVersion": {
+    "productId": "mypoodle.full_version"
+  },
   "needs": {
     "tickSeconds": 900,
     "maxTicks": 32,
@@ -91,7 +94,8 @@
       "seconds": 30,
       "maxScore": 12,
       "baseCoins": 2,
-      "coinsPerPoint": 1
+      "coinsPerPoint": 1,
+      "tier": "full"
     },
     "frisbee": {
       "throws": 3,
@@ -113,7 +117,8 @@
           1.5,
           4
         ]
-      ]
+      ],
+      "tier": "free"
     }
   },
   "gameCompleteDelta": {
@@ -125,260 +130,297 @@
       "id": "coat.apricot",
       "slot": "coat",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "coat.silver",
       "slot": "coat",
       "cost": 24,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "coat.lightgray",
       "slot": "coat",
       "cost": 30,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "coat.white",
       "slot": "coat",
       "cost": 38,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "coat.black",
       "slot": "coat",
       "cost": 46,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "hair.natural",
       "slot": "hair",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "hair.pom",
       "slot": "hair",
       "cost": 30,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "hair.teddy",
       "slot": "hair",
       "cost": 40,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "hair.puppy",
       "slot": "hair",
       "cost": 52,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.none",
       "slot": "outfit",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "outfit.teal",
       "slot": "outfit",
       "cost": 18,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "outfit.overalls_red",
       "slot": "outfit",
       "cost": 18,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "outfit.overalls_yellow",
       "slot": "outfit",
       "cost": 18,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "outfit.sweater_red",
       "slot": "outfit",
       "cost": 32,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.sweater_blue",
       "slot": "outfit",
       "cost": 32,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.sweater_mustard",
       "slot": "outfit",
       "cost": 32,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.raincoat_yellow",
       "slot": "outfit",
       "cost": 46,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.raincoat_blue",
       "slot": "outfit",
       "cost": 46,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.raincoat_pink",
       "slot": "outfit",
       "cost": 46,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.dress_pink",
       "slot": "outfit",
       "cost": 64,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.dress_lilac",
       "slot": "outfit",
       "cost": 64,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "outfit.dress_turquoise",
       "slot": "outfit",
       "cost": 64,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "head.none",
       "slot": "head",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "head.bow",
       "slot": "head",
       "cost": 14,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "head.beanie",
       "slot": "head",
       "cost": 30,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "head.crown",
       "slot": "head",
       "cost": 64,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "eyes.none",
       "slot": "eyes",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "eyes.round",
       "slot": "eyes",
       "cost": 20,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "eyes.sun",
       "slot": "eyes",
       "cost": 36,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "eyes.heart",
       "slot": "eyes",
       "cost": 52,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "collar.none",
       "slot": "collar",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "collar.tag",
       "slot": "collar",
       "cost": 12,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "collar.bell",
       "slot": "collar",
       "cost": 24,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "collar.pearls",
       "slot": "collar",
       "cost": 48,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "neck.none",
       "slot": "neck",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "neck.coral",
       "slot": "neck",
       "cost": 10,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "neck.bowtie",
       "slot": "neck",
       "cost": 22,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "neck.knit",
       "slot": "neck",
       "cost": 34,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "paws.none",
       "slot": "paws",
       "cost": 0,
-      "initial": true
+      "initial": true,
+      "tier": "free"
     },
     {
       "id": "paws.booties",
       "slot": "paws",
       "cost": 26,
-      "initial": false
+      "initial": false,
+      "tier": "free"
     },
     {
       "id": "paws.sneakers",
       "slot": "paws",
       "cost": 40,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     },
     {
       "id": "paws.rain",
       "slot": "paws",
       "cost": 56,
-      "initial": false
+      "initial": false,
+      "tier": "full"
     }
   ],
-  "ads": {
-    "eligibleScene": "Home",
-    "minimumActiveSeconds": 900,
-    "maxInterstitialsPerSession": 1
-  },
   "health": {
     "cooldownSeconds": 604800,
     "graceSeconds": 86400,

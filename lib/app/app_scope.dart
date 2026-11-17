@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import '../ads/ads.dart';
 import 'app_controller.dart';
 import 'feedback.dart';
 
@@ -10,12 +9,10 @@ class AppScope extends InheritedNotifier<AppController> {
     super.key,
     required AppController controller,
     required this.feedback,
-    required this.ads,
     required super.child,
   }) : super(notifier: controller);
 
   final FeedbackService feedback;
-  final AdsController ads;
 
   /// Escucha cambios del estado confirmado.
   static AppController of(BuildContext context) =>
@@ -27,7 +24,4 @@ class AppScope extends InheritedNotifier<AppController> {
 
   static FeedbackService feedbackOf(BuildContext context) =>
       context.getInheritedWidgetOfExactType<AppScope>()!.feedback;
-
-  static AdsController adsOf(BuildContext context) =>
-      context.getInheritedWidgetOfExactType<AppScope>()!.ads;
 }

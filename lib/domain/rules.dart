@@ -1,5 +1,6 @@
 import 'appearance.dart';
 import 'balance.dart';
+import 'entitlements.dart';
 import 'needs_clock.dart';
 import 'pet_state.dart';
 
@@ -130,6 +131,28 @@ class Rules {
     );
   }
 
+  /// Versión a la que pertenece un minijuego.
+  Tier gameTier(GameId game) => switch (game) {
+    GameId.fruit => balance.fruit.tier,
+    GameId.frisbee => balance.frisbee.tier,
+  };
+
+  /// Artículos de [target] que no se poseen y exigen la versión completa.
+  /// Lo ya poseído se puede usar siempre, aunque sea de la versión completa.
+  List<String> lockedItems(
+    PetState s,
+    Appearance target, {
+    required bool fullVersion,
+  }) {
+    if (fullVersion) return const [];
+    return [
+      for (final slot in Slot.values)
+        if (!s.owned.contains(target.of(slot)) &&
+            balance.item(target.of(slot))?.tier == Tier.full)
+          target.of(slot),
+    ];
+  }
+
   /// Coste de llevar el aspecto [target]: suma de artículos no poseídos.
   int lookCost(PetState s, Appearance target) {
     var total = 0;
@@ -145,14 +168,18 @@ class Rules {
   }
 
   /// Compra los artículos no poseídos de [target] y lo equipa en una sola
-  /// operación. Usar artículos en propiedad cuesta cero.
+  /// operación. Usar artículos en propiedad cuesta cero. Sin la versión
+  /// completa, un artículo `full` no poseído rechaza toda la operación.
   PurchaseOutcome applyLook(
     PetState s,
     Appearance target,
     String opId,
-    int nowUtc,
-  ) {
+    int nowUtc, {
+    required bool fullVersion,
+  }) {
     final cost = lookCost(s, target);
+    final locked = lockedItems(s, target, fullVersion: fullVersion);
+    if (locked.isNotEmpty) return RequiresFull(locked);
     if (cost > s.coins) return InsufficientCoins(cost - s.coins, cost);
     final before = clock.advance(s, nowUtc);
     final owned = {...before.owned, ...target.ids};
@@ -221,4 +248,10 @@ class InsufficientCoins extends PurchaseOutcome {
   const InsufficientCoins(this.missing, this.cost);
   final int missing;
   final int cost;
+}
+
+/// Algún artículo exige la versión completa: no se compra nada.
+class RequiresFull extends PurchaseOutcome {
+  const RequiresFull(this.itemIds);
+  final List<String> itemIds;
 }

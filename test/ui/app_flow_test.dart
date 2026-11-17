@@ -8,6 +8,10 @@ import 'package:my_poodle/data/storage_backend.dart';
 import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/needs_clock.dart';
 import 'package:my_poodle/domain/pet_state.dart';
+import 'package:my_poodle/store/simulated_store.dart';
+import 'package:my_poodle/store/store_provider.dart';
+import 'package:my_poodle/ui/parental_gate.dart';
+import 'package:my_poodle/ui/widgets/common.dart';
 
 import '../support.dart';
 
@@ -33,12 +37,17 @@ Future<void> boot(
   MemoryBackend backend, {
   Size size = const Size(390, 844),
   int? now,
+  StoreProvider? store,
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
   await t.pumpWidget(
-    MyPoodleApp(backend: backend, clock: FakeClock(now ?? t0)),
+    MyPoodleApp(
+      backend: backend,
+      clock: FakeClock(now ?? t0),
+      storeProvider: store ?? SimulatedStore(delay: Duration.zero),
+    ),
   );
   // Espera real a la carga de recursos y partida (E/S asíncrona).
   for (var i = 0; i < 40; i++) {
@@ -94,6 +103,26 @@ Future<void> tapIcon(WidgetTester t, IconData icon) async {
 PetState saved(MemoryBackend b) =>
     SaveCodec(loadBalance()).decode(b.files[SaveStore.primary]!);
 
+/// Supera la puerta adulta (número fijo 47 en las pruebas).
+Future<void> passGate(WidgetTester t, {String answer = '47'}) async {
+  await t.enterText(find.byKey(const Key('parental-gate-field')), answer);
+  await t.pump();
+  await t.tap(find.text('Continuar').hitTestable().last);
+  await idle(t);
+}
+
+/// Abre la Zona adulta desde Ajustes.
+Future<void> openAdultZone(WidgetTester t) async {
+  await tapIcon(t, Icons.settings_rounded);
+  final gate = find.text('Acceso para personas adultas');
+  await scrollTo(t, gate);
+  await tapText(t, 'Acceso para personas adultas');
+  await passGate(t);
+}
+
+/// Tienda simulada en la que la versión completa ya es de la cuenta.
+SimulatedStore fullStore() => SimulatedStore(owned: true, delay: Duration.zero);
+
 Future<void> adopt(WidgetTester t, String name) async {
   await t.enterText(find.byType(TextField), name);
   await t.pump();
@@ -102,7 +131,11 @@ Future<void> adopt(WidgetTester t, String name) async {
 
 void main() {
   // La caché de rootBundle guarda futuros de la zona de la prueba anterior.
-  setUp(rootBundle.clear);
+  setUp(() {
+    rootBundle.clear();
+    ParentalGate.nextNumber = () => 47;
+  });
+  tearDown(ParentalGate.reset);
 
   testWidgets('1 y 10 · adoptar con nombre y conservarlo al reabrir', (
     t,
@@ -228,7 +261,7 @@ void main() {
     t,
   ) async {
     final backend = MemoryBackend();
-    await boot(t, backend);
+    await boot(t, backend, store: fullStore());
     await adopt(t, 'Coco');
     await tapText(t, 'Juegos');
     await t.tap(find.text('Jugar').hitTestable().first);
@@ -260,7 +293,7 @@ void main() {
 
   testWidgets('huerto completo concede 2 + manzanas una sola vez', (t) async {
     final backend = MemoryBackend();
-    await boot(t, backend);
+    await boot(t, backend, store: fullStore());
     await adopt(t, 'Coco');
     await tapText(t, 'Juegos');
     await t.tap(find.text('Jugar').hitTestable().first);
@@ -279,14 +312,7 @@ void main() {
     final backend = MemoryBackend();
     await boot(t, backend);
     await adopt(t, 'Nube');
-    await tapIcon(t, Icons.settings_rounded);
-    final gate = find.textContaining('Mantén pulsado');
-    await t.ensureVisible(gate);
-    await t.pump();
-    final g = await t.startGesture(t.getCenter(gate));
-    await frames(t, seconds: 2.3);
-    await g.up();
-    await idle(t);
+    await openAdultZone(t);
     expect(find.text('Zona adulta'), findsOneWidget);
     final reset = find.text('Reiniciar partida…');
     await scrollTo(t, reset);
@@ -304,15 +330,7 @@ void main() {
     await boot(t, backend);
     await adopt(t, 'Nube');
     final rev = saved(backend).revision;
-    await tapIcon(t, Icons.settings_rounded);
-    await t.ensureVisible(find.textContaining('Mantén pulsado'));
-    await t.pump();
-    final g = await t.startGesture(
-      t.getCenter(find.textContaining('Mantén pulsado')),
-    );
-    await frames(t, seconds: 2.3);
-    await g.up();
-    await idle(t);
+    await openAdultZone(t);
     final demo = find.text('Entrar en modo demostración');
     await scrollTo(t, demo);
     await tapText(t, 'Entrar en modo demostración');
@@ -328,6 +346,104 @@ void main() {
     expect(saved(backend).coins, 0);
     expect(find.text('Nube'), findsWidgets);
   });
+
+  for (final size in const [Size(320, 568), Size(430, 932)]) {
+    testWidgets(
+      'P06 · ${size.width.toInt()}×${size.height.toInt()} · candados, puerta adulta y compra simulada',
+      (t) async {
+        final backend = MemoryBackend();
+        final store = SimulatedStore(delay: Duration.zero)..online = false;
+        await boot(t, backend, store: store, size: size);
+        await adopt(t, 'Lola');
+        // Ninguna oferta al arrancar ni en Casa.
+        expect(find.textContaining('Desbloquear'), findsNothing);
+        expect(find.textContaining('Pide ayuda'), findsNothing);
+
+        // Huerto con candado: abre «Pide ayuda a un adulto» y Volver regresa.
+        await tapText(t, 'Juegos');
+        expect(find.text('Versión completa'), findsOneWidget);
+        await tapText(t, 'Ver');
+        expect(
+          find.text('Esto es de la versión completa. Pide ayuda a un adulto'),
+          findsOneWidget,
+        );
+        await tapText(t, 'Volver');
+        expect(find.text('A jugar'), findsOneWidget);
+
+        // Jersey: se prueba gratis, pero el botón pide ayuda; nada cambia.
+        await tapText(t, 'Armario');
+        await tapText(t, 'Ropa');
+        final lockedTile = find.text('Versión completa').hitTestable();
+        final grid = find.byType(CustomScrollView);
+        for (var i = 0; i < 10 && lockedTile.evaluate().isEmpty; i++) {
+          await t.drag(grid, const Offset(0, -150));
+          await idle(t);
+        }
+        await t.tap(lockedTile.first);
+        await idle(t);
+        final askButton = find.widgetWithText(AppButton, 'Versión completa');
+        expect(askButton, findsOneWidget);
+        await t.tap(askButton);
+        await idle(t);
+        expect(find.text('Soy un adulto'), findsOneWidget);
+
+        // Puerta adulta: un fallo cambia de número; acertar abre la compra.
+        await tapText(t, 'Soy un adulto');
+        await passGate(t, answer: '12');
+        expect(find.textContaining('No es correcto'), findsOneWidget);
+        await passGate(t);
+        expect(find.textContaining('Pago único. Sin anuncios'), findsOneWidget);
+
+        // Sin red: no disponible; con red, el precio de la tienda.
+        await scrollTo(t, find.text('Restaurar compras'));
+        expect(
+          find.text('No disponible ahora. Inténtalo con conexión'),
+          findsOneWidget,
+        );
+        store.online = true;
+        await tapText(t, 'Reintentar');
+        expect(find.text('Desbloquear por 1,99 €'), findsOneWidget);
+
+        store.next = SimulatedOutcome.cancel;
+        await tapText(t, 'Desbloquear por 1,99 €');
+        expect(find.textContaining('Compra cancelada'), findsOneWidget);
+        store.next = SimulatedOutcome.error;
+        await tapText(t, 'Desbloquear por 1,99 €');
+        expect(
+          find.textContaining('No se ha podido completar'),
+          findsOneWidget,
+        );
+        store.next = SimulatedOutcome.pending;
+        await tapText(t, 'Reintentar');
+        expect(find.textContaining('Esperando la aprobación'), findsOneWidget);
+        expect(saved(backend).coins, 0);
+        store.approvePending();
+        await idle(t);
+        expect(
+          find.text('¡Gracias! Ya tienes la versión completa'),
+          findsOneWidget,
+        );
+
+        // Vuelve al armario con el jersey en prueba y ya sin candado.
+        await tapText(t, 'Volver');
+        expect(
+          find.widgetWithText(AppButton, 'Versión completa'),
+          findsNothing,
+        );
+        expect(find.textContaining('Faltan'), findsOneWidget);
+        await tapText(t, 'Descartar');
+        await tapText(t, 'Juegos');
+        // El Huerto ya no lleva candado.
+        expect(find.text('Ver'), findsNothing);
+        expect(find.text('Versión completa'), findsNothing);
+        expect(find.text('Jugar'), findsWidgets);
+        expect(
+          saved(backend).owned.any((id) => id.startsWith('outfit.sweater')),
+          isFalse,
+        );
+      },
+    );
+  }
 
   for (final size in const [Size(320, 568), Size(430, 932), Size(834, 1194)]) {
     testWidgets(

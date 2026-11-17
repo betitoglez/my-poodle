@@ -1,13 +1,16 @@
 // Validación de contenido antes de compilar: dart run tool/validate_content.dart
 //
 // Comprueba que la copia empaquetada del balance coincide con la fuente de
-// docs/, que el catálogo es válido (IDs únicos, costes, ranuras, fallbacks) y
-// que cada artículo tiene metadatos visuales y cada pose sus capas.
+// docs/, que el catálogo es válido (IDs únicos, costes, ranuras, fallbacks,
+// versión gratuita o completa de cada artículo y juego, producto de la tienda)
+// y que cada artículo tiene metadatos visuales y cada pose sus capas. También
+// comprueba que no vuelven publicidad ni intermediarios de compras.
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:my_poodle/domain/appearance.dart';
 import 'package:my_poodle/domain/balance.dart';
+import 'package:my_poodle/domain/entitlements.dart';
 
 const requiredLayers = {
   'shadow',
@@ -70,6 +73,28 @@ void main() {
     errors.add(
       'assets/data/balance-v1.json difiere de docs/datos/balance-v1.json',
     );
+  }
+  // Versión gratuita/completa: `tier` obligatorio (Balance.fromJson lo exige
+  // junto con un artículo gratuito comprable por ranura, un juego gratuito y
+  // fullVersion.productId); sin bloque de publicidad.
+  final raw = jsonDecode(packaged) as Map<String, dynamic>;
+  if (raw.containsKey('ads')) {
+    errors.add(
+      'balance-v1.json: el bloque «ads» ya no existe (sin publicidad)',
+    );
+  }
+  final pubspec = File('pubspec.yaml').readAsStringSync();
+  for (final banned in [
+    'google_mobile_ads',
+    'unity_ads',
+    'applovin',
+    'firebase_analytics',
+    'purchases_flutter',
+    'adapty',
+  ]) {
+    if (pubspec.contains(banned)) {
+      errors.add('pubspec.yaml: dependencia no permitida $banned');
+    }
   }
   Balance? balance;
   try {
@@ -177,8 +202,10 @@ void main() {
     if (!File(a).existsSync()) errors.add('recurso ausente: $a');
   }
   if (errors.isEmpty) {
+    final free = balance!.styles.where((s) => s.tier == Tier.free).length;
     stdout.writeln(
-      'Contenido válido: ${balance!.styles.length} artículos, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
+      'Contenido válido: ${balance.styles.length} artículos ($free gratis, ${balance.styles.length - free} de la versión completa), '
+      'producto ${balance.fullVersionProductId}, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
     );
   } else {
     for (final e in errors) {

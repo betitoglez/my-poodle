@@ -13,8 +13,9 @@ Decisión confirmada el 16 de noviembre de 2026. Juego móvil completamente 2D p
 | Recursos | JSON, PNG con transparencia, atlas y secuencias por capas empaquetados en assets y declarados en pubspec.yaml. Audio local de Mureka/ElevenLabs; elegir un único paquete de reproducción compatible en F03 |
 | Pruebas | flutter_test para dominio/widgets, integración con integration_test del SDK, pruebas de componentes Flame con avance de tiempo controlado y hardware real |
 | Plataformas | Proyecto android/ con Gradle/Kotlin y proyecto ios/ con Xcode/Swift; MethodChannel pequeño para ruta y exclusión de backup. APK de desarrollo, AAB e IPA de distribución |
+| Compra | `in_app_purchase` (plugin oficial de flutter.dev: StoreKit en iOS y Google Play Billing en Android) para un único producto no consumible. Única dependencia nativa de terceros justificada; ver [Versión completa](#versión-completa-compra-única) |
 
-Resolver versiones compatibles de Flame y paquetes en F00, conservar pubspec.lock de la aplicación y registrar flutter --version, flutter doctor -v y herramientas nativas. Sin servidor, carga remota de recursos, base de datos ni framework de inyección adicional. Referencias: [Flutter para juegos](https://docs.flutter.dev/resources/games-toolkit), [FlameGame](https://docs.flame-engine.org/latest/flame/game.html).
+Resolver versiones compatibles de Flame y paquetes en F00, conservar pubspec.lock de la aplicación y registrar flutter --version, flutter doctor -v y herramientas nativas. Sin servidor, carga remota de recursos, base de datos, publicidad, analítica ni framework de inyección adicional. Referencias: [Flutter para juegos](https://docs.flutter.dev/resources/games-toolkit), [FlameGame](https://docs.flame-engine.org/latest/flame/game.html).
 
 ## Archivos y composición
 
@@ -22,14 +23,17 @@ Resolver versiones compatibles de Flame y paquetes en F00, conservar pubspec.loc
 lib/
   main.dart
   app/           app_root.dart, app_router.dart, app_lifecycle.dart
-  domain/        pet_state.dart, needs_clock.dart, wallet_rules.dart, activity_result.dart
-  data/          save_store.dart, catalogs.dart, catalog_loader.dart
+  domain/        pet_state.dart, needs_clock.dart, wallet_rules.dart, activity_result.dart,
+                 entitlements.dart
+  data/          save_store.dart, catalogs.dart, catalog_loader.dart, entitlement_store.dart
   platform/      local_storage_channel.dart
   ui/            adoption_view.dart, home_view.dart, care_view.dart, wardrobe_view.dart,
-                 games_view.dart, results_view.dart
+                 games_view.dart, results_view.dart, ask_adult_view.dart, parental_gate.dart,
+                 full_version_view.dart
   game/          pet_component.dart, appearance_resolver.dart, care_game.dart,
                  orchard_game.dart, frisbee_game.dart, game_registry.dart, game_session.dart
-  ads/           ads_provider.dart, no_ads.dart, simulated_ads.dart, ads_controller.dart
+  store/         store_provider.dart, iap_store.dart, simulated_store.dart, no_store.dart,
+                 store_controller.dart
 assets/          data/, images/pet/, images/rooms/, images/ui/, audio/, fonts/
 android/        configuración y puente de almacenamiento Kotlin
 ios/            configuración y puente de almacenamiento Swift
@@ -38,7 +42,7 @@ integration_test/ app_flow_test.dart
 tool/           validate_content.dart
 ```
 
-AppRoot construye reloj, catálogos, SaveStore y sesión una vez. Un estado observable sencillo entrega revisiones confirmadas a widgets y componentes. Bootstrap carga antes de decidir Adopción o Casa. Los minijuegos se registran por ID en GameRegistry, no por nombre de archivo o ruta ejecutable tomada del JSON. Mantener una instancia de juego por ruta, creada fuera de build; al salir pausar, cancelar sesión y liberar listeners, audio y recursos exclusivos. Compartir atlas de la mascota sin duplicarlos por combinación.
+AppRoot construye reloj, catálogos, SaveStore, EntitlementStore, StoreController y sesión una vez. Un estado observable sencillo entrega revisiones confirmadas a widgets y componentes. Bootstrap carga antes de decidir Adopción o Casa. Los minijuegos se registran por ID en GameRegistry, no por nombre de archivo o ruta ejecutable tomada del JSON. Mantener una instancia de juego por ruta, creada fuera de build; al salir pausar, cancelar sesión y liberar listeners, audio y recursos exclusivos. Compartir atlas de la mascota sin duplicarlos por combinación.
 
 ## Contratos entre capas
 
@@ -46,10 +50,12 @@ AppRoot construye reloj, catálogos, SaveStore y sesión una vez. Un estado obse
 |---|---|---|
 | Adopt | nombre validado, reloj | Solo sin partida. Cuatro artículos base, estadísticas, revisión 1 y saldo 0 |
 | AdvanceTime | estado, nowUtc | Copia con necesidades y cursor actualizados en la misma revisión |
-| BeginActivity | ID de catálogo | sessionId en memoria; pasos, colisiones y puntuación provisional no van a disco |
+| BeginActivity | ID de catálogo, versión | sessionId en memoria; pasos, colisiones y puntuación provisional no van a disco. Un juego `full` sin versión completa se rechaza con `requiresFull` y no crea sesión. Los cuidados no consultan la versión |
 | Finish | sessionId, resultado tipado | Deriva del catálogo premio/efecto. Solo la sesión guarda; callback duplicado devuelve recibo previo |
-| BuyAndEquip | itemId, revisión mostrada | Relee coste, valida saldo/ranura; poseído se equipa gratis. Revisión obsoleta refresca y pide confirmar si cambia el gasto |
-| Pause / Resume | ciclo de vida | Pausar bucle Flame, entrada, audio y reloj publicitario. Vaciar gestos, requerir Continuar; actualizar necesidades al regresar. Proceso terminado vuelve al menú |
+| BuyAndEquip | itemId, revisión mostrada, versión | Relee coste, valida saldo/ranura; poseído se equipa gratis aunque sea `full`. Artículo `full` no poseído sin versión completa → `requiresFull` sin mutar. Revisión obsoleta refresca y pide confirmar si cambia el gasto |
+| CanAccess | tier, Entitlement | Función pura del dominio: `free` siempre; `full` solo con `Entitlement.full`. La UI la usa para mostrar candados; las reglas la vuelven a aplicar |
+| ApplyStoreEvent | evento verificado de la tienda, ID de evento | Idempotente por ID. Comprada o restaurada → full; revocada confirmada → no full; pendiente, cancelada o error → sin cambio de derecho. Guarda el documento de derecho antes de publicar. Nunca toca monedas, propiedad ni partida |
+| Pause / Resume | ciclo de vida | Pausar bucle Flame, entrada y audio. Vaciar gestos, requerir Continuar; actualizar necesidades al regresar. Proceso terminado vuelve al menú |
 | ApplyAppearance | IDs adquiridos por ranura | Resolver color, corte, ropa y cuello; restablecer capas base y aplicar máscaras, atlas, anclajes y orden de dibujo. Mismo resultado en casa, cuidados y juegos |
 
 ## Caniche modular 2D
@@ -77,10 +83,47 @@ Android: resolver Context.getNoBackupFilesDir() en Kotlin por MethodChannel y cr
 
 **Lectura.** Sin archivos → Adopción. Principal válido → cargar. Principal inválido o ausente → validar copia y promoverla con seguridad. Nunca confirmar compras desde un temporal huérfano. Ambos dañados → preservar y ofrecer reinicio adulto. Esquema futuro → mantener archivos y pedir actualizar. Añadir conversión pura y fixture por versión de esquema; copia antes del primer guardado migrado. Se conservan IDs, monedas, reglas y esquema v1: no hay build publicada que requiera migrar desde otro motor.
 
-**Catálogos.** balance-v1.json es la fuente; F01 lo empaqueta en assets/data/balance-v1.json y comprueba equivalencia. Separar balance de metadatos visuales (atlas, poses, anclajes, máscaras y prioridades) en assets/data/appearance-v1.json. Validar IDs únicos, costes enteros no negativos, referencias, cuatro fallbacks gratuitos y límites de métricas/recompensas. Retirar un cosmético mantiene su propiedad y muestra fallback. Logs: evento/revisión, nunca nombre o contenido de partida.
+**Catálogos.** balance-v1.json es la fuente; F01 lo empaqueta en assets/data/balance-v1.json y comprueba equivalencia. Separar balance de metadatos visuales (atlas, poses, anclajes, máscaras y prioridades) en assets/data/appearance-v1.json. Validar IDs únicos, costes enteros no negativos, referencias, cuatro fallbacks gratuitos y límites de métricas/recompensas. Cada artículo y cada juego declara `"tier": "free"` o `"tier": "full"` (ausente es error de validación); los artículos iniciales y al menos un juego deben ser `free`, y cada ranura debe tener un artículo `free` comprable. El bloque `fullVersion` declara `productId`. El reparto por versión es el de [FUNCIONAL](FUNCIONAL.md#versión-gratuita-y-versión-completa). El bloque `ads` se elimina al retirar la publicidad. Retirar un cosmético mantiene su propiedad y muestra fallback. Logs: evento/revisión, nunca nombre o contenido de partida.
 
-## Publicidad aislada
+## Versión completa (compra única)
 
-AdsController evalúa ruta, tiempo activo y número de impresiones. Banner solo en casa y fuera de controles. Intersticial solo al regresar tras resultado guardado; propuesta inicial 900 s activos y uno por sesión, deshabilitado hasta validar proveedor. No-fill, demora o error mantienen navegación y premios. Descartar callbacks con ID de petición anterior.
+Decisión del 17 de noviembre de 2026; reglas de producto en [FUNCIONAL](FUNCIONAL.md#versión-gratuita-y-versión-completa). Sin publicidad: se retiran `AdsController`, `NoAds`, la banda simulada del modo demostración y el bloque `ads` del balance.
 
-NoAds y SimulatedAds permiten implementar sin red. Antes de integrar un proveedor infantil verificar soporte Flutter mantenido, compatibilidad iOS/Android y dependencias de mediación o puente nativo. No trasladar automáticamente un SDK de otro motor ni dar por aceptado un proveedor. Ver ENTREGA para configuración y publicación.
+**Dependencia.** `in_app_purchase`, mantenido por el equipo de Flutter, con implementación federada para StoreKit en iOS y Google Play Billing en Android. Antes de añadirlo, comprobar en pub.dev la versión compatible con el Flutter fijado, la versión de Play Billing Library que exige Play en ese momento, el soporte de StoreKit 2 y la versión mínima de iOS/Android; registrarlas en ESTADO. Sin intermediarios (RevenueCat, Adapty…): añadirían SDK, datos y cuenta externa sin necesidad para un solo producto.
+
+**Producto.** Un único producto no consumible. ID propuesto `mypoodle.full_version`, igual en las dos tiendas; confirmar con el identificador definitivo de la app antes de crearlo, porque no se puede reutilizar tras borrarlo. El ID vive en el bloque `fullVersion` del balance; el precio no está en la app: se muestra el `price` localizado que devuelve la tienda.
+
+**Capas.**
+
+| Pieza | Responsabilidad |
+|---|---|
+| `domain/entitlements.dart` | `Entitlement` inmutable (`full`, `state`: none, pending, purchased, revoked) y reglas puras: `canAccess(tier)`, `apply(event)`, idempotencia por ID de evento. Sin Flutter ni plugin |
+| `store/store_provider.dart` | Interfaz: `Stream<StoreEvent> events`, `Future<StoreProduct?> loadProduct()`, `Future<void> buy()`, `Future<void> restore()`, `Future<StoreOwnership> queryOwnership()` (owned / notOwned / unknown), `dispose()`. `StoreEvent`: pending, purchased, restored, canceled, error(código), revoked, con ID de evento |
+| `store/iap_store.dart` | Adaptador de `in_app_purchase`. Crear solo en Android/iOS (comprobación de plataforma o import condicional): el plugin no tiene implementación web |
+| `store/simulated_store.dart` | Pruebas y modo demostración: disponible, sin producto, sin red, demora, cancelación, error, pendiente → aprobado/rechazado, revocación y eventos duplicados |
+| `store/no_store.dart` | Web y entornos sin tienda: producto no disponible, derecho según caché |
+| `store/store_controller.dart` | Escucha eventos, aplica reglas del dominio, persiste con EntitlementStore, publica el derecho confirmado y finaliza transacciones |
+| `data/entitlement_store.dart` | Documento de derecho con el mismo escritor atómico que la partida |
+| `ui/parental_gate.dart`, `ask_adult_view.dart`, `full_version_view.dart` | Puerta adulta, aviso de candado y pantalla de compra; solo emiten intenciones |
+
+**Arranque.** Cargar el documento de derecho junto a la partida; si falta o está dañado, `full = false` sin bloquear el arranque. StoreController se suscribe al flujo de compras **antes de mostrar Casa**, para recibir transacciones pendientes o completadas fuera de la app. Después, sin bloquear la UI: cargar el producto y, en Android con conexión, consultar la propiedad (consulta silenciosa de compras). En iOS no llamar a restaurar automáticamente; solo con el botón «Restaurar compras», porque puede pedir iniciar sesión en la tienda.
+
+**Flujo de compra.** Puerta adulta → `buy()` → evento. Al recibir purchased o restored de `mypoodle.full_version`: aplicar regla, escribir el documento, publicar y solo entonces llamar a `completePurchase` si el plugin lo indica (`pendingCompletePurchase`). Si la escritura falla, no completar: la tienda volverá a entregar la transacción. Pending deja `state = pending` y no desbloquea. Canceled y error mantienen el estado anterior y muestran el mensaje correspondiente. Ignorar eventos de otro producto y duplicados por ID.
+
+**Revocación.** Aplicar `full = false` solo con una respuesta positiva de la tienda: en Android, consulta de compras correcta sin el producto; en iOS, transacción revocada o reembolsada cuando el plugin la exponga. Sin red, error o resultado `unknown`: conservar la caché. Al revocar, la propiedad de artículos ya comprados con monedas no cambia.
+
+**Verificación.** Sin servidor no hay validación de recibos propia: se confía en la verificación de la plataforma (transacciones firmadas de StoreKit y estado PURCHASED de Play) que entrega el plugin. Riesgo aceptado: un dispositivo manipulado puede editar la caché local. No guardar recibos ni datos de la cuenta.
+
+**Documento de derecho** (`entitlement.json`, en el mismo directorio privado que la partida; principal, copia y temporal como la partida):
+
+```json
+{"schemaVersion": 1, "productId": "mypoodle.full_version", "full": true,
+ "state": "purchased", "source": "store", "updatedUtc": 1794744000,
+ "lastEventIds": ["a1f3…"]}
+```
+
+`lastEventIds` guarda un resumen (hash) de los últimos IDs de transacción para la idempotencia; nunca el ID en claro, el recibo ni datos de la cuenta. `source` puede ser `store` o `simulated`; un documento `simulated` se ignora en Release. Reiniciar la partida borra principal, copia y temporales de la partida, no este documento. La partida mantiene el esquema v1 sin cambios.
+
+**Plataformas.** Android: el plugin añade el permiso `com.android.vending.BILLING`; comprobarlo en el manifiesto fusionado y que no aparecen otros permisos. iOS: capacidad In-App Purchase en el target Runner y un archivo de configuración StoreKit (`ios/Runner/MyPoodle.storekit`) seleccionado en el esquema de depuración para probar sin la tienda real. Compartir en familia se activa en App Store Connect.
+
+**Modo demostración.** Usa SimulatedStore y añade «Simular versión completa», «Simular compra pendiente» y «Simular reembolso». No escribe el documento real de derecho y se restaura al salir.

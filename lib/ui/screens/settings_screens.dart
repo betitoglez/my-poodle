@@ -2,7 +2,10 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
 import '../../domain/appearance.dart';
+import '../../domain/entitlements.dart';
+import '../full_version_view.dart';
 import '../navigation.dart';
+import '../parental_gate.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
@@ -162,7 +165,7 @@ class SettingsScreen extends StatelessWidget {
           icon: Icons.lock_rounded,
           children: [
             const Text(
-              'Partida, privacidad, publicidad y reinicio.',
+              'Versión completa, partida, privacidad y reinicio.',
               style: AppText.body,
             ),
             const SizedBox(height: AppSpace.m),
@@ -199,14 +202,25 @@ class AdultZoneScreen extends StatelessWidget {
           ],
         ),
         _Section(
-          'Publicidad',
-          icon: Icons.campaign_rounded,
+          'Versión completa',
+          icon: Icons.lock_open_rounded,
           children: [
             Text(
-              'Este prototipo no muestra anuncios ni incluye SDK publicitarios (${AppScope.adsOf(context).provider.name}). '
-              'Una futura versión podría reservar un banner en Casa, siempre separado de los controles y sin afectar a '
-              'premios ni partida. Las compras con dinero real no existen.',
+              c.fullVersion
+                  ? 'La versión completa está desbloqueada en este dispositivo.'
+                  : 'Pago único que desbloquea el Huerto saltarín, 24 artículos más del armario y las novedades futuras. '
+                        'Sin anuncios ni venta de monedas: las monedas se ganan jugando.',
               style: AppText.body,
+            ),
+            const SizedBox(height: AppSpace.s),
+            AppButton(
+              label: c.fullVersion
+                  ? 'Ver versión completa'
+                  : 'Versión completa y restaurar compras',
+              icon: Icons.lock_open_rounded,
+              secondary: true,
+              expand: true,
+              onPressed: () => pushScreen(context, const FullVersionScreen()),
             ),
           ],
         ),
@@ -215,7 +229,7 @@ class AdultZoneScreen extends StatelessWidget {
           icon: Icons.privacy_tip_rounded,
           children: [
             const Text(
-              'No se recogen datos personales ni analítica externa.',
+              'No se recogen datos personales, analítica externa ni publicidad.',
               style: AppText.body,
             ),
             const SizedBox(height: AppSpace.s),
@@ -233,7 +247,7 @@ class AdultZoneScreen extends StatelessWidget {
           icon: Icons.science_rounded,
           children: [
             const Text(
-              'Revisa necesidades bajas, saldo, banner y combinaciones con una partida de muestra en memoria. '
+              'Revisa necesidades bajas, saldo, versión completa y combinaciones con una partida de muestra en memoria. '
               'La partida normal no se modifica y vuelve al salir.',
               style: AppText.body,
             ),
@@ -327,7 +341,9 @@ class PrivacyScreen extends StatelessWidget {
           'Qué no hace',
           children: [
             Text(
-              'No hay cuentas, servidores, sincronización, analítica externa, publicidad real ni compras con dinero.',
+              'No hay cuentas, servidores, sincronización, analítica externa ni publicidad. La única compra con dinero es '
+              'la versión completa: la cobra la tienda (App Store o Google Play) tras la puerta adulta, y la app solo guarda '
+              'en el dispositivo si está desbloqueada, sin recibos ni datos de la cuenta.',
               style: AppText.body,
             ),
           ],
@@ -336,7 +352,7 @@ class PrivacyScreen extends StatelessWidget {
           'Pendiente para publicación',
           children: [
             Text(
-              'Responsable, contacto, base legal, proveedores (si se integra publicidad) y adaptación a '
+              'Responsable, contacto, base legal, tratamiento de la compra por cada tienda y adaptación a '
               'las normas de apps infantiles de cada tienda.',
               style: AppText.body,
             ),
@@ -395,7 +411,8 @@ class HelpScreen extends StatelessWidget {
           children: [
             Text(
               'Prueba colores, peinados, ropa y accesorios gratis. Solo pagas al confirmar. Lo que compras es tuyo '
-              'para siempre y puedes quitártelo y ponértelo sin volver a pagar.',
+              'para siempre y puedes quitártelo y ponértelo sin volver a pagar. Lo que lleva candado es de la '
+              'versión completa: puedes probártelo, pero para comprarlo hay que pedir ayuda a un adulto.',
               style: AppText.body,
             ),
           ],
@@ -560,13 +577,36 @@ class DemoScreen extends StatelessWidget {
           ],
         ),
         _Section(
-          'Casa',
+          'Versión completa',
           children: [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Mostrar espacio de banner en Casa'),
-              value: c.bannerPreview,
-              onChanged: (_) => c.demoToggleBanner(),
+            Text(
+              'Ahora: ${c.purchases.full
+                  ? 'completa'
+                  : c.purchases.pending
+                  ? 'compra pendiente'
+                  : 'gratuita'}. '
+              'Solo en memoria; no cambia la compra real.',
+              style: AppText.body,
+            ),
+            const SizedBox(height: AppSpace.s),
+            Wrap(
+              spacing: AppSpace.s,
+              runSpacing: AppSpace.s,
+              children: [
+                OutlinedButton(
+                  onPressed: () =>
+                      c.demoEntitlement(EntitlementState.purchased),
+                  child: const Text('Simular versión completa'),
+                ),
+                OutlinedButton(
+                  onPressed: () => c.demoEntitlement(EntitlementState.pending),
+                  child: const Text('Simular compra pendiente'),
+                ),
+                OutlinedButton(
+                  onPressed: () => c.demoEntitlement(EntitlementState.revoked),
+                  child: const Text('Simular reembolso'),
+                ),
+              ],
             ),
           ],
         ),

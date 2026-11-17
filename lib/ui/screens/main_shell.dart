@@ -28,7 +28,6 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final shell = ShellScope.maybeOf(context)!;
-    final c = AppScope.of(context);
     return ListenableBuilder(
       listenable: shell,
       builder: (context, _) {
@@ -43,8 +42,6 @@ class _MainShellState extends State<MainShell> {
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Banda de banner separada de la navegación y solo en Casa.
-              if (c.bannerPreview && tab == ShellTab.home) const BannerSlot(),
               NavigationBar(
                 selectedIndex: tab.index,
                 onDestinationSelected: (i) => shell.go(ShellTab.values[i]),

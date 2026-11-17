@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
+import '../parental_gate.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
@@ -62,7 +63,7 @@ class LoadingScreen extends StatelessWidget {
                   if (allowAdultReset) ...[
                     const SizedBox(height: AppSpace.l),
                     AdultGateButton(
-                      label: 'Adulto: mantén pulsado para reiniciar',
+                      label: 'Persona adulta: reiniciar',
                       onUnlocked: () async {
                         final c = AppScope.read(context);
                         if (await showResetDialog(

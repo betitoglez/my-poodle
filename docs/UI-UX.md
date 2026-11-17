@@ -13,16 +13,22 @@ La UI combina títulos serif redondeados (familia de referencia Young Serif), te
 | Pantalla | Escena, información y controles | Transición y estados |
 |---|---|---|
 | Adopción | Retrato sobre cojín, «Tu caniche toy», campo Nombre, sugerencia y Adoptar | Teclado deja visible la confirmación; error bajo el campo; doble toque crea solo una partida |
-| Casa | Nombre, retrato del salón, saldo y cuatro indicadores. Accesos Cuidados, Juegos y Armario | Sugerencia para la necesidad más baja; mascota responde a caricia; banner elegible en banda separada al pie |
+| Casa | Nombre, retrato del salón, saldo y cuatro indicadores. Accesos Cuidados, Juegos y Armario | Sugerencia para la necesidad más baja; mascota responde a caricia. Sin banners ni ofertas |
 | Alimentación | Cámara frente a cuenco, tres marcas y botón Dar un bocado | Escala del alimento disminuye, ojos siguen la mano, último paso abre resumen de saciedad |
 | Baño | Bañera lavanda, contador de zonas, botones de ducha y esponja según fase | Espuma visible donde ya se ha trabajado; contorno y toque alternativo por zona |
 | Paseo | Vista del sendero, próxima parada y tres huellas | Cámara acompaña con suavidad y permite omitir movimiento de cámara si está reducido |
 | Peluquería | Caniche y espejo a media distancia, tres mechones, peine y acceso a cortes | Diferenciar terminar el cepillado y comprar/probar un estilo; precio siempre visible |
-| Armario | Vestidor con luz frontal, indicador de saldo, pestañas Ropa, Artículos, Colores y Cortes | Mostrar el perro con la selección. Confirmación expresa el saldo restante; estado propio, equipado o precio |
-| Juegos | Dos tarjetas con imagen del huerto y del prado, título y acción | Elegir abre instrucciones, jugar, pausar, repetir o volver |
+| Armario | Vestidor con luz frontal, indicador de saldo, pestañas Ropa, Artículos, Colores y Cortes | Mostrar el perro con la selección. Confirmación expresa el saldo restante; estado propio, equipado, precio o candado «Versión completa». Un artículo con candado se prueba en la vista previa y su botón abre «Pide ayuda a un adulto» |
+| Juegos | Dos tarjetas con imagen del huerto y del prado, título y acción | Elegir abre instrucciones, jugar, pausar, repetir o volver. Sin la versión completa, el Huerto lleva candado y abre «Pide ayuda a un adulto» |
 | Huerto | Cámara lateral, próximo bancal visible, contador de frutas, tiempo y botón de salto | Saltar con un toque. Confirmar fruta por brillo/sonido breve; caer devuelve al último apoyo |
 | Frisbee | Campo despejado, aro destino, disco y guía de trayectoria | Flecha de arrastre con alternativa de toque. Mostrar intentos y aciertos; bloquear entrada durante devolución |
-| Resultado | Cuidado o juego recién terminado, caniche, cambio de necesidad o monedas y saldo | Confirmado tras escritura; al fallar guardar ofrecer Reintentar. Nunca superponer una publicidad al premio |
+| Resultado | Cuidado o juego recién terminado, caniche, cambio de necesidad o monedas y saldo | Confirmado tras escritura; al fallar guardar ofrecer Reintentar. Nunca superponer una oferta al premio |
+| Pide ayuda a un adulto | Caniche con el candado, «Esto es de la versión completa. Pide ayuda a un adulto», botones «Soy un adulto» y «Volver» | Volver regresa a donde estaba, sin perder la vista previa. «Soy un adulto» abre la puerta adulta |
+| Versión completa | Solo tras la puerta adulta. Lista corta de lo que incluye, «Pago único. Sin anuncios. Las monedas se ganan jugando», botón «Desbloquear por {precio de la tienda}», «Restaurar compras» y enlace a privacidad | Estados: cargando, disponible, no disponible sin conexión, comprando, esperando la aprobación, desbloqueada («¡Gracias! Ya tienes la versión completa») y error con Reintentar. Al terminar vuelve al punto de partida con el contenido desbloqueado |
+
+## Puerta adulta
+
+Protege la compra, «Restaurar compras», la Zona adulta (reinicio y modo demostración) y cualquier enlace externo. Sustituye a la pulsación mantenida de 2 s, que supera cualquier niño. Pide escribir en cifras un número del 21 al 99 mostrado en letras («Escribe en cifras: cuarenta y siete») con teclado numérico. Número aleatorio en cada apertura; un fallo muestra otro número sin revelar la respuesta; tras tres fallos seguidos espera 30 s antes de otro intento. Cerrar o salir la reinicia. El acceso concedido vale solo para la acción solicitada y caduca al salir de la pantalla protegida. Textos de adulto en español neutro; no usar colores ni animaciones que inviten al niño a pulsar. Revisar antes de publicar con las normas vigentes de Apple Kids y Google Play Families.
 
 ## Adaptación al móvil
 

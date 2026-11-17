@@ -9,6 +9,7 @@ import '../../domain/rules.dart';
 import '../../game/frisbee_game.dart';
 import '../../game/game_registry.dart';
 import '../../game/orchard_game.dart';
+import '../ask_adult_view.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/activity_frame.dart';
@@ -24,8 +25,21 @@ mixin _GameSession<W extends StatefulWidget> on State<W> {
   bool finishing = false;
   GameId get gameId;
 
-  void beginSession() =>
-      session = AppScope.read(context).beginActivity(gameId.name);
+  /// Un juego de la versión completa sin derecho no crea sesión: vuelve atrás
+  /// y abre «Pide ayuda a un adulto» (la tarjeta ya lo evita; esto es la
+  /// segunda comprobación de las reglas).
+  void beginSession() {
+    final s = AppScope.read(context).beginGame(gameId);
+    session = s ?? '';
+    if (s == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final nav = Navigator.of(context);
+        nav.pop();
+        showAskAdult(nav.context);
+      });
+    }
+  }
 
   Future<void> complete(int score) async {
     if (finishing) return;

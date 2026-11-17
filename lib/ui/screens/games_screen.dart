@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../app/app_scope.dart';
 import '../../domain/rules.dart';
 import '../../game/game_registry.dart';
+import '../ask_adult_view.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -48,8 +49,13 @@ class GamesScreen extends StatelessWidget {
                       best: def.id == GameId.fruit
                           ? c.pet.bestFruit
                           : c.pet.bestFrisbee,
-                      onOpen: () =>
-                          pushScreen(context, InstructionsScreen(game: def.id)),
+                      locked: !c.canPlay(def.id),
+                      onOpen: () => c.canPlay(def.id)
+                          ? pushScreen(
+                              context,
+                              InstructionsScreen(game: def.id),
+                            )
+                          : showAskAdult(context),
                     ),
                   ),
               ],
@@ -66,17 +72,23 @@ class _GameCard extends StatelessWidget {
     required this.def,
     required this.best,
     required this.onOpen,
+    this.locked = false,
   });
   final GameDefinition def;
   final int best;
   final VoidCallback onOpen;
+
+  /// Juego de la versión completa sin derecho: candado, no abre el juego.
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
     final l = Layout.of(context);
     return Semantics(
       button: true,
-      label: '${def.title}. ${def.tagline}. Récord $best ${def.scoreLabel}.',
+      label: locked
+          ? '${def.title}. Versión completa. Pide ayuda a un adulto.'
+          : '${def.title}. ${def.tagline}. Récord $best ${def.scoreLabel}.',
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -90,7 +102,16 @@ class _GameCard extends StatelessWidget {
             children: [
               SizedBox(
                 height: l.compact ? 120 : 170,
-                child: Image.asset(def.thumbnail, fit: BoxFit.cover),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(def.thumbnail, fit: BoxFit.cover),
+                    if (locked) ...[
+                      Container(color: const Color(0x5534283B)),
+                      const Positioned(top: 10, right: 10, child: LockBadge()),
+                    ],
+                  ],
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(AppSpace.m),
@@ -112,8 +133,11 @@ class _GameCard extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpace.s),
                     AppButton(
-                      label: 'Jugar',
-                      icon: Icons.play_arrow_rounded,
+                      label: locked ? 'Ver' : 'Jugar',
+                      icon: locked
+                          ? Icons.lock_rounded
+                          : Icons.play_arrow_rounded,
+                      secondary: locked,
                       onPressed: onOpen,
                     ),
                   ],

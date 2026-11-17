@@ -13,6 +13,7 @@ import '../../game/pet/appearance_catalog.dart';
 import '../../game/pet/pet_painter.dart';
 import '../../game/scenes/room_painter.dart';
 import '../../game/scenes/stage_game.dart';
+import '../ask_adult_view.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -183,6 +184,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   Future<bool> _apply([Appearance? target]) async {
     final c = AppScope.read(context);
     final look = target ?? _preview;
+    // Artículos de la versión completa: se prueban, pero no se compran.
+    if (c.lockedIn(look).isNotEmpty) {
+      await showAskAdult(context);
+      return false;
+    }
     final cost = c.lookCost(look);
     if (cost > c.pet.coins) {
       final choice = await showInsufficientDialog(
@@ -221,6 +227,8 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     }
     if (r is InsufficientCoins) {
       await showInsufficientDialog(context, missing: r.missing, price: r.cost);
+    } else if (r is RequiresFull) {
+      await showAskAdult(context);
     }
     return false;
   }
@@ -260,6 +268,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     final equipped = pet.appearance.of(_slot) == selectedId;
     final dirty = _preview != pet.appearance;
     final cost = c.lookCost(_preview);
+    final locked = c.lockedIn(_preview).isNotEmpty;
     final zoom = ThumbZoom.of(_slot);
 
     // Acción contextual.
@@ -283,6 +292,14 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
               expand: true,
               onPressed: null,
             );
+    } else if (locked) {
+      action = AppButton(
+        label: 'Versión completa',
+        icon: Icons.lock_rounded,
+        secondary: true,
+        expand: true,
+        onPressed: () => showAskAdult(context),
+      );
     } else if (cost == 0) {
       action = AppButton(
         label: 'Usar',
@@ -444,6 +461,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                               ),
                               selected: it.id == selectedId,
                               owned: pet.owned.contains(it.id),
+                              locked: c.isLocked(it.id),
                               equipped: pet.appearance.of(_slot) == it.id,
                               onTap: () =>
                                   _setPreview(_preview.withSlot(_slot, it.id)),
@@ -480,7 +498,9 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      'Probar es gratis. Solo pagas al confirmar.',
+                      locked
+                          ? 'Probar es gratis. Para tenerlo, pide ayuda a un adulto.'
+                          : 'Probar es gratis. Solo pagas al confirmar.',
                       style: AppText.small,
                     ),
                   ),
@@ -586,6 +606,7 @@ class _ItemTile extends StatelessWidget {
     required this.owned,
     required this.equipped,
     required this.onTap,
+    this.locked = false,
   });
   final StyleItem item;
   final String label;
@@ -597,11 +618,16 @@ class _ItemTile extends StatelessWidget {
   final bool equipped;
   final VoidCallback onTap;
 
+  /// De la versión completa y no poseído: se prueba, no se compra.
+  final bool locked;
+
   @override
   Widget build(BuildContext context) {
     final state = equipped
         ? 'Equipado'
-        : (owned ? 'En propiedad' : '${item.cost} monedas');
+        : (owned
+              ? 'En propiedad'
+              : (locked ? 'Versión completa' : '${item.cost} monedas'));
     return Semantics(
       button: true,
       selected: selected,
@@ -624,7 +650,18 @@ class _ItemTile extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: PetThumb(look: look, zoom: zoom),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      PetThumb(look: look, zoom: zoom),
+                      if (locked)
+                        const Positioned(
+                          top: 0,
+                          right: 0,
+                          child: LockBadge(compact: true),
+                        ),
+                    ],
+                  ),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -665,6 +702,12 @@ class _ItemTile extends StatelessWidget {
                         Icons.inventory_2_rounded,
                         size: 16,
                         color: AppColors.inkSoft,
+                      )
+                    else if (locked)
+                      const Icon(
+                        Icons.lock_rounded,
+                        size: 16,
+                        color: AppColors.plum,
                       )
                     else
                       const CoinIcon(size: 16),

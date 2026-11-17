@@ -3,6 +3,7 @@
 library;
 
 import 'appearance.dart';
+import 'entitlements.dart';
 
 class BalanceFormatException implements Exception {
   BalanceFormatException(this.message);
@@ -35,7 +36,9 @@ class FruitRule {
     required this.maxScore,
     required this.baseCoins,
     required this.coinsPerPoint,
+    this.tier = Tier.free,
   });
+  final Tier tier;
   final int seconds;
   final int maxScore;
   final int baseCoins;
@@ -51,7 +54,9 @@ class FrisbeeRule {
     required this.flightSeconds,
     required this.catchRadius,
     required this.targetsField,
+    this.tier = Tier.free,
   });
+  final Tier tier;
   final int throws;
   final int maxScore;
   final int baseCoins;
@@ -108,11 +113,15 @@ class StyleItem {
     required this.slot,
     required this.cost,
     required this.initial,
+    this.tier = Tier.free,
   });
   final String id;
   final Slot slot;
   final int cost;
   final bool initial;
+
+  /// Versión que permite comprarlo (los poseídos siempre se pueden usar).
+  final Tier tier;
 }
 
 class Balance {
@@ -129,6 +138,7 @@ class Balance {
     required this.health,
     required this.status,
     required List<StyleItem> styles,
+    this.fullVersionProductId = 'mypoodle.full_version',
   }) : styles = List.unmodifiable(styles) {
     _validate();
   }
@@ -145,6 +155,9 @@ class Balance {
   final HealthRule health;
   final StatusRule status;
   final List<StyleItem> styles;
+
+  /// Producto de la tienda que desbloquea la versión completa.
+  final String fullVersionProductId;
 
   StyleItem? item(String id) {
     for (final s in styles) {
@@ -173,11 +186,28 @@ class Balance {
       if (s.initial && s.cost != 0) {
         throw BalanceFormatException('Inicial con coste: ${s.id}');
       }
+      if (s.initial && s.tier != Tier.free) {
+        throw BalanceFormatException('Inicial de la versión completa: ${s.id}');
+      }
+    }
+    if (fruit.tier != Tier.free && frisbee.tier != Tier.free) {
+      throw BalanceFormatException('Hace falta al menos un juego gratuito');
+    }
+    if (fullVersionProductId.isEmpty) {
+      throw BalanceFormatException('fullVersion.productId vacío');
     }
     for (final slot in Slot.values) {
       final base = styles.where((s) => s.slot == slot && s.initial).length;
       if (base != 1) {
         throw BalanceFormatException('Ranura ${slot.name} necesita un inicial');
+      }
+      final freeBuyable = styles.any(
+        (s) => s.slot == slot && !s.initial && s.tier == Tier.free,
+      );
+      if (!freeBuyable) {
+        throw BalanceFormatException(
+          'Ranura ${slot.name} sin artículo gratuito comprable',
+        );
       }
     }
     for (final need in Need.values) {
@@ -243,6 +273,13 @@ class Balance {
       if (l.length != 2) throw BalanceFormatException('Objetivo inválido');
       return ((l[0] as num).toDouble(), (l[1] as num).toDouble());
     }).toList();
+    Tier tierOf(Map<String, dynamic> m, String what) {
+      final v = req<String>(m, 'tier');
+      final t = Tier.values.where((t) => t.name == v).firstOrNull;
+      if (t == null) throw BalanceFormatException('tier inválido en $what');
+      return t;
+    }
+
     final styles = req<List<dynamic>>(j, 'styles').map((e) {
       final m = e as Map<String, dynamic>;
       final slotName = req<String>(m, 'slot');
@@ -253,8 +290,10 @@ class Balance {
         slot: slot,
         cost: req<int>(m, 'cost'),
         initial: req<bool>(m, 'initial'),
+        tier: tierOf(m, '${m['id']}'),
       );
     }).toList();
+    final fullVersion = req<Map<String, dynamic>>(j, 'fullVersion');
 
     final healthJ = req<Map<String, dynamic>>(j, 'health');
     final statusJ = req<Map<String, dynamic>>(j, 'status');
@@ -275,6 +314,7 @@ class Balance {
         maxScore: req<int>(f, 'maxScore'),
         baseCoins: req<int>(f, 'baseCoins'),
         coinsPerPoint: req<int>(f, 'coinsPerPoint'),
+        tier: tierOf(f, 'games.fruit'),
       ),
       frisbee: FrisbeeRule(
         throws: req<int>(d, 'throws'),
@@ -284,6 +324,7 @@ class Balance {
         flightSeconds: req<num>(d, 'flightSeconds').toDouble(),
         catchRadius: req<num>(d, 'catchRadius').toDouble(),
         targetsField: targets,
+        tier: tierOf(d, 'games.frisbee'),
       ),
       gameCompleteDelta: needMap(
         req<Map<String, dynamic>>(j, 'gameCompleteDelta'),
@@ -305,6 +346,7 @@ class Balance {
         tiredBelow: req<int>(statusJ, 'tiredBelow'),
       ),
       styles: styles,
+      fullVersionProductId: req<String>(fullVersion, 'productId'),
     );
   }
 }

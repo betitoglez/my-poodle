@@ -238,10 +238,7 @@ class _CareResultScreenState extends State<CareResultScreen> {
         AppButton(
           label: 'Casa',
           icon: Icons.home_rounded,
-          onPressed: () {
-            AppScope.adsOf(context).onReturnHome();
-            goToTab(context, ShellTab.home);
-          },
+          onPressed: () => goToTab(context, ShellTab.home),
         ),
       ],
     );
@@ -336,10 +333,7 @@ class _GameResultScreenState extends State<GameResultScreen> {
         AppButton(
           label: 'Casa',
           icon: Icons.home_rounded,
-          onPressed: () {
-            AppScope.adsOf(context).onReturnHome();
-            goToTab(context, ShellTab.home);
-          },
+          onPressed: () => goToTab(context, ShellTab.home),
         ),
       ],
     );

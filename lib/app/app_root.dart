@@ -1,9 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../ads/ads.dart';
+import '../data/entitlement_store.dart';
 import '../data/save_codec.dart';
 import '../data/save_store.dart';
 import '../data/storage_backend.dart';
@@ -13,6 +14,9 @@ import '../game/pet/appearance_catalog.dart';
 import '../game/pet/pet_painter.dart';
 import '../game/pet/pet_sprites.dart';
 import '../platform/platform_backend.dart';
+import '../store/simulated_store.dart';
+import '../store/store_controller.dart';
+import '../store/store_provider.dart';
 import '../ui/screens/adoption_screen.dart';
 import '../ui/screens/loading_screen.dart';
 import '../ui/screens/main_shell.dart';
@@ -31,6 +35,7 @@ class AppServices {
   static Future<AppServices> create({
     StorageBackend? backend,
     Clock? clock,
+    StoreProvider? storeProvider,
     bool loadSprites = true,
   }) async {
     final balance = Balance.fromJson(
@@ -41,15 +46,29 @@ class AppServices {
       jsonDecode(await rootBundle.loadString('assets/data/appearance-v1.json'))
           as Map<String, dynamic>,
     );
-    final store = SaveStore(
-      backend ?? await createPlatformBackend(),
-      SaveCodec(balance),
+    final storage = backend ?? await createPlatformBackend();
+    final store = SaveStore(storage, SaveCodec(balance));
+    final theClock = clock ?? const SystemClock();
+    // Hasta conectar `in_app_purchase` (F07.5): tienda simulada en desarrollo
+    // y ninguna tienda en Release. Un fallo de tienda no bloquea el juego.
+    final provider =
+        storeProvider ?? (kReleaseMode ? NoStore() : SimulatedStore());
+    final purchases = StoreController(
+      provider: provider,
+      entitlements: EntitlementStore(
+        storage,
+        productId: balance.fullVersionProductId,
+        acceptSimulated: !kReleaseMode,
+      ),
+      clock: theClock,
+      simulated: provider is SimulatedStore,
     );
     final controller = AppController(
       balance: balance,
       looks: looks,
       store: store,
-      clock: clock ?? const SystemClock(),
+      clock: theClock,
+      purchases: purchases,
     );
     final painter = PetPainter(looks);
     // El atlas ilustrado se carga sin bloquear el arranque; hasta entonces
@@ -84,10 +103,14 @@ class MyPoodleApp extends StatefulWidget {
     super.key,
     this.backend,
     this.clock,
+    this.storeProvider,
     this.loadSprites = true,
   });
   final StorageBackend? backend;
   final Clock? clock;
+
+  /// Tienda inyectable (pruebas); por defecto según el tipo de build.
+  final StoreProvider? storeProvider;
   final bool loadSprites;
 
   @override
@@ -98,7 +121,6 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
   AppServices? _services;
   Object? _error;
   final _feedback = FeedbackService();
-  final _ads = AdsController();
   final _shell = ShellController();
 
   @override
@@ -115,9 +137,16 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
           await AppServices.create(
             backend: widget.backend,
             clock: widget.clock,
+            storeProvider: widget.storeProvider,
             loadSprites: widget.loadSprites,
           );
       _feedback.prefs = () => s.controller.prefs;
+      // Suscrito a la tienda antes de decidir Adopción o Casa.
+      try {
+        await s.controller.purchases.start();
+      } catch (e) {
+        debugPrint('Tienda no disponible: $e');
+      }
       setState(() => _services = s);
       await s.controller.boot();
     } catch (e, st) {
@@ -129,6 +158,7 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
   @override
   void dispose() {
     _services?.controller.dispose();
+    _services?.controller.purchases.dispose();
     super.dispose();
   }
 
@@ -155,7 +185,6 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
         return AppScope(
           controller: s.controller,
           feedback: _feedback,
-          ads: _ads,
           child: ShellScope(
             controller: _shell,
             child: PetPainterScope(painter: s.painter, child: child!),

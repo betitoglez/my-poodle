@@ -7,12 +7,14 @@ import '../data/save_store.dart';
 import '../data/storage_backend.dart';
 import '../domain/appearance.dart';
 import '../domain/balance.dart';
+import '../domain/entitlements.dart';
 import '../domain/needs_clock.dart';
 import '../domain/pet_name.dart';
 import '../domain/pet_state.dart';
 import '../domain/rules.dart';
 import '../domain/sessions.dart';
 import '../game/pet/appearance_catalog.dart';
+import '../store/store_controller.dart';
 
 enum BootStatus { loading, adoption, ready, ioError, corrupted, futureSchema }
 
@@ -51,14 +53,22 @@ class AppController extends ChangeNotifier {
     required this.looks,
     required SaveStore store,
     required this.clock,
+    required this.purchases,
   }) : rules = Rules(balance),
-       _store = store; // ignore: prefer_initializing_formals
+       // ignore: prefer_initializing_formals
+       _store = store {
+    // El derecho confirmado redibuja candados al instante.
+    purchases.addListener(notifyListeners);
+  }
 
   final Balance balance;
   final AppearanceCatalog looks;
   final Clock clock;
   final Rules rules;
   final SessionRegistry sessions = SessionRegistry();
+
+  /// Versión completa: tienda, derecho guardado y flujo de compra.
+  final StoreController purchases;
 
   SaveStore _store;
   SaveStore? _realStore;
@@ -72,7 +82,6 @@ class AppController extends ChangeNotifier {
   Future<void> _tail = Future.value();
 
   bool demo = false;
-  bool bannerPreview = false;
   Timer? _ticker;
 
   SaveStore get store => _store;
@@ -90,6 +99,19 @@ class AppController extends ChangeNotifier {
   Preferences get prefs => _confirmed?.prefs ?? const Preferences();
   bool get reducedMotion => prefs.reducedMotion;
   PetLook get look => looks.resolve(pet.appearance);
+
+  /// Derecho confirmado (o el de la demostración).
+  bool get fullVersion => purchases.full;
+  bool canAccess(Tier tier) => purchases.canAccess(tier);
+  bool canPlay(GameId game) => canAccess(rules.gameTier(game));
+
+  /// Artículos de [target] que piden la versión completa.
+  List<String> lockedIn(Appearance target) =>
+      rules.lockedItems(pet, target, fullVersion: fullVersion);
+
+  bool isLocked(String itemId) =>
+      !(pet.owned.contains(itemId)) &&
+      !canAccess(balance.item(itemId)?.tier ?? Tier.free);
 
   Future<void> boot() async {
     status = BootStatus.loading;
@@ -130,6 +152,7 @@ class AppController extends ChangeNotifier {
   @override
   void dispose() {
     _ticker?.cancel();
+    purchases.removeListener(notifyListeners);
     super.dispose();
   }
 
@@ -224,6 +247,11 @@ class AppController extends ChangeNotifier {
 
   String beginActivity(String activityId) => sessions.begin(activityId);
 
+  /// Abre la sesión de un minijuego; un juego de la versión completa sin
+  /// derecho se rechaza (`requiresFull`) y no crea sesión.
+  String? beginGame(GameId game) =>
+      canPlay(game) ? sessions.begin(game.name) : null;
+
   void cancelActivity(String sessionId) => sessions.cancel(sessionId);
 
   Future<ActionResult<Receipt>> finishCare(
@@ -289,9 +317,10 @@ class AppController extends ChangeNotifier {
       target,
       opId,
       clock.nowUtcSeconds(),
+      fullVersion: fullVersion,
     );
     return switch (outcome) {
-      InsufficientCoins() => Done(outcome),
+      InsufficientCoins() || RequiresFull() => Done(outcome),
       Purchased(:final receipt) => _commit(receipt.after, outcome),
     };
   }
@@ -340,6 +369,8 @@ class AppController extends ChangeNotifier {
       lastCommitId: 'demo-1',
     );
     demo = true;
+    // La demostración empieza en la versión gratuita, solo en memoria.
+    purchases.setDemo(Entitlement.none);
     status = BootStatus.ready;
     notifyListeners();
   }
@@ -351,7 +382,7 @@ class AppController extends ChangeNotifier {
     _realStore = null;
     _realConfirmed = null;
     demo = false;
-    bannerPreview = false;
+    purchases.setDemo(null);
     _pending = null;
     status = _confirmed == null ? BootStatus.adoption : BootStatus.ready;
     notifyListeners();
@@ -393,9 +424,15 @@ class AppController extends ChangeNotifier {
   void demoAppearance(Appearance a) =>
       _demoSet((s) => s.copyWith(appearance: a, owned: {...s.owned, ...a.ids}));
 
-  void demoToggleBanner() {
+  /// Derecho simulado de la demostración; nunca toca el documento real.
+  void demoEntitlement(EntitlementState state) {
     if (!demo) return;
-    bannerPreview = !bannerPreview;
-    notifyListeners();
+    purchases.setDemo(
+      Entitlement(
+        state: state,
+        source: EntitlementSource.simulated,
+        updatedUtc: clock.nowUtcSeconds(),
+      ),
+    );
   }
 }

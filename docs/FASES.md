@@ -66,18 +66,24 @@ Ejecutar las fichas en orden. Las rutas parten de la raíz Flutter descrita en T
 | 06.3 | Crear una definición por juego. Conectar selector, repetir y volver. Aplicar aspecto equipado al comenzar ambos juegos | Cambiar color y peto, iniciar ambos juegos y revisar que se conservan; cargar definición de ensayo para probar extensión |
 | 06.4 | Encadenar adopción, frisbee, pañuelo, huerto y nuevo arranque. Verificar cartera usando la fórmula independiente | Con frisbee perfecto y 7 frutas, después de comprar pañuelo quedan 11 monedas |
 
-## F07 · Monetización y aceptación móvil
+## F07 · Versión completa y aceptación móvil
+
+Decisión del 17 de noviembre de 2026: descarga gratuita y compra única, sin publicidad ([FUNCIONAL](FUNCIONAL.md#versión-gratuita-y-versión-completa), [TECNICA](TECNICA.md#versión-completa-compra-única)). Sustituye al plan anterior de anuncios.
 
 | ID | Implementación | Prueba de cierre |
 |---|---|---|
-| 07.1 | Implementar NoAds y SimulatedAds con disponible, no-fill, fallo, demora y cierre. Crear AdsPolicy local con pantallas y umbral. Ocultar banner al salir de casa | Un callback que llega en baño nunca inserta banner. Tras resultado sin red se puede seguir |
-| 07.2 | Evaluar audiencia, datos y proveedor por plataforma según ENTREGA. Configurar SDK autorizado en variante separada. Inicializar tras aplicar controles infantiles, usar inventario de prueba | Evidencia de configuración, versión y tráfico observado en build. Probar reanudación del audio e input tras cerrar |
-| 07.3 | Ejecutar dominio, widgets, componentes e integration_test; restauración, transferencia y matriz visual. Medir 60 s por escena con DevTools en profile en hardware | Corregir PRUEBAS y repetir en ambos sistemas; identificar dispositivo que limita rendimiento |
+| 07.1 | Retirar publicidad: borrar `ads/`, `AdsController`, banda simulada de Casa y del modo demostración, y bloque `ads` del balance. Añadir `tier` a los 42 artículos y a los dos juegos y el bloque `fullVersion` en `docs/datos/balance-v1.json` y su copia en assets. Ampliar `tool/validate_content.dart` con las reglas de TECNICA | Validador correcto con el reparto de FUNCIONAL y fallo con un artículo sin `tier`, sin artículo gratuito en una ranura o sin juego gratuito. Ninguna referencia a anuncios en `lib/` |
+| 07.2 | Dominio: `Entitlement`, `canAccess` y `apply` puros; `BuyAndEquip` y `BeginActivity` con `requiresFull`. Cuidados sin cambios | Casos E11–E13 de PRUEBAS en `test/domain/` |
+| 07.3 | `StoreProvider`, `SimulatedStore`, `NoStore`, `EntitlementStore` y `StoreController`, conectados en AppRoot y suscritos antes de Casa. Reiniciar partida conserva el derecho | Casos E14–E15 y recorrido gratuito de INTEGRACION con SimulatedStore |
+| 07.4 | UI: candados en Armario y Juegos, «Pide ayuda a un adulto», puerta adulta (sustituye a la pulsación de 2 s también en la Zona adulta), pantalla Versión completa con todos sus estados y controles de demostración | P06 de PRUEBAS en 320×568 y 430×932. Ninguna oferta aparece sin tocar un candado o Ajustes |
+| 07.5 | Añadir `in_app_purchase` tras verificar versión (TECNICA); `IapStore` solo en Android/iOS. Capacidad In-App Purchase y archivo StoreKit en iOS; permiso de facturación en Android. La web sigue usando `NoStore` | `flutter build web`, `flutter build ios --simulator` y APK compilan. Compra, pendiente, cancelación y restauración con el archivo StoreKit en simulador. Registrar versiones en ESTADO |
+| 07.6 | Con la cuenta del propietario: crear el producto y los precios según ENTREGA; probar en prueba interna de Play y sandbox/TestFlight | Compra real de prueba, reinstalación con restauración, reembolso de prueba y aprobación familiar en un iPhone y un Android. Registrar la tabla de precios aplicada |
+| 07.7 | Ejecutar dominio, widgets, componentes e integration_test; restauración, transferencia y matriz visual. Medir 60 s por escena con DevTools en profile en hardware | Corregir PRUEBAS y repetir en ambos sistemas; identificar dispositivo que limita rendimiento |
 
 ## F08 · Candidatas y distribución
 
 | ID | Implementación | Prueba de cierre |
 |---|---|---|
-| 08.1 | Preparar comandos y validación de ENTREGA. Fijar versión, número de build, recursos, configuración publicitaria y firma local. Generar APK, AAB y archivo/IPA | Comandos fallan ante error; clon limpio contiene mismos catálogos, rutas y recursos |
+| 08.1 | Preparar comandos y validación de ENTREGA. Fijar versión, número de build, recursos, ID del producto, ausencia de tienda simulada en Release y firma local. Generar APK, AAB y archivo/IPA | Comandos fallan ante error; clon limpio contiene mismos catálogos, rutas y recursos |
 | 08.2 | Preparar AAB firmado y archivo Xcode Release. Ejecutar betas internas. Instalar desde TestFlight y Play Internal, también como actualización sobre build anterior | Los dos canales conservan partida y catálogo; registrar identificadores de build y dispositivos |
-| 08.3 | Completar fichas, privacidad, licencias, clasificación y capturas reales; registrar resultado de revisión y habilitar lanzamiento según decisión del propietario | Build pública identificable por versión y revisión de Git. Si hay incidencia aplicar el procedimiento de recuperación de ENTREGA |
+| 08.3 | Completar fichas, privacidad, compras integradas, licencias, clasificación y capturas reales; registrar resultado de revisión y habilitar lanzamiento según decisión del propietario | Build pública identificable por versión y revisión de Git. Si hay incidencia aplicar el procedimiento de recuperación de ENTREGA |

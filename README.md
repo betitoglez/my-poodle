@@ -2,22 +2,24 @@
 
 Adopta un caniche toy, dale un nombre y cuídalo día a día. En el huerto saltarás con él para recoger frutas. En el prado le lanzarás un frisbee. Con las monedas que ganéis podrás elegir el color de su pelo, vestirlo y probar cortes de peluquería.
 
+La descarga es gratuita y lo básico se juega para siempre sin pagar. Una compra única de 1,99 € (o 1,99 US$) desbloquea la versión completa: más minijuegos, más armario y las novedades futuras. Sin anuncios y sin vender monedas. Detalle en [Versión gratuita y versión completa](docs/FUNCIONAL.md#versión-gratuita-y-versión-completa).
+
 **[Abrir el diseño del juego](docs/disenos.html)** desde el clon. Incluye el recorrido de adopción y un selector de pantallas y tamaños para revisión. [Ver las pantallas a tamaño fijo](docs/arte/pantallas.jpg).
 
 | Documento | Uso |
 |---|---|
 | [Instrucciones del agente](CLAUDE.md) | Inicio de cada sesión y orden de ejecución |
-| [Producto y economía](docs/FUNCIONAL.md) | Reglas de adopción, tiempo, cuidados, catálogo y recompensas |
+| [Producto y economía](docs/FUNCIONAL.md) | Reglas de adopción, tiempo, cuidados, catálogo, recompensas y versión completa |
 | [Arquitectura Flutter + Flame](docs/TECNICA.md) | Stack 2D, rutas, componentes, contratos, esquema y persistencia |
 | [Integración de componentes](docs/INTEGRACION.md) y [balance importable](docs/datos/balance-v1.json) | Composición Flutter/Flame, puente nativo de backup, datos locales y diagnóstico |
 | [Implementación por entregas](docs/FASES.md) | Secuencia, archivos, acciones concretas y condiciones de salida |
 | [Minijuegos](docs/JUEGOS.md) | Física, entradas, niveles, puntuación y extensión del catálogo |
 | [Pantallas y arte](docs/UI-UX.md) | Composición, interacción, accesibilidad y proceso de arte 2D por capas y audio |
 | [Verificación](docs/PRUEBAS.md) | Fixtures, comandos y recorridos de aceptación por dispositivo |
-| [Build y distribución](docs/ENTREGA.md) | Configuración nativa, publicidad, firma, beta, publicación y recuperación |
+| [Build y distribución](docs/ENTREGA.md) | Configuración nativa, compra integrada y precios, firma, beta, publicación y recuperación |
 | [Estado](docs/ESTADO.md) | Versiones, pruebas ejecutadas, evidencia y pendientes |
 
-El repositorio contiene la especificación y el diseño interactivo. La decisión del 16 de noviembre de 2026 fija **Flutter + Flame y arte completamente 2D** para personaje, escenarios y minijuegos. El prototipo Flutter jugable está en este repositorio (ver abajo y [ESTADO](docs/ESTADO.md)); las fases de firma, publicidad y tiendas siguen pendientes. Los valores de balance y los objetivos de rendimiento son valores iniciales de diseño que el agente puede implementar y medir. Una partida por instalación, economía local, juego offline e infraestructura propia sin coste mensual. [GitHub](https://github.com/betitoglez/my-poodle) · `git@github.com:betitoglez/my-poodle.git` · clon del propietario en `/Users/agonzalez/Projects/Personal/my-poodle`.
+El repositorio contiene la especificación y el diseño interactivo. La decisión del 16 de noviembre de 2026 fija **Flutter + Flame y arte completamente 2D** para personaje, escenarios y minijuegos. El prototipo Flutter jugable está en este repositorio (ver abajo y [ESTADO](docs/ESTADO.md)); las fases de versión completa, firma y tiendas siguen pendientes. Los valores de balance y los objetivos de rendimiento son valores iniciales de diseño que el agente puede implementar y medir. Una partida por instalación, economía local, juego offline e infraestructura propia sin coste mensual. [GitHub](https://github.com/betitoglez/my-poodle) · `git@github.com:betitoglez/my-poodle.git` · clon del propietario en `/Users/agonzalez/Projects/Personal/my-poodle`.
 
 ## Prototipo Flutter
 
@@ -72,7 +74,7 @@ La UI solo emite intenciones; `AppController` aplica las reglas puras, serializa
 | `characters` | Contar el nombre por grafemas (1–16) |
 | `web` | `localStorage` para la vista previa web sin dependencias de plugins |
 
-Sin backend, analítica, SDK publicitario ni plugins nativos de terceros.
+Sin backend, analítica, SDK publicitario ni plugins nativos de terceros. La versión completa añadirá solo `in_app_purchase`, el plugin oficial de Flutter para compras en App Store y Google Play (ver [TECNICA](docs/TECNICA.md#versión-completa-compra-única)).
 
 ### Modo demostración
 
@@ -91,9 +93,9 @@ Casa → Ajustes → «Mantén pulsado para entrar» (2 s) → Zona adulta → �
 | Tipografía | Fuentes del sistema | Empaquetar Young Serif y Nunito (OFL) |
 | Textos | Privacidad marcada como provisional; resto de textos de juego definitivos para revisión | Política legal real |
 | Veterinario y dormir | Escenas con efectos vectoriales (estetoscopio, lupa, pastilla, manta, noche); consulta ilustrada con Meshy | Animaciones dibujadas |
-| Acceso adulto | Pulsación mantenida | Revisar con las normas infantiles de cada tienda |
-| Publicidad | Solo `NoAds` y banda simulada; punto de integración en `AdsController.onReturnHome` | Elegir proveedor compatible con Flutter y audiencia infantil (ver ENTREGA) |
+| Acceso adulto | Pulsación mantenida de 2 s | Puerta adulta con número escrito en letras ([UI-UX](docs/UI-UX.md#puerta-adulta)) |
+| Monetización | Todo desbloqueado; quedan `NoAds` y la banda simulada de un plan anterior | Sin publicidad: retirar el módulo de anuncios e implementar la versión completa con compra única (F07 en [FASES](docs/FASES.md)) |
 
-Falta además para publicar: Android SDK y pruebas en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), firma, fichas y autorización de distribución del propietario.
+Falta además para publicar: Android SDK y pruebas en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), producto «Versión completa» y precios en ambas tiendas, firma, fichas y autorización de distribución del propietario.
 
 Capturas: [escenas ilustradas](docs/capturas/escenas-ilustradas.jpg) · [poses del caniche](docs/capturas/poses-caniche.jpg) · [armario con el caniche ilustrado](docs/capturas/armario-sprites.jpg) · [16 combinaciones](docs/capturas/meshy-16-combinaciones.jpg) · [comparativa con Meshy](docs/capturas/comparativa-meshy.jpg) · [Casa](docs/capturas/casa-salas.jpg) · [Casa antes](docs/capturas/casa.jpg) · [Cuidados](docs/capturas/cuidados.jpg) · [Baño](docs/capturas/bano.jpg) · [Huerto](docs/capturas/huerto.jpg) · [Frisbee](docs/capturas/frisbee.jpg) · [Resultado](docs/capturas/resultado-juego.jpg) · [Armario](docs/capturas/armario.jpg).

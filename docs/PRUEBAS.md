@@ -1,6 +1,6 @@
 # Verificación reproducible
 
-Preparar test/domain, test/data, test/ui, test/game e integration_test. IClock ofrece UTC y reloj monótono activo independiente; FakeClock avanza explícitamente. SaveStore recibe directorio temporal único y escritor con fallos inyectables. Publicidad usa SimulatedAds. El recorrido adopción-compra utiliza dominio real.
+Preparar test/domain, test/data, test/ui, test/game e integration_test. IClock ofrece UTC y reloj monótono activo independiente; FakeClock avanza explícitamente. SaveStore recibe directorio temporal único y escritor con fallos inyectables. La tienda usa SimulatedStore; ninguna prueba automática depende de la tienda real. El recorrido adopción-compra utiliza dominio real.
 
 ## Ejecutar desde la raíz Flutter
 
@@ -31,7 +31,11 @@ El validador y el test de integración son archivos que se crearán en F01/F02. 
 | E08 | Enviar Finish después de cancelar, colisión duplicada de fruta, tres callbacks de disco para un tiro | Monedas y puntuación se conceden solo por eventos válidos y terminales |
 | E09 | 0/7/12 frutas y 0/1/2/3 capturas | Premios 2/9/14 y 3/6/9/12. Métricas fuera de rango se rechazan |
 | E10 | Construir catálogo con ID duplicada, referencia rota o artículo en ranura errónea | ValidateContent falla e identifica el recurso defectuoso antes de compilar |
-| E11 | Ads con reloj en 899 s y 900 s, sesión en pausa y segunda solicitud tras una impresión | En el umbral solo es elegible al retornar a casa. Pausa no acumula y segunda impresión no se sirve |
+| E11 | Sin versión completa: comprar outfit.sweater_red con 100 monedas, comprar neck.coral con 12, empezar Huerto y Frisbee, completar los seis cuidados | Jersey y Huerto → `requiresFull` sin mutar saldo ni propiedad; pañuelo → saldo 2; Frisbee y cuidados funcionan igual que con versión completa |
+| E12 | Con versión completa: comprar jersey con 32 monedas y empezar Huerto. Después aplicar revocación confirmada | Compra correcta (saldo 0) y sesión creada. Tras revocar, el jersey sigue en propiedad, equipado y reequipable gratis; Huerto y compras `full` nuevas → `requiresFull` |
+| E13 | Aplicar purchased, el mismo evento dos veces, restored, pending, canceled, error y un evento de otro producto | Un solo cambio a full; pending no desbloquea; canceled, error y otro producto no cambian el derecho; nunca cambian monedas ni propiedad |
+| E14 | Documento de derecho ausente, truncado, con esquema futuro y con `source: simulated` en Release. Reiniciar la partida con versión completa | Ausente o dañado → gratis y la app arranca; esquema futuro se preserva; simulado se ignora en Release. El reinicio conserva la versión completa |
+| E15 | Fallo inyectado al escribir el documento tras un evento purchased; sin red al arrancar con caché full; consulta Android `unknown` y `notOwned` | Sin escritura no se completa la transacción y se reintenta al reentregarla. Sin red se mantiene full. `unknown` conserva, `notOwned` revoca |
 
 ## Pruebas de interacción Flutter + Flame
 
@@ -40,7 +44,7 @@ El validador y el test de integración son archivos que se crearán en F01/F02. 
 3. **P03** Caminar hasta tres puntos, pausar al segundo, reanudar y terminar. Ánimo 90 y energía 75 desde adopción. Cepillar y cancelar compra de corte; el corte natural permanece.
 4. **P04** Completar el frisbee con tres capturas y reingresar al armario. Probar pañuelo, confirmar dos veces rápidamente, desequipar y reequipar. Saldo final 2 y propiedad única. Interrumpir una partida nueva de frisbee sin premio.
 5. **P05** Inyectar 7 recogidas mediante colisiones en Orchard, caer y reaparecer, terminar. Añade 9 monedas aunque temporizador y meta terminen juntos. Enlazar con P04 produce saldo 11.
-6. **P06** Disparar callback de anuncio tras pasar a cocina, sin inventario y sin red. Ninguno tapa controles ni cambia las recompensas. Tras un intersticial restaurar entrada, reloj de juego y volumen.
+6. **P06** Sin versión completa, tocar el Huerto y un jersey: aparece «Pide ayuda a un adulto» y Volver regresa sin cambios. Fallar la puerta adulta tres veces (espera de 30 s), acertarla, comprar con SimulatedStore en cada estado (sin red, cancelada, error, pendiente → aprobada) y comprobar que solo la confirmada desbloquea. Un evento que llega mientras se juega al frisbee no abre ninguna pantalla ni cambia el premio. Ninguna oferta aparece al arrancar, en Casa ni en Resultado.
 7. **P07** Alternar Home, CareRoom y juegos diez veces. Verificar un solo AppRoot, una instancia activa de juego y un oyente por evento. Usar Flutter DevTools en profile para buscar crecimiento persistente de atlas, componentes o audio.
 
 ## Matriz sobre teléfonos
@@ -49,6 +53,7 @@ El validador y el test de integración son archivos que se crearán en F01/F02. 
 - En al menos un iPhone y un Android real: instalar limpia, jugar en modo avión, enviar al fondo durante salto, disco, compra y guardado, forzar cierre y arrancar de nuevo. Android Atrás sigue la navegación prevista, iOS puede perder foco por interrupción del sistema. Cerrar teclado no adopta ni cancela la partida.
 - Para actualización, instalar A, adoptar y comprar pañuelo; instalar B sobre A con la misma firma/identidad. Nombre, saldo y aspecto quedan intactos. Para transferencia, migrar A a un segundo dispositivo por la vía del sistema; el segundo debe abrir Adopción y el primero conservar el pañuelo. Ejecutar el caso en ambos ecosistemas. Una reinstalación limpia no sustituye a esta prueba de migración.
 - En teléfono de menor rendimiento elegido, medir arranque frío y 60 s por escena tras 10 s de calentamiento con Flutter DevTools en profile. Objetivos iniciales: 30 fps, p95 de fotograma ≤ 33,4 ms, arranque a pantalla interactiva ≤ 5 s, sin crecimiento sostenido tras diez ciclos. Medir desarrollo para diagnóstico y repetir percepción/carga con candidata Release. Si falla, identificar CPU/GPU/IO, ajustar atlas, transparencias, repintado o inicialización y repetir el mismo recorrido.
+- Compra en dispositivo (iPhone y Android): con el archivo StoreKit en simulador, con sandbox o TestFlight en iPhone y con la prueba interna de Play y una cuenta de licencias en Android. Comprar, cerrar la app durante la confirmación y reabrir (se desbloquea una sola vez); compra pendiente y aprobación familiar; cancelar; restaurar tras reinstalar; reembolso de prueba; modo avión con versión completa ya comprada. Comprobar el precio localizado en al menos dos países o divisas de prueba.
 - Evidencia por prueba: ID, SHA, versión Flutter/build number, dispositivo/OS, fixture, esperado, observado, captura o informe y estado. Un caso pendiente de hardware se queda pendiente. La apertura del diseño HTML verifica UX de referencia, no ejecuta estas pruebas Flutter/Flame.
 
 ## Personalización y simulación 2D

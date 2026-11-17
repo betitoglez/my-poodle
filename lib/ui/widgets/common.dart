@@ -292,23 +292,36 @@ class StepMarks extends StatelessWidget {
   }
 }
 
-/// Banda reservada para un banner (solo en Casa, modo demostración).
-class BannerSlot extends StatelessWidget {
-  const BannerSlot({super.key});
+/// Candado «Versión completa» para juegos y artículos bloqueados.
+class LockBadge extends StatelessWidget {
+  const LockBadge({super.key, this.compact = false});
+  final bool compact;
   @override
   Widget build(BuildContext context) => Container(
-    height: 50,
-    width: double.infinity,
-    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: const Color(0xFFEDE7DA),
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFB7AB97)),
+    padding: EdgeInsets.symmetric(
+      horizontal: compact ? 6 : 10,
+      vertical: compact ? 2 : 4,
     ),
-    alignment: Alignment.center,
-    child: const Text(
-      'Espacio reservado para publicidad (simulado)',
-      style: AppText.small,
+    decoration: BoxDecoration(
+      color: AppColors.plum,
+      borderRadius: BorderRadius.circular(AppRadii.pill),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.lock_rounded, size: compact ? 12 : 16, color: Colors.white),
+        if (!compact) ...[
+          const SizedBox(width: 4),
+          const Text(
+            'Versión completa',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ],
     ),
   );
 }

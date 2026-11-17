@@ -50,6 +50,7 @@ void main() {
           .withSlot(Slot.coat, 'coat.silver'),
       'op',
       t0,
+      fullVersion: true,
     ) as Purchased).receipt.after;
     final back = codec.decode(codec.encode(s));
     expect(back.name, 'María José');

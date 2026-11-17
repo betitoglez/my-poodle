@@ -7,11 +7,12 @@ import 'package:my_poodle/data/storage_backend.dart';
 import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/pet_state.dart';
 import 'package:my_poodle/domain/rules.dart';
+import 'package:my_poodle/ui/widgets/common.dart';
 import 'package:my_poodle/ui/widgets/status_bubbles.dart';
 
 import '../support.dart';
 import 'app_flow_test.dart'
-    show boot, frames, idle, saved, scrollTo, tapIcon, tapText;
+    show boot, frames, fullStore, idle, saved, scrollTo, tapIcon, tapText;
 
 /// Partida guardada antes de arrancar, para empezar en un estado concreto.
 MemoryBackend backendWith(PetState Function(PetState) tweak) {
@@ -167,7 +168,20 @@ void main() {
     await tapText(t, 'Confirmar');
     final s = saved(backend);
     expect([s.coins, s.appearance.head], [16, 'head.bow']);
-    // Otras ranuras siguen libres y los precios más altos piden más monedas.
+    // Sin la versión completa, las zapatillas se prueban pero no se compran.
+    await tapText(t, 'Patucos');
+    await tapText(t, 'Zapatillas');
+    expect(find.widgetWithText(AppButton, 'Versión completa'), findsOneWidget);
+    expect(find.text('Faltan 24 · Jugar'), findsNothing);
+  });
+
+  testWidgets('armario con versión completa: lo que falta se gana jugando', (
+    t,
+  ) async {
+    final backend = backendWith((s) => s.copyWith(coins: 16));
+    await boot(t, backend, store: fullStore());
+    await tapText(t, 'Armario');
+    await tapText(t, 'Accesorios');
     await tapText(t, 'Patucos');
     await tapText(t, 'Zapatillas');
     expect(find.text('Faltan 24 · Jugar'), findsOneWidget);
@@ -175,7 +189,7 @@ void main() {
 
   testWidgets('armario: ropa por variedad, colores al mismo precio', (t) async {
     final backend = backendWith((s) => s.copyWith(coins: 50));
-    await boot(t, backend);
+    await boot(t, backend, store: fullStore());
     await tapText(t, 'Armario');
     await tapText(t, 'Ropa');
     expect(find.text('Peto'), findsOneWidget);

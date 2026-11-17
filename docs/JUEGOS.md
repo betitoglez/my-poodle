@@ -2,7 +2,7 @@
 
 ## Contrato común
 
-GameDefinition contiene ID estable, título, clave de juego registrada, miniatura, instrucciones, límite de intentos o tiempo, tipo de puntuación y regla de premio. GamesView construye las tarjetas leyendo GameCatalog. Al tocar una, crear su instancia de FlameGame en GameWidget y el aspecto actual del caniche. Estados: Preparado → Jugando ↔ Pausado → Terminado → Resultado → Casa o Repetir. Salir antes de Terminado cancela la sesión. Repetir crea un identificador nuevo. El minijuego entrega solo métricas enteras validadas, nunca se le confía la escritura del saldo.
+GameDefinition contiene ID estable, título, clave de juego registrada, miniatura, instrucciones, límite de intentos o tiempo, tipo de puntuación, regla de premio y versión (`tier`: `free` o `full`). Frisbee es `free` y Huerto `full`; un juego nuevo es `full` salvo decisión del propietario. Sin la versión completa, su tarjeta aparece con candado y no crea sesión ([reglas](FUNCIONAL.md#versión-gratuita-y-versión-completa)). GamesView construye las tarjetas leyendo GameCatalog. Al tocar una, crear su instancia de FlameGame en GameWidget y el aspecto actual del caniche. Estados: Preparado → Jugando ↔ Pausado → Terminado → Resultado → Casa o Repetir. Salir antes de Terminado cancela la sesión. Repetir crea un identificador nuevo. El minijuego entrega solo métricas enteras validadas, nunca se le confía la escritura del saldo.
 
 Interfaz mínima: startRun(GameContext), setPaused(bool), cancel() y callback completed(GameScore). Suscribirse antes del inicio y desuscribirse al cancelar o al recibir resultado. Al perder foco, vaciar gestos en curso y requerir tocar «Continuar». Dos pantallas de resultado que reciben el mismo evento no deben pagar dos veces.
 
@@ -37,6 +37,6 @@ Estados Apuntar → Vuelo → Atrapa/Recoge → Devuelve → Apuntar o Terminado
 ## Añadir un tercer juego
 
 1. Crear una clase FlameGame 2D con puntos iniciales y controlador del contrato común. Construir PetComponent con la apariencia de GameContext.
-2. Crear un GameDefinition, miniatura y explicación de un gesto. Registrar una factory por clave en GameRegistry, la definición en el catálogo y sus recursos en pubspec.yaml.
+2. Crear un GameDefinition (con `tier`), miniatura y explicación de un gesto. Registrar una factory por clave en GameRegistry, la definición en el catálogo y sus recursos en pubspec.yaml.
 3. Añadir al dominio límites y fórmula de recompensa, un caso mínimo, uno máximo y un evento duplicado. Rechazar métricas inválidas.
-4. Probar cancelación, pausa, modo avión, estilo equipado y resultado tras reinicio. La tarjeta debe aparecer sin modificar la pantalla de casa ni el sistema de anuncios.
+4. Probar cancelación, pausa, modo avión, estilo equipado y resultado tras reinicio. Probar también la tarjeta con candado sin versión completa. La tarjeta debe aparecer sin modificar la pantalla de casa ni la tienda.

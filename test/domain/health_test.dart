@@ -308,7 +308,7 @@ void main() {
           .withSlot(Slot.paws, 'paws.rain');
       final s = adopt().copyWith(coins: 200);
       expect(rules.lookCost(s, a), 14 + 36 + 56);
-      final r = rules.applyLook(s, a, 'o', t0) as Purchased;
+      final r = rules.applyLook(s, a, 'o', t0, fullVersion: true) as Purchased;
       expect(r.receipt.after.coins, 200 - 106);
       expect(
         r.receipt.after.owned,
