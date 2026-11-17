@@ -1,0 +1,29 @@
+{
+  "note": "Fuente del atlas del caniche. Cada peinado es una base por pose; cada artículo es una capa por pose extraída comparando su variante con la base del peinado de referencia. Un artículo puede declarar capas específicas por peinado (byHair) y ocultar zonas del pelo (hides) cuando choca con él.",
+  "sourceDir": "docs/arte/meshy/originales",
+  "outDir": "assets/images/pet",
+  "metaOut": "assets/data/pet-sprites-v1.json",
+  "unitHeightPx": 520,
+  "referenceHair": "hair.natural",
+  "poses": {
+    "front": { "anchor": "feet", "unitFrom": "front" },
+    "side": { "anchor": "feet", "unitFrom": "side" },
+    "jump": { "anchor": "bottom", "unitFrom": "side" }
+  },
+  "hair": {
+    "hair.natural": { "front": "pet_front", "side": "pet_side", "jump": "side_jump" },
+    "hair.pom": { "front": "front_pom", "side": "side_pom", "jump": "jump_pom" }
+  },
+  "items": {
+    "outfit.teal": { "front": "front_overalls", "side": "side_overalls", "jump": "jump_overalls" },
+    "neck.coral": { "front": "front_scarf", "side": "side_scarf", "jump": "jump_scarf" }
+  },
+  "expressions": {
+    "blink": { "front": "front_blink" },
+    "happy": { "front": "front_happy" }
+  },
+  "coats": {
+    "coat.apricot": null,
+    "coat.silver": [0.30, 0.55, 0.10, 0, 22, 0.29, 0.54, 0.10, 0, 22, 0.31, 0.57, 0.12, 0, 30, 0, 0, 0, 1, 0]
+  }
+}

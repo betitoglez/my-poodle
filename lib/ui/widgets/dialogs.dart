@@ -1,0 +1,494 @@
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
+
+import '../../app/app_controller.dart';
+import '../../app/app_scope.dart';
+import '../theme.dart';
+import 'common.dart';
+
+class _DialogFrame extends StatelessWidget {
+  const _DialogFrame({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.actions,
+  });
+  final IconData icon;
+  final String title;
+  final Widget body;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.all(AppSpace.l),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpace.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Icon(icon, size: 40, color: AppColors.plum),
+              const SizedBox(height: AppSpace.s),
+              Text(title, style: AppText.title, textAlign: TextAlign.center),
+              const SizedBox(height: AppSpace.m),
+              DefaultTextStyle(
+                style: AppText.body,
+                textAlign: TextAlign.center,
+                child: body,
+              ),
+              const SizedBox(height: AppSpace.xl),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: AppSpace.s,
+                runSpacing: AppSpace.s,
+                children: actions,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Pausa: el juego queda detenido hasta pulsar Continuar.
+Future<bool> showPauseDialog(BuildContext context, {bool game = true}) async {
+  final r = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (c) => PopScope(
+      canPop: false,
+      child: _DialogFrame(
+        icon: Icons.pause_circle_filled_rounded,
+        title: 'En pausa',
+        body: Text(
+          game
+              ? 'El tiempo está detenido. Si sales, se abandona la partida sin premio.'
+              : 'Todo está detenido. Si sales, se abandona la actividad sin aplicar su mejora.',
+        ),
+        actions: [
+          AppButton(
+            label: 'Salir',
+            icon: Icons.logout_rounded,
+            secondary: true,
+            onPressed: () => Navigator.pop(c, false),
+          ),
+          AppButton(
+            label: 'Continuar',
+            icon: Icons.play_arrow_rounded,
+            onPressed: () => Navigator.pop(c, true),
+          ),
+        ],
+      ),
+    ),
+  );
+  return r ?? true;
+}
+
+/// Salir de una actividad con progreso pendiente. Devuelve true si sale.
+Future<bool> showExitActivityDialog(
+  BuildContext context, {
+  required String activity,
+  bool game = false,
+}) async {
+  final r = await showDialog<bool>(
+    context: context,
+    builder: (c) => _DialogFrame(
+      icon: Icons.directions_walk_rounded,
+      title: '¿Salir de $activity?',
+      body: Text(
+        game
+            ? 'Si sales ahora se abandona esta partida y no se ganan monedas.'
+            : 'Si sales ahora se abandona esta actividad y no se aplica su mejora.',
+      ),
+      actions: [
+        AppButton(
+          label: 'Salir',
+          icon: Icons.logout_rounded,
+          secondary: true,
+          onPressed: () => Navigator.pop(c, true),
+        ),
+        AppButton(
+          label: game ? 'Seguir jugando' : 'Seguir',
+          icon: Icons.play_arrow_rounded,
+          onPressed: () => Navigator.pop(c, false),
+        ),
+      ],
+    ),
+  );
+  return r ?? false;
+}
+
+/// Comprar y usar: artículos, precio, saldo actual y restante.
+Future<bool> showPurchaseDialog(
+  BuildContext context, {
+  required List<String> items,
+  required int price,
+  required int balance,
+}) async {
+  final r = await showDialog<bool>(
+    context: context,
+    builder: (c) => _DialogFrame(
+      icon: Icons.shopping_bag_rounded,
+      title: 'Comprar y usar',
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            items.join(' · '),
+            style: AppText.subtitle,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpace.m),
+          _row('Precio', price),
+          _row('Saldo actual', balance),
+          const Divider(),
+          _row('Saldo restante', balance - price, bold: true),
+        ],
+      ),
+      actions: [
+        AppButton(
+          label: 'Cancelar',
+          icon: Icons.close_rounded,
+          secondary: true,
+          onPressed: () => Navigator.pop(c, false),
+        ),
+        AppButton(
+          label: 'Confirmar',
+          icon: Icons.check_rounded,
+          onPressed: () => Navigator.pop(c, true),
+        ),
+      ],
+    ),
+  );
+  return r ?? false;
+}
+
+Widget _row(String label, int value, {bool bold = false}) => Padding(
+  padding: const EdgeInsets.symmetric(vertical: 3),
+  child: Row(
+    children: [
+      Expanded(
+        child: Text(
+          label,
+          style: bold ? AppText.subtitle : AppText.body,
+          textAlign: TextAlign.left,
+        ),
+      ),
+      const CoinIcon(size: 18),
+      const SizedBox(width: 6),
+      Text('$value', style: AppText.number),
+    ],
+  ),
+);
+
+enum InsufficientChoice { games, cancel }
+
+/// Monedas insuficientes: diferencia exacta y acceso a Juegos.
+Future<InsufficientChoice> showInsufficientDialog(
+  BuildContext context, {
+  required int missing,
+  required int price,
+}) async {
+  final r = await showDialog<InsufficientChoice>(
+    context: context,
+    builder: (c) => _DialogFrame(
+      icon: Icons.savings_rounded,
+      title: 'Faltan $missing ${missing == 1 ? 'moneda' : 'monedas'}',
+      body: Text(
+        'Cuesta $price. Juega en el huerto o en el prado para conseguir las que faltan.',
+      ),
+      actions: [
+        AppButton(
+          label: 'Ahora no',
+          icon: Icons.close_rounded,
+          secondary: true,
+          onPressed: () => Navigator.pop(c, InsufficientChoice.cancel),
+        ),
+        AppButton(
+          label: 'Ir a Juegos',
+          icon: Icons.sports_esports_rounded,
+          onPressed: () => Navigator.pop(c, InsufficientChoice.games),
+        ),
+      ],
+    ),
+  );
+  return r ?? InsufficientChoice.cancel;
+}
+
+enum PreviewChoice { apply, discard, stay }
+
+/// Salir de una prueba de aspecto: aplicar o descartar.
+Future<PreviewChoice> showLeavePreviewDialog(
+  BuildContext context, {
+  required int cost,
+}) async {
+  final r = await showDialog<PreviewChoice>(
+    context: context,
+    builder: (c) => _DialogFrame(
+      icon: Icons.checkroom_rounded,
+      title: '¿Te quedas con este aspecto?',
+      body: Text(
+        cost > 0
+            ? 'Aplicarlo cuesta $cost monedas. Si lo descartas, vuelve el aspecto anterior.'
+            : 'Puedes aplicarlo gratis o descartarlo y volver al aspecto anterior.',
+      ),
+      actions: [
+        AppButton(
+          label: 'Descartar',
+          icon: Icons.undo_rounded,
+          secondary: true,
+          onPressed: () => Navigator.pop(c, PreviewChoice.discard),
+        ),
+        AppButton(
+          label: 'Aplicar',
+          icon: Icons.check_rounded,
+          onPressed: () => Navigator.pop(c, PreviewChoice.apply),
+        ),
+      ],
+    ),
+  );
+  return r ?? PreviewChoice.stay;
+}
+
+/// Reinicio: confirmación explícita antes de eliminar la partida.
+Future<bool> showResetDialog(BuildContext context, String petName) async {
+  final r = await showDialog<bool>(
+    context: context,
+    builder: (c) => _DialogFrame(
+      icon: Icons.warning_amber_rounded,
+      title: '¿Borrar la partida?',
+      body: Text(
+        'Se eliminarán $petName, sus monedas, su armario y los ajustes de este dispositivo. '
+        'No se puede deshacer.',
+      ),
+      actions: [
+        AppButton(
+          label: 'Cancelar',
+          icon: Icons.close_rounded,
+          onPressed: () => Navigator.pop(c, false),
+        ),
+        AppButton(
+          label: 'Borrar partida',
+          icon: Icons.delete_forever_rounded,
+          secondary: true,
+          onPressed: () => Navigator.pop(c, true),
+        ),
+      ],
+    ),
+  );
+  return r ?? false;
+}
+
+/// Error al guardar: el estado pendiente se conserva y se puede reintentar.
+/// Devuelve true si finalmente se guardó.
+Future<bool> resolveSaveFailure(BuildContext context) async {
+  final controller = AppScope.read(context);
+  while (controller.hasPending) {
+    if (!context.mounted) return false;
+    final retry = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (c) => PopScope(
+        canPop: false,
+        child: _DialogFrame(
+          icon: Icons.sd_card_alert_rounded,
+          title: 'No se ha podido guardar',
+          body: const Text(
+            'El progreso sigue pendiente en este dispositivo. Puedes intentarlo otra vez.',
+          ),
+          actions: [
+            AppButton(
+              label: 'Volver',
+              icon: Icons.undo_rounded,
+              secondary: true,
+              onPressed: () => Navigator.pop(c, false),
+            ),
+            AppButton(
+              label: 'Reintentar',
+              icon: Icons.refresh_rounded,
+              onPressed: () => Navigator.pop(c, true),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (retry == true) {
+      if (await controller.retryPending()) return true;
+    } else {
+      await controller.discardPending();
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Ejecuta una intención que guarda y resuelve un posible fallo de guardado.
+Future<T?> commitOrRecover<T>(
+  BuildContext context,
+  Future<ActionResult<T>> Function() action,
+) async {
+  final r = await action();
+  switch (r) {
+    case Done(:final value):
+      return value;
+    case Ignored():
+      return null;
+    case SaveFailed():
+      if (!context.mounted) return null;
+      final ok = await resolveSaveFailure(context);
+      if (!ok || !context.mounted) return null;
+      // Tras guardar, la misma intención devuelve el recibo ya confirmado.
+      final again = await action();
+      return again is Done<T> ? again.value : null;
+  }
+}
+
+/// Acceso adulto provisional: pulsación mantenida 2 s con progreso visible.
+/// Debe revisarse antes de publicar (ver README).
+class AdultGateButton extends StatefulWidget {
+  const AdultGateButton({
+    super.key,
+    required this.onUnlocked,
+    this.label = 'Mantén pulsado para entrar',
+  });
+  final VoidCallback onUnlocked;
+  final String label;
+  @override
+  State<AdultGateButton> createState() => _AdultGateButtonState();
+}
+
+class _AdultGateButtonState extends State<AdultGateButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(seconds: 2))
+        ..addStatusListener((s) {
+          if (s == AnimationStatus.completed) {
+            _c.value = 0;
+            widget.onUnlocked();
+          }
+        });
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Acceso adulto. ${widget.label}',
+      onTap: widget.onUnlocked,
+      excludeSemantics: true,
+      // Eventos de puntero directos: la pulsación mantenida no compite con el
+      // desplazamiento de la lista que la contiene.
+      child: Listener(
+        onPointerDown: (_) => _c.forward(),
+        onPointerUp: (_) => _c.reverse(),
+        onPointerCancel: (_) => _c.reverse(),
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (context, _) => Container(
+            constraints: const BoxConstraints(minHeight: AppSizes.bigButton),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadii.m),
+              border: Border.all(color: AppColors.plum, width: 2),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.plumSoft,
+                  AppColors.plumSoft,
+                  AppColors.cream,
+                  AppColors.cream,
+                ],
+                stops: [0, _c.value, _c.value, 1],
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.l,
+              vertical: AppSpace.m,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.lock_rounded, color: AppColors.plum),
+                const SizedBox(width: AppSpace.s),
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    style: AppText.subtitle.copyWith(color: AppColors.plum),
+                  ),
+                ),
+                const SizedBox(width: AppSpace.s),
+                Text('${(_c.value * 100).round()} %', style: AppText.small),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ayuda inicial: un único gesto, fácil de cerrar.
+class HintBubble extends StatelessWidget {
+  const HintBubble({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.onClose,
+  });
+  final String text;
+  final IconData icon;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.ink.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(AppRadii.m),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpace.m,
+          AppSpace.xs,
+          AppSpace.xs,
+          AppSpace.xs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.coin),
+            const SizedBox(width: AppSpace.s),
+            Flexible(
+              child: Text(
+                text,
+                style: AppText.body.copyWith(color: AppColors.cream),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Cerrar ayuda',
+              onPressed: onClose,
+              icon: const Icon(Icons.close_rounded, color: AppColors.cream),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Retraso cancelable para pasos de animación en widgets.
+class Delay {
+  Timer? _t;
+  void run(Duration d, VoidCallback f) {
+    _t?.cancel();
+    _t = Timer(d, f);
+  }
+
+  void cancel() => _t?.cancel();
+}

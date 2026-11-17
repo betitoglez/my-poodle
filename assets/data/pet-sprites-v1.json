@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "unitHeightPx": 520,
+  "poses": {
+    "front": {
+      "size": [
+        285,
+        541
+      ],
+      "anchor": [
+        158.6,
+        536.9
+      ]
+    },
+    "side": {
+      "size": [
+        533,
+        554
+      ],
+      "anchor": [
+        231.4,
+        548.6
+      ]
+    },
+    "jump": {
+      "size": [
+        575,
+        551
+      ],
+      "anchor": [
+        288.6,
+        545.8
+      ]
+    }
+  },
+  "hair": {
+    "hair.natural": {
+      "front": "front__hair_natural.webp",
+      "side": "side__hair_natural.webp",
+      "jump": "jump__hair_natural.webp"
+    },
+    "hair.pom": {
+      "front": "front__hair_pom.webp",
+      "side": "side__hair_pom.webp",
+      "jump": "jump__hair_pom.webp"
+    }
+  },
+  "items": {
+    "outfit.teal": {
+      "front": "front__outfit_teal.webp",
+      "side": "side__outfit_teal.webp",
+      "jump": "jump__outfit_teal.webp"
+    },
+    "neck.coral": {
+      "front": "front__neck_coral.webp",
+      "side": "side__neck_coral.webp",
+      "jump": "jump__neck_coral.webp"
+    }
+  },
+  "expressions": {
+    "blink": {
+      "front": "front__blink.webp"
+    },
+    "happy": {
+      "front": "front__happy.webp"
+    }
+  },
+  "coats": {
+    "coat.apricot": null,
+    "coat.silver": [
+      0.3,
+      0.55,
+      0.1,
+      0,
+      22,
+      0.29,
+      0.54,
+      0.1,
+      0,
+      22,
+      0.31,
+      0.57,
+      0.12,
+      0,
+      30,
+      0,
+      0,
+      0,
+      1,
+      0
+    ]
+  }
+}

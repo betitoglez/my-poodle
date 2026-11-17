@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "currency": "coins",
+  "startCoins": 0,
+  "needs": {
+    "tickSeconds": 900,
+    "maxTicks": 32,
+    "unitsPerPoint": 100,
+    "initial": {
+      "satiety": 65,
+      "hygiene": 70,
+      "mood": 75,
+      "energy": 80
+    },
+    "deltaPerTick100": {
+      "satiety": -75,
+      "hygiene": -50,
+      "mood": -50,
+      "energy": 100
+    }
+  },
+  "care": {
+    "feed": {
+      "steps": [
+        "bite",
+        "bite",
+        "bite"
+      ],
+      "delta": {
+        "satiety": 20
+      }
+    },
+    "bath": {
+      "steps": [
+        "wet",
+        "soap.back",
+        "soap.paws",
+        "soap.chest",
+        "rinse"
+      ],
+      "delta": {
+        "hygiene": 25
+      }
+    },
+    "groom": {
+      "steps": [
+        "forelock",
+        "ears",
+        "back"
+      ],
+      "delta": {
+        "hygiene": 8
+      }
+    },
+    "walk": {
+      "steps": [
+        "flowers",
+        "bench",
+        "fountain"
+      ],
+      "delta": {
+        "mood": 15,
+        "energy": -5
+      }
+    },
+    "vet": {
+      "steps": [
+        "heart",
+        "paws"
+      ],
+      "delta": {
+        "mood": 5
+      }
+    }
+  },
+  "games": {
+    "fruit": {
+      "seconds": 30,
+      "maxScore": 12,
+      "baseCoins": 2,
+      "coinsPerPoint": 1
+    },
+    "frisbee": {
+      "throws": 3,
+      "maxScore": 3,
+      "baseCoins": 3,
+      "coinsPerPoint": 3,
+      "flightSeconds": 1.1,
+      "catchRadius": 1,
+      "targetsField": [
+        [
+          0,
+          5
+        ],
+        [
+          -1.5,
+          6
+        ],
+        [
+          1.5,
+          4
+        ]
+      ]
+    }
+  },
+  "gameCompleteDelta": {
+    "mood": 8,
+    "energy": -6
+  },
+  "styles": [
+    {
+      "id": "coat.apricot",
+      "slot": "coat",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "coat.silver",
+      "slot": "coat",
+      "cost": 24,
+      "initial": false
+    },
+    {
+      "id": "hair.natural",
+      "slot": "hair",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "hair.pom",
+      "slot": "hair",
+      "cost": 30,
+      "initial": false
+    },
+    {
+      "id": "outfit.none",
+      "slot": "outfit",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "outfit.teal",
+      "slot": "outfit",
+      "cost": 18,
+      "initial": false
+    },
+    {
+      "id": "neck.none",
+      "slot": "neck",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "neck.coral",
+      "slot": "neck",
+      "cost": 10,
+      "initial": false
+    }
+  ],
+  "ads": {
+    "eligibleScene": "Home",
+    "minimumActiveSeconds": 900,
+    "maxInterstitialsPerSession": 1
+  }
+}

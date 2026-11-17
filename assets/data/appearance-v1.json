@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "note": "Metadatos visuales provisionales del caniche vectorial. Sustituir por atlas y pivotes del arte final manteniendo los mismos IDs.",
+  "coats": {
+    "coat.apricot": { "label": "Albaricoque", "base": "#E2A066", "shade": "#B97A44", "light": "#F5CC9C", "skin": "#EDC39A" },
+    "coat.silver": { "label": "Gris plata", "base": "#B8B6BE", "shade": "#86838F", "light": "#E2E0E6", "skin": "#D9CFC9" }
+  },
+  "hair": {
+    "hair.natural": { "label": "Rizo natural", "style": "natural" },
+    "hair.pom": { "label": "Corte pompón", "style": "pom" }
+  },
+  "outfits": {
+    "outfit.none": { "label": "Sin prenda", "style": "none" },
+    "outfit.teal": { "label": "Peto verde", "style": "overalls", "color": "#2F6E68", "shade": "#20504B", "trim": "#F3E7CC" }
+  },
+  "necks": {
+    "neck.none": { "label": "Sin accesorio", "style": "none" },
+    "neck.coral": { "label": "Pañuelo coral", "style": "scarf", "color": "#F07A62", "shade": "#C65642" }
+  },
+  "fixed": { "eye": "#2B1D1F", "nose": "#3A2526", "tongue": "#E77A86", "paw": "#5B3A2E", "shadow": "#34283B" },
+  "poses": {
+    "front": {
+      "drawOrder": ["shadow", "tail", "legsBack", "body", "legsFront", "outfit", "ears", "head", "hair", "face", "neck"],
+      "anchors": { "neck": [0, -0.64], "chest": [0, -0.48], "head": [0, -0.81] }
+    },
+    "side": {
+      "drawOrder": ["shadow", "tail", "legsBack", "body", "outfit", "legsFront", "neck", "head", "ears", "face", "hair"],
+      "anchors": { "neck": [0.2, -0.6], "chest": [0.05, -0.45], "head": [0.3, -0.73] }
+    }
+  }
+}
