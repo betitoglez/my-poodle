@@ -149,3 +149,31 @@ Adopción con «María José», persistencia tras recargar, Casa, Cuidados, Bañ
 - Sin cambios: el plazo semanal sigue contando desde que enferma (regla documentada en `FUNCIONAL.md`: «curar no reinicia el plazo de la semana»).
 
 **Pruebas:** `flutter analyze` sin incidencias; `validate_content` correcto; `flutter test` **87/87** (nuevas: giro tras descansar —falla sin la corrección—, iconos que solo laten encendidos, relación estado→medida). No probado en dispositivo ni a ojo en navegador.
+
+## Sesión 2026-11-17 · Icono de la app y pantalla de arranque nativa
+
+**Tarea:** sustituir el icono y el arranque por defecto de Flutter en Android, iOS y web (recursos de 00.4/08.1). Flutter 3.50.0, Xcode 26.6, Python 3.9 + Pillow 11.3 + numpy (solo herramienta local). Sin cambios en `lib/`, `pubspec.yaml`, esquema ni identificadores de paquete.
+
+**Implementado**
+- Diseño: cabeza del caniche feliz de Meshy (`docs/arte/meshy/originales/front_happy.webp`, sin créditos nuevos) sobre degradado ciruela (`AppColors.plum`), sin texto y fondo opaco. Se limpia el halo gris del recorte. Originales de 1024 px en [arte/icono/](arte/icono/): icono, capas adaptativas (primer plano, fondo, monocromo) y arranque.
+- Generador reproducible: `python3 tool/arte/build_app_icons.py` escribe todos los tamaños; no añade dependencias al proyecto.
+- Android: `mipmap-anydpi-v26/ic_launcher.xml` (fondo, primer plano y `monochrome` para iconos temáticos de Android 13; la silueta lleva ojos, trufa y boca recortados) y `ic_launcher.png` heredado por densidad (mdpi–xxxhdpi).
+- iOS: los 19 tamaños de `AppIcon.appiconset` sin canal alfa (1024 comprobado con `sips`). `CFBundleName` pasa de `my_poodle` a «My Poodle».
+- Web: `favicon.png` (32 px), `Icon-192/512`, `Icon-maskable-192/512` (zona segura del 80 %), `manifest.json` con fondo crema y tema ciruela, título de app iOS «My Poodle».
+- Arranque, todo sobre `#FFF8E9` (`AppColors.cream`, fondo del `Scaffold` de `LoadingScreen`) con el caniche en un disco ciruela centrado:
+  - Android 12+: `values-v31` y `values-night-v31/styles.xml` con `windowSplashScreenBackground` y `windowSplashScreenAnimatedIcon` (`drawable-*/splash_icon.png`, 288 dp con el disco en 190 dp para la máscara de 192 dp). Mismo crema en modo oscuro porque el juego no tiene tema oscuro.
+  - Android ≤ 11: `drawable(-v21)/launch_background.xml` con color `@color/splash_background` y el mismo icono. `NormalTheme` usa también el crema.
+  - iOS: `LaunchScreen.storyboard` con fondo crema y `LaunchImage` de 192 pt (@1x/@2x/@3x).
+  - Web: capa `#splash` en `index.html` que se retira con el evento `flutter-first-frame`.
+
+**Probado en este Mac**
+- `flutter build web` correcto. En la vista previa web (servidor local): favicon, iconos y `splash.png` responden 200, fondo del `body` `rgb(255, 248, 233)`, la capa de arranque desaparece tras el primer fotograma y se ve centrada al reinsertarla.
+- Revisados a ojo los PNG a 1024, 48, 32, 24 y 16 px: la cara se reconoce a 48 px; a 16 px (favicon pequeño) queda una mancha albaricoque con orejas.
+- `flutter build ios --simulator --debug` correcto: `Assets.car` contiene `AppIcon` y `LaunchImage`, `CFBundleName` = «My Poodle».
+- Simulador iOS (iPhone 17 Pro, iOS 26.5, instalado con `simctl`, sin el panel): arranque crema con el disco centrado, paso a Adopción sin destello de color e icono «My Poodle» en la pantalla de inicio. [Captura](arte/icono/simulador-ios.jpg).
+- Android: no compilado (sigue sin Android SDK); los XML no se han validado con `aapt2`.
+
+**No probado en dispositivo / pendiente**
+- Icono adaptativo con distintas máscaras de lanzador, icono temático de Android 13, arranque de Android 12+ y ≤ 11: requiere Android SDK y un dispositivo o emulador.
+- Icono y arranque en un iPhone real (solo comprobado en simulador).
+- Si el icono se aprueba como definitivo, revisar con el propietario los términos comerciales de Meshy (ver [FUENTES.md](arte/meshy/FUENTES.md)) antes de publicar.
