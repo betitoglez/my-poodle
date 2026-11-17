@@ -40,6 +40,9 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
       final c = AppScope.read(context);
       session = c.beginActivity(kind.name);
       game = createGame(c)..onChanged = _changed;
+      // Malito se le ve en todas las escenas, no solo en Casa.
+      final pet = game!.pet;
+      pet.fx = pet.fx.withSick(c.pet.isSick);
     }
   }
 

@@ -352,6 +352,7 @@ class BathGame extends StageGame {
 
   void _refreshFx() {
     pet.fx = PetFx(
+      sick: pet.fx.sick,
       wet:
           activity.phase == BathPhase.soap || activity.phase == BathPhase.rinse,
       // Con espuma ilustrada la estampa la escena; si no, el pintor.
@@ -832,6 +833,7 @@ class GroomGame extends StageGame {
 
   void _refresh() {
     pet.fx = PetFx(
+      sick: pet.fx.sick,
       messy: [
         for (final s in Strand.values)
           activity.strandDone(s) ? 0 : 1 - activity.brushed(s) * 0.6,
@@ -1274,6 +1276,8 @@ class VetGame extends StageGame {
 
   @override
   void tapAt(Offset p) {
+    // Como el botón: no se avanza hasta que acabe la animación del paso.
+    if (busy) return;
     final t = _target;
     if (t == null) return;
     if ((p - _at(t)).distance < pet.petSize * 0.2) {

@@ -55,20 +55,27 @@ class _StatusBubblesState extends State<StatusBubbles>
     duration: const Duration(milliseconds: 1400),
   );
 
+  /// Solo late si hay algún icono encendido; apagados no hay nada que animar.
+  bool get _pulsing => !widget.reducedMotion && widget.active.isNotEmpty;
+
+  void _sync() {
+    if (!_pulsing) {
+      if (_c.isAnimating) _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    if (!widget.reducedMotion) _c.repeat();
+    _sync();
   }
 
   @override
   void didUpdateWidget(StatusBubbles old) {
     super.didUpdateWidget(old);
-    if (widget.reducedMotion) {
-      _c.stop();
-    } else if (!_c.isAnimating) {
-      _c.repeat();
-    }
+    _sync();
   }
 
   @override

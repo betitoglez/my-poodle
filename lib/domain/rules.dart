@@ -6,8 +6,18 @@ import 'pet_state.dart';
 /// Actividades con resultado confirmable. Los IDs coinciden con balance-v1.
 enum CareKind { feed, bath, walk, groom, sleep, vet }
 
-/// Estados que enciende el visor, estilo tamagotchi.
-enum PetCondition { hungry, dirty, sad, tired, sick }
+/// Estados que enciende el visor, estilo tamagotchi. [need] es la medida
+/// que lo enciende; la enfermedad es un estado aparte.
+enum PetCondition {
+  hungry(Need.satiety),
+  dirty(Need.hygiene),
+  sad(Need.mood),
+  tired(Need.energy),
+  sick(null);
+
+  const PetCondition(this.need);
+  final Need? need;
+}
 
 enum GameId { fruit, frisbee }
 
@@ -175,12 +185,9 @@ class Rules {
     if (c.contains(PetCondition.sick)) return PetCondition.sick;
     PetCondition? best;
     var bestValue = 1 << 30;
-    for (final (cond, need) in [
-      (PetCondition.hungry, Need.satiety),
-      (PetCondition.dirty, Need.hygiene),
-      (PetCondition.sad, Need.mood),
-      (PetCondition.tired, Need.energy),
-    ]) {
+    for (final cond in PetCondition.values) {
+      final need = cond.need;
+      if (need == null) continue;
       if (c.contains(cond) && s.need100(need) < bestValue) {
         best = cond;
         bestValue = s.need100(need);

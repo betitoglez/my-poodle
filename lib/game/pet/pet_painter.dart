@@ -75,6 +75,10 @@ class PetFx {
   final List<double> messy;
 
   static const none = PetFx();
+
+  /// Mismos efectos con otro estado de salud.
+  PetFx withSick(bool value) =>
+      PetFx(wet: wet, foam: foam, messy: messy, sick: value);
 }
 
 enum _Eyes { open, blink, happy, closed }

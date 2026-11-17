@@ -43,6 +43,8 @@ class PetComponent extends PositionComponent {
     // Mismo aspecto que el actual (o que el pedido): nada que hacer.
     if (ids != null && ids == (_pendingLook?.ids ?? look.ids)) return;
     if (ids == null || painter.sprites == null) {
+      // Anula una carga en curso para que no sustituya a este aspecto.
+      _pendingLook = null;
       look = next;
       return;
     }

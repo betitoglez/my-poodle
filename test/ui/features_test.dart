@@ -217,4 +217,47 @@ void main() {
     await tapIcon(t, Icons.rotate_left_rounded);
     expect(find.text('Lado izquierdo'), findsOneWidget);
   });
+
+  testWidgets('al descansar el giro vuelve a «De frente»', (t) async {
+    await boot(t, backendWith((s) => s));
+    await tapIcon(t, Icons.rotate_right_rounded);
+    await tapIcon(t, Icons.rotate_right_rounded);
+    expect(find.text('De espaldas'), findsOneWidget);
+    await tapText(t, 'Descansar en su cama');
+    await idle(t);
+    await tapText(t, 'Despertar');
+    await idle(t);
+    // Acostado mira de frente: el control no queda en el ángulo anterior.
+    expect(find.text('De frente'), findsOneWidget);
+    expect(find.text('De espaldas'), findsNothing);
+  });
+
+  testWidgets('los iconos solo laten si hay alguno encendido', (t) async {
+    Widget bubbles(Set<PetCondition> active) => MaterialApp(
+      home: Scaffold(
+        body: StatusBubbles(active: active, onTap: (_) {}),
+      ),
+    );
+    await t.pumpWidget(bubbles(const {}));
+    expect(t.hasRunningAnimations, isFalse);
+    await t.pumpWidget(bubbles(const {PetCondition.hungry}));
+    await t.pump();
+    expect(t.hasRunningAnimations, isTrue);
+    await t.pumpWidget(bubbles(const {}));
+    await t.pump();
+    expect(t.hasRunningAnimations, isFalse);
+  });
+
+  test('cada icono de medida apunta a su medida; malito no tiene', () {
+    expect(
+      {for (final c in PetCondition.values) c: c.need},
+      {
+        PetCondition.hungry: Need.satiety,
+        PetCondition.dirty: Need.hygiene,
+        PetCondition.sad: Need.mood,
+        PetCondition.tired: Need.energy,
+        PetCondition.sick: null,
+      },
+    );
+  });
 }

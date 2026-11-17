@@ -100,12 +100,19 @@ class Texts {
     ],
   };
 
+  /// Botón de Casa para los estados que no se resuelven atendiendo su
+  /// medida; el resto usa [needActions].
   static const conditionActions = {
     PetCondition.sick: 'Veterinario',
-    PetCondition.hungry: 'Comer',
-    PetCondition.dirty: 'Bañar',
-    PetCondition.sad: 'Jugar',
     PetCondition.tired: 'Dormir',
+  };
+
+  /// Botón de Casa para atender cada medida (la energía depende de si
+  /// está descansando).
+  static const needActions = {
+    Need.satiety: 'Comer',
+    Need.hygiene: 'Bañar',
+    Need.mood: 'Jugar',
   };
 
   static const conditionNames = {

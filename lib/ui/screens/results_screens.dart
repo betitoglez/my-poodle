@@ -147,7 +147,8 @@ Widget _needChange(Receipt r, Need n) {
   );
 }
 
-Widget _healthChange() => Padding(
+/// Salud antes y después según el recibo (la diferencia sale del dominio).
+Widget _healthChange(Receipt r) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 3),
   child: Row(
     children: [
@@ -162,7 +163,10 @@ Widget _healthChange() => Padding(
           color: AppColors.leafSoft,
           borderRadius: BorderRadius.circular(99),
         ),
-        child: Text('+65', style: AppText.number.copyWith(fontSize: 14)),
+        child: Text(
+          '+${r.after.healthPoints - r.before.healthPoints}',
+          style: AppText.number.copyWith(fontSize: 14),
+        ),
       ),
     ],
   ),
@@ -210,7 +214,7 @@ class _CareResultScreenState extends State<CareResultScreen> {
       title: _message,
       body: Column(
         children: [
-          if (r.before.isSick && !r.after.isSick) _healthChange(),
+          if (r.before.isSick && !r.after.isSick) _healthChange(r),
           for (final n in delta.keys) _needChange(r, n),
         ],
       ),

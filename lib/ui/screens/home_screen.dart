@@ -59,19 +59,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _game!.pet.setView(v);
   }
 
-  /// Lleva a la actividad que resuelve cada estado.
+  /// Lleva a la actividad que resuelve cada estado: el veterinario y la cama
+  /// tienen pantalla propia; el resto, la de su medida.
   void _attend(PetCondition cond) {
     switch (cond) {
       case PetCondition.sick:
         pushScreen(context, const VetScreen());
-      case PetCondition.hungry:
-        pushScreen(context, const FeedScreen());
-      case PetCondition.dirty:
-        pushScreen(context, const BathScreen());
-      case PetCondition.sad:
-        ShellScope.maybeOf(context)?.go(ShellTab.games);
       case PetCondition.tired:
         pushScreen(context, const SleepScreen());
+      case PetCondition.hungry || PetCondition.dirty || PetCondition.sad:
+        _actNeed(cond.need!);
     }
   }
 
@@ -84,8 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
       case Need.mood:
         ShellScope.maybeOf(context)?.go(ShellTab.games);
       case Need.energy:
-        setState(() => _game!.setResting(!_game!.resting));
+        _setResting(!_game!.resting);
     }
+  }
+
+  /// Al acostarse mira de frente: el giro vuelve a ese ángulo para no
+  /// quedar desfasado.
+  void _setResting(bool value) {
+    setState(() {
+      _game!.setResting(value);
+      if (value) _view = PetView.front;
+    });
   }
 
   @override
@@ -105,14 +111,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final resting = _game!.resting;
     final showHint = !pet.prefs.seenHints.contains('home.pet');
-    final actionLabel = urgent != null
-        ? Texts.conditionActions[urgent]!
-        : switch (lowest) {
-            Need.satiety => 'Comer',
-            Need.hygiene => 'Bañar',
-            Need.mood => 'Jugar',
-            Need.energy => resting ? 'Despertar' : 'Descansar',
-          };
+    final actionNeed = urgent?.need ?? lowest;
+    final actionLabel =
+        Texts.conditionActions[urgent] ??
+        (actionNeed == Need.energy
+            ? (resting ? 'Despertar' : 'Descansar')
+            : Texts.needActions[actionNeed]!);
     final actionIcon = urgent != null
         ? StatusBubbles.fallbackIcon(urgent)
         : (lowest == Need.energy ? Icons.bedtime_rounded : lowest.icon);
@@ -242,8 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
-                            onPressed: () =>
-                                setState(() => _game!.setResting(!resting)),
+                            onPressed: () => _setResting(!resting),
                             icon: Icon(
                               resting
                                   ? Icons.wb_sunny_rounded

@@ -52,15 +52,18 @@ extension SlotUi on Slot {
 
 /// Categorías principales del armario; «Accesorios» tiene submenús.
 enum _Category {
-  coat(Slot.coat, 'Colores', Icons.palette_rounded),
-  hair(Slot.hair, 'Peinados', Icons.content_cut_rounded),
-  outfit(Slot.outfit, 'Ropa', Icons.checkroom_rounded),
-  accessories(Slot.head, 'Accesorios', Icons.diamond_rounded);
+  coat(Slot.coat),
+  hair(Slot.hair),
+  outfit(Slot.outfit),
+  accessories(Slot.head);
 
-  const _Category(this.firstSlot, this.label, this.icon);
+  const _Category(this.firstSlot);
   final Slot firstSlot;
-  final String label;
-  final IconData icon;
+
+  /// Las de una sola ranura usan su nombre e icono; solo «Accesorios» es propia.
+  String get label => this == accessories ? 'Accesorios' : firstSlot.label;
+  IconData get icon =>
+      this == accessories ? Icons.diamond_rounded : firstSlot.icon;
 
   static _Category of(Slot s) => s.isAccessory
       ? _Category.accessories
@@ -117,6 +120,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
         petScale: 0.7,
         floorY: 0.76,
       );
+      _game!.pet.fx = PetFx(sick: c.pet.isSick);
       _shell = ShellScope.maybeOf(context);
       if (!widget.standalone) _shell?.leaveGuard = _confirmLeave;
     }
