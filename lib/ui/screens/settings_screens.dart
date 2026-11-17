@@ -360,8 +360,20 @@ class HelpScreen extends StatelessWidget {
           icon: Icons.volunteer_activism_rounded,
           children: [
             Text(
-              'Comer, bañar, pasear y cepillar mejoran sus indicadores. Puedes hacerlos aunque estén llenos. '
-              'Si sales antes de terminar, no se aplica la mejora. Nunca enferma ni se pone triste por tu ausencia.',
+              'Comer, bañar, pasear, cepillar y dormir mejoran sus indicadores. Puedes hacerlos aunque estén llenos. '
+              'Si sales antes de terminar, no se aplica la mejora. Los iconos de arriba se encienden cuando tiene '
+              'hambre, está sucio, triste, cansado o malito: tócalos para atenderle.',
+              style: AppText.body,
+            ),
+          ],
+        ),
+        _Section(
+          'Salud',
+          icon: Icons.medical_services_rounded,
+          children: [
+            Text(
+              'Si pasa hambre, mucho cansancio o suciedad —o a veces sin motivo— puede ponerse malito, pero como mucho '
+              'una vez por semana y nunca es grave. El veterinario le da una pastilla y se pone bueno enseguida.',
               style: AppText.body,
             ),
           ],
@@ -464,6 +476,25 @@ class DemoScreen extends StatelessWidget {
           ],
         ),
         _Section(
+          'Salud',
+          children: [
+            Wrap(
+              spacing: AppSpace.s,
+              runSpacing: AppSpace.s,
+              children: [
+                OutlinedButton(
+                  onPressed: () => c.demoSetSick(true),
+                  child: const Text('Ponerlo malito'),
+                ),
+                OutlinedButton(
+                  onPressed: () => c.demoSetSick(false),
+                  child: const Text('Curarlo'),
+                ),
+              ],
+            ),
+          ],
+        ),
+        _Section(
           'Monedas',
           children: [
             Wrap(
@@ -480,7 +511,7 @@ class DemoScreen extends StatelessWidget {
           ],
         ),
         _Section(
-          'Aspecto (16 combinaciones)',
+          'Aspecto (combinaciones)',
           children: [
             Wrap(
               spacing: AppSpace.s,
@@ -506,6 +537,23 @@ class DemoScreen extends StatelessWidget {
                       .withSlot(Slot.hair, 'hair.pom')
                       .withSlot(Slot.outfit, 'outfit.teal')
                       .withSlot(Slot.neck, 'neck.coral'),
+                ),
+                combo(
+                  'Blanco + osito + jersey',
+                  base
+                      .withSlot(Slot.coat, 'coat.white')
+                      .withSlot(Slot.hair, 'hair.teddy')
+                      .withSlot(Slot.outfit, 'outfit.sweater_blue')
+                      .withSlot(Slot.eyes, 'eyes.sun'),
+                ),
+                combo(
+                  'Negro + vestido + corona',
+                  base
+                      .withSlot(Slot.coat, 'coat.black')
+                      .withSlot(Slot.outfit, 'outfit.dress_pink')
+                      .withSlot(Slot.head, 'head.crown')
+                      .withSlot(Slot.collar, 'collar.pearls')
+                      .withSlot(Slot.paws, 'paws.booties'),
                 ),
               ],
             ),

@@ -46,6 +46,18 @@ class CareScreen extends StatelessWidget {
       'Cepillar tres mechones',
       () => const GroomScreen(),
     ),
+    _CareCard(
+      CareKind.sleep,
+      'assets/images/cards/cushion.jpg',
+      'A su cama, con manta',
+      () => const SleepScreen(),
+    ),
+    _CareCard(
+      CareKind.vet,
+      'assets/images/rooms/vet.jpg',
+      'Revisión y pastilla',
+      () => const VetScreen(),
+    ),
   ];
 
   @override
@@ -69,7 +81,7 @@ class CareScreen extends StatelessWidget {
                 crossAxisCount: l.tablet ? 4 : 2,
                 mainAxisSpacing: AppSpace.m,
                 crossAxisSpacing: AppSpace.m,
-                childAspectRatio: l.compact ? 0.86 : 0.78,
+                childAspectRatio: l.compact ? 0.82 : 0.76,
               ),
               itemCount: _cards.length,
               itemBuilder: (context, i) {
@@ -82,13 +94,18 @@ class CareScreen extends StatelessWidget {
                     )
                     .join(' · ');
                 final main = rule.delta.keys.first;
+                final cures = rule.cures;
+                final sick = c.pet.isSick && card.kind == CareKind.vet;
                 return _IllustratedCard(
                   image: card.image,
                   title: Texts.careTitles[card.kind]!,
                   subtitle: card.subtitle,
-                  footer: effects,
-                  footerIcon: main.icon,
-                  footerColor: main.color,
+                  footer: cures ? 'Cura la salud · $effects' : effects,
+                  footerIcon: cures
+                      ? Icons.medical_services_rounded
+                      : main.icon,
+                  footerColor: cures ? AppColors.coral : main.color,
+                  badge: sick ? '¡Malito!' : null,
                   onTap: () => pushScreen(context, card.build()),
                 );
               },
@@ -109,7 +126,9 @@ class _IllustratedCard extends StatelessWidget {
     required this.footerIcon,
     required this.footerColor,
     required this.onTap,
+    this.badge,
   });
+  final String? badge;
   final String image;
   final String title;
   final String subtitle;
@@ -122,7 +141,7 @@ class _IllustratedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '$title. $subtitle. $footer',
+      label: '$title. $subtitle. $footer.${badge == null ? '' : ' $badge'}',
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -134,7 +153,37 @@ class _IllustratedCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: Image.asset(image, fit: BoxFit.cover)),
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(image, fit: BoxFit.cover),
+                    if (badge != null)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.coral,
+                            borderRadius: BorderRadius.circular(AppRadii.pill),
+                          ),
+                          child: Text(
+                            badge!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                 child: Column(

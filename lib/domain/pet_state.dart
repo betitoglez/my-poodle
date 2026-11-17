@@ -45,6 +45,9 @@ class PetState {
     required this.bestFruit,
     required this.bestFrisbee,
     required this.prefs,
+    required this.lastSickUtc,
+    required this.sickSeed,
+    this.sickSinceUtc,
   });
 
   static const int schemaVersion = 1;
@@ -63,6 +66,20 @@ class PetState {
   final int bestFrisbee;
   final Preferences prefs;
 
+  /// Salud: segundos UTC en que enfermó (null = sano).
+  final int? sickSinceUtc;
+
+  /// Última vez que enfermó, para limitarlo a una por semana.
+  final int lastSickUtc;
+
+  /// Semilla propia de la partida para las tiradas deterministas.
+  final int sickSeed;
+
+  bool get isSick => sickSinceUtc != null;
+
+  /// Salud para presentar: sana 100, malita 35.
+  int get healthPoints => isSick ? 35 : 100;
+
   int need100(Need n) => needs100[n] ?? 0;
 
   /// Valor redondeado para presentar (0..100).
@@ -79,6 +96,9 @@ class PetState {
     int? bestFruit,
     int? bestFrisbee,
     Preferences? prefs,
+    int? sickSinceUtc,
+    bool cured = false,
+    int? lastSickUtc,
   }) => PetState(
     revision: revision ?? this.revision,
     lastCommitId: lastCommitId ?? this.lastCommitId,
@@ -91,6 +111,9 @@ class PetState {
     bestFruit: bestFruit ?? this.bestFruit,
     bestFrisbee: bestFrisbee ?? this.bestFrisbee,
     prefs: prefs ?? this.prefs,
+    sickSinceUtc: cured ? null : (sickSinceUtc ?? this.sickSinceUtc),
+    lastSickUtc: lastSickUtc ?? this.lastSickUtc,
+    sickSeed: sickSeed,
   );
 
   /// Adopción: única forma de crear una partida. Revisión 1, saldo inicial,
@@ -113,7 +136,20 @@ class PetState {
       bestFruit: 0,
       bestFrisbee: 0,
       prefs: const Preferences(),
+      // El primer día no enferma: el último «enfermó» se fija para que el
+      // primer plazo de una semana termine pasado el periodo de gracia.
+      lastSickUtc:
+          nowUtc - balance.health.cooldownSeconds + balance.health.graceSeconds,
+      sickSeed: _seedFrom(nowUtc, validName),
     );
+  }
+
+  static int _seedFrom(int nowUtc, String name) {
+    var h = nowUtc & 0x7fffffff;
+    for (final r in name.runes) {
+      h = (h * 31 + r) & 0x7fffffff;
+    }
+    return h;
   }
 }
 

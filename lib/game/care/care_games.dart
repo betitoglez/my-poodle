@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' hide TextStyle;
 
 import 'package:flame/components.dart';
+import 'package:flutter/animation.dart' show Curves;
 
 import '../../domain/activities.dart';
 import '../pet/appearance_catalog.dart';
@@ -12,6 +13,35 @@ import '../scenes/stage_game.dart';
 // ======================================================================
 // Cocina
 // ======================================================================
+
+/// Carga una imagen de atrezo; null si falta (se usa el dibujo vectorial).
+Future<Image?> _prop(StageGame g, String path) async {
+  try {
+    return await g.images.load(path);
+  } catch (_) {
+    return null;
+  }
+}
+
+void _drawImage(
+  Canvas c,
+  Image img,
+  Rect dst, {
+  Rect? clip,
+  double opacity = 1,
+}) {
+  c.save();
+  if (clip != null) c.clipRect(clip);
+  c.drawImageRect(
+    img,
+    Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+    dst,
+    Paint()
+      ..filterQuality = FilterQuality.medium
+      ..color = Color.fromARGB((255 * opacity).round(), 255, 255, 255),
+  );
+  c.restore();
+}
 
 /// Cuenco gratuito y tres bocados. La masticación usa tiempo de juego, de
 /// modo que la pausa también la detiene.
@@ -27,32 +57,67 @@ class FeedGame extends StageGame {
   final FeedActivity activity;
   double _chewLeft = 0;
   void Function()? onBite;
+  Image? _bowlFull;
+  Image? _bowlEmpty;
 
   double get chewSeconds => reducedMotion ? 0.7 : 1.3;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // Sin bloquear la escena: mientras llega, cuenco vectorial.
+    _prop(this, 'props/bowl_full.webp').then((i) => _bowlFull = i);
+    _prop(this, 'props/bowl_empty.webp').then((i) => _bowlEmpty = i);
     add(Painted(_bowl, priority: 15));
   }
 
+  /// Cuenco delante de las patas: al comer, el hocico queda sobre él.
   Rect get bowlRect {
     final f = pet.position.toOffset();
-    final w = pet.petSize * 0.5;
+    final w = pet.petSize * 0.62;
+    final img = _bowlFull;
+    final h = img == null ? w * 0.36 : w * img.height / img.width;
     return Rect.fromCenter(
-      center: f + Offset(0, pet.petSize * 0.06),
+      center: f + Offset(0, pet.petSize * 0.04),
       width: w,
-      height: w * 0.36,
+      height: h,
     );
   }
 
   void _bowl(Canvas c) {
     final r = bowlRect;
+    final full = _bowlFull, empty = _bowlEmpty;
+    if (full != null && empty != null) {
+      c.drawOval(
+        Rect.fromCenter(
+          center: r.bottomCenter - Offset(0, r.height * 0.06),
+          width: r.width * 0.9,
+          height: r.height * 0.2,
+        ),
+        Paint()..color = const Color(0x3334283B),
+      );
+      _drawImage(c, empty, r);
+      // La comida se recorta por arriba a tercios: el montón baja con cada bocado.
+      final fill = activity.bowlFill;
+      if (fill > 0) {
+        final cut = r.top + (1 - fill) * r.height * 0.42;
+        _drawImage(
+          c,
+          full,
+          r,
+          clip: Rect.fromLTRB(r.left, cut, r.right, r.bottom),
+        );
+      }
+      return;
+    }
+    _vectorBowl(c, r);
+  }
+
+  void _vectorBowl(Canvas c, Rect r) {
     c.drawOval(
       r.translate(0, r.height * 0.3),
       Paint()..color = const Color(0x2234283B),
     );
-    // Comida: se reduce por tercios.
     final fill = activity.bowlFill;
     if (fill > 0) {
       final mound = Rect.fromCenter(
@@ -62,18 +127,6 @@ class FeedGame extends StageGame {
         height: r.height * (0.25 + 0.55 * fill),
       );
       c.drawOval(mound, Paint()..color = const Color(0xFF9C6A3C));
-      for (var i = 0; i < (10 * fill).round(); i++) {
-        final a = i * 2.3;
-        c.drawCircle(
-          mound.center +
-              Offset(
-                math.cos(a) * mound.width * 0.3,
-                math.sin(a) * mound.height * 0.25,
-              ),
-          3,
-          Paint()..color = const Color(0xFF7A4E2A),
-        );
-      }
     }
     final body = Path()
       ..moveTo(r.left, r.top + r.height * 0.2)
@@ -92,21 +145,6 @@ class FeedGame extends StageGame {
       )
       ..close();
     c.drawPath(body, Paint()..color = const Color(0xFFC86F4A));
-    c.drawOval(
-      Rect.fromLTWH(r.left, r.top + r.height * 0.05, r.width, r.height * 0.3),
-      Paint()
-        ..color = const Color(0xFFE59A72)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4,
-    );
-    // Cenefa decorativa.
-    for (var i = 0; i < 6; i++) {
-      c.drawCircle(
-        Offset(r.left + r.width * (0.2 + i * 0.12), r.top + r.height * 0.62),
-        3,
-        Paint()..color = const Color(0xFFF3D2B8),
-      );
-    }
   }
 
   /// Intento de bocado (botón o toque en el cuenco).
@@ -154,25 +192,44 @@ class BathGame extends StageGame {
   final BathActivity activity;
   double _waterLeft = 0;
   void Function(BathZone zone)? onSoap;
+  Image? _tubImg;
+  Image? _foamImg;
+
+  /// Altura (fracción) del labio delantero en la imagen de la bañera.
+  static const double _rim = 0.17;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // Sin bloquear la escena: mientras llegan, bañera y espuma vectoriales.
+    _prop(this, 'props/tub.webp').then((i) => _tubImg = i);
+    _prop(this, 'props/foam.webp').then((i) {
+      _foamImg = i;
+      _refreshFx();
+    });
     add(Painted(_tubBack, priority: 5));
     add(Painted(_foreground, priority: 15));
+    _refreshFx();
   }
 
+  /// Bañera alrededor del caniche: el agua le llega por los tobillos.
   Rect get _tub {
     final f = pet.position.toOffset();
-    return Rect.fromLTWH(
-      f.dx - pet.petSize * 0.62,
-      f.dy - pet.petSize * 0.02,
-      pet.petSize * 1.24,
-      pet.petSize * 0.36,
-    );
+    final w = pet.petSize * 1.3;
+    final img = _tubImg;
+    final h = img == null ? pet.petSize * 0.36 : w * img.height / img.width;
+    final rimY = f.dy - pet.petSize * 0.1;
+    return Rect.fromLTWH(f.dx - w / 2, rimY - h * _rim, w, h);
   }
 
+  double get _rimY => _tub.top + _tub.height * _rim;
+
   void _tubBack(Canvas c) {
+    final img = _tubImg;
+    if (img != null) {
+      _drawImage(c, img, _tub);
+      return;
+    }
     final r = _tub;
     c.drawOval(
       Rect.fromLTWH(r.left, r.top - r.height * 0.25, r.width, r.height * 0.5),
@@ -182,73 +239,75 @@ class BathGame extends StageGame {
 
   void _foreground(Canvas c) {
     final r = _tub;
-    // Frente de la bañera de porcelana con lavanda.
-    final front = RRect.fromRectAndCorners(
-      r,
-      bottomLeft: Radius.circular(r.height * 0.8),
-      bottomRight: Radius.circular(r.height * 0.8),
-    );
-    c.drawRRect(front, Paint()..color = const Color(0xFFFBF7F2));
-    c.drawLine(
-      r.topLeft,
-      r.topRight,
-      Paint()
-        ..color = const Color(0xFFE0D6EA)
-        ..strokeWidth = 6,
-    );
-    for (var i = 0; i < 5; i++) {
-      final x = r.left + r.width * (0.18 + i * 0.16);
-      c.drawLine(
-        Offset(x, r.bottom - r.height * 0.25),
-        Offset(x + 6, r.top + r.height * 0.35),
-        Paint()
-          ..color = const Color(0xFF6B8A57)
-          ..strokeWidth = 2,
+    final img = _tubImg;
+    if (img != null) {
+      // Frente de la bañera por delante de las patas.
+      _drawImage(
+        c,
+        img,
+        r,
+        clip: Rect.fromLTRB(r.left - 2, _rimY, r.right + 2, r.bottom + 2),
       );
-      c.drawOval(
-        Rect.fromCenter(
-          center: Offset(x + 6, r.top + r.height * 0.32),
-          width: 6,
-          height: 16,
-        ),
-        Paint()..color = const Color(0xFF9A7CC8),
+    } else {
+      final front = RRect.fromRectAndCorners(
+        r,
+        bottomLeft: Radius.circular(r.height * 0.8),
+        bottomRight: Radius.circular(r.height * 0.8),
       );
+      c.drawRRect(front, Paint()..color = const Color(0xFFFBF7F2));
     }
-    // Agua de la ducha al mojar o aclarar.
+    // Espuma ilustrada estampada en cada zona enjabonada.
+    final foam = _foamImg;
+    if (foam != null) {
+      for (final z in BathZone.values) {
+        final f = activity.foam(z);
+        if (f <= 0) continue;
+        for (final (i, center) in _zoneCenters(z).indexed) {
+          final w =
+              pet.petSize * (z == BathZone.paws ? 0.32 : 0.2) * (0.6 + 0.4 * f);
+          final h = w * foam.height / foam.width;
+          final jitter = Offset((i.isEven ? -1 : 1) * w * 0.08, 0);
+          _drawImage(
+            c,
+            foam,
+            Rect.fromCenter(center: center + jitter, width: w, height: h),
+            opacity: 0.95,
+          );
+        }
+      }
+    }
+    // Agua de la ducha al mojar o aclarar: trazos translúcidos.
     if (_waterLeft > 0) {
-      final head =
-          pet.position.toOffset() +
-          Offset(pet.petSize * 0.32, -pet.petSize * 1.15);
-      c.drawCircle(head, 12, Paint()..color = const Color(0xFFC9A54D));
-      final drop = Paint()..color = const Color(0xCC8FC7E8);
-      for (var i = 0; i < 14; i++) {
-        final k = ((time * 2.2 + i * 0.13) % 1);
-        c.drawOval(
-          Rect.fromCenter(
-            center:
-                head +
-                Offset(
-                  -pet.petSize * 0.3 * k + (i % 4) * 6,
-                  pet.petSize * 0.9 * k,
-                ),
-            width: 4,
-            height: 9,
-          ),
-          drop,
+      final top = Offset(
+        pet.position.x + pet.petSize * 0.28,
+        pet.position.y - pet.petSize * 1.25,
+      );
+      final k = (_waterLeft).clamp(0.0, 1.0);
+      for (var i = 0; i < 12; i++) {
+        final phase = (time * 1.8 + i * 0.17) % 1;
+        final x = top.dx - pet.petSize * (0.05 + i * 0.03);
+        final y0 = top.dy + phase * pet.petSize * 0.9;
+        c.drawLine(
+          Offset(x, y0),
+          Offset(x - pet.petSize * 0.02, y0 + pet.petSize * 0.12),
+          Paint()
+            ..color = Color.fromARGB((120 * k).round(), 220, 238, 250)
+            ..strokeWidth = 2.5
+            ..strokeCap = StrokeCap.round,
         );
       }
     }
     // Marcas de zona durante el enjabonado (forma + texto, no solo color).
     if (activity.phase == BathPhase.soap) {
       for (final z in BathZone.values) {
-        final center = _zoneCenter(z);
         final done = activity.zoneDone(z);
+        final center = _markerCenter(z);
         final ring = Paint()
           ..color = done ? const Color(0xFF375E50) : const Color(0xFF5C354E)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3;
         final pulse = done || reducedMotion ? 0.0 : math.sin(time * 4) * 3;
-        c.drawCircle(center, pet.petSize * 0.08 + pulse, ring);
+        c.drawCircle(center, pet.petSize * 0.07 + pulse, ring);
         if (done) {
           c.drawCircle(center, 9, Paint()..color = const Color(0xFF375E50));
           sceneText(
@@ -261,33 +320,44 @@ class BathGame extends StageGame {
     }
   }
 
-  Offset _zoneCenter(BathZone z) {
-    final f = pet.position.toOffset();
-    final s = pet.petSize;
-    return switch (z) {
-      BathZone.back => f + Offset(s * 0.2, -s * 0.56),
-      BathZone.chest => f + Offset(0, -s * 0.47),
-      BathZone.paws => f + Offset(-s * 0.08, -s * 0.08),
-    };
-  }
+  /// Puntos de cada zona según el caniche dibujado (atlas o vectorial).
+  List<Offset> _zoneCenters(BathZone z) => switch (z) {
+    BathZone.back => [
+      pet.landmarkScene('flankLeft'),
+      pet.landmarkScene('flankRight'),
+    ],
+    BathZone.chest => [pet.landmarkScene('chest')],
+    BathZone.paws => [Offset(pet.landmarkScene('paws').dx, _rimY)],
+  };
+
+  Offset _markerCenter(BathZone z) => switch (z) {
+    BathZone.back => pet.landmarkScene('flankRight'),
+    _ => _zoneCenters(z).first,
+  };
 
   BathZone? zoneAt(Offset p) {
-    final u = pet.toUnit(p);
-    if (u.dy > -0.2 && u.dy < 0.08 && u.dx.abs() < 0.3) return BathZone.paws;
-    if (u.dy < -0.36 && u.dy > -0.68 && u.dx.abs() <= 0.11) {
-      return BathZone.chest;
+    BathZone? best;
+    var bestD = pet.petSize * 0.17;
+    for (final z in BathZone.values) {
+      for (final c in _zoneCenters(z)) {
+        final d = (p - c).distance;
+        if (d < bestD) {
+          bestD = d;
+          best = z;
+        }
+      }
     }
-    if (u.dy < -0.36 && u.dy > -0.7 && u.dx.abs() > 0.11 && u.dx.abs() < 0.32) {
-      return BathZone.back;
-    }
-    return null;
+    return best;
   }
 
   void _refreshFx() {
     pet.fx = PetFx(
       wet:
           activity.phase == BathPhase.soap || activity.phase == BathPhase.rinse,
-      foam: [for (final z in BathZone.values) activity.foam(z)],
+      // Con espuma ilustrada la estampa la escena; si no, el pintor.
+      foam: _foamImg != null
+          ? const [0, 0, 0]
+          : [for (final z in BathZone.values) activity.foam(z)],
     );
   }
 
@@ -643,6 +713,49 @@ class GroomGame extends StageGame {
   }
 
   void _mirror(Canvas c) {
+    final art = roomArt?.mirror;
+    final glass = art == null ? null : imageFraction(art);
+    if (glass == null) {
+      _vectorMirror(c);
+      return;
+    }
+    // Reflejo en el espejo pintado: el caniche de perfil, más pequeño y
+    // apagado, mirando hacia la sala.
+    c.save();
+    c.clipPath(Path()..addOval(glass.deflate(glass.width * 0.06)));
+    c.saveLayer(glass, Paint()..color = const Color(0xBFFFFFFF));
+    c.translate(glass.center.dx, glass.top + glass.height * 0.86);
+    c.scale(-1, 1);
+    painter.paint(
+      c,
+      pet.look,
+      pose: PetPose.side,
+      anim: pet.anim == PetAnim.happy ? PetAnim.happy : PetAnim.idle,
+      t: time,
+      size: glass.height * 0.42,
+      reducedMotion: reducedMotion,
+      fx: pet.fx,
+    );
+    c.restore();
+    // Brillo del cristal.
+    c.drawRect(
+      glass,
+      Paint()
+        ..shader = Gradient.linear(
+          glass.topLeft,
+          glass.bottomRight,
+          [
+            const Color(0x33FFFFFF),
+            const Color(0x00FFFFFF),
+            const Color(0x22FFF3D6),
+          ],
+          [0, 0.55, 1],
+        ),
+    );
+    c.restore();
+  }
+
+  void _vectorMirror(Canvas c) {
     final s = size.toSize();
     RoomPainter.paintSalonMirror(c, s, floorY);
     final r = RoomPainter.salonMirror(s, floorY).deflate(10);
@@ -660,26 +773,23 @@ class GroomGame extends StageGame {
       reducedMotion: reducedMotion,
       fx: pet.fx,
     );
-    c.drawRect(
-      Rect.fromCenter(
-        center: Offset.zero,
-        width: r.width * 3,
-        height: r.height * 3,
-      ),
-      Paint()..color = const Color(0x22FFFFFF),
-    );
     c.restore();
   }
 
-  Offset _strandCenter(Strand s) {
-    final f = pet.position.toOffset();
-    final z = pet.petSize;
-    return switch (s) {
-      Strand.forelock => f + Offset(0, -z * 0.98),
-      Strand.ears => f + Offset(z * 0.19, -z * 0.7),
-      Strand.back => f + Offset(-z * 0.2, -z * 0.52),
-    };
-  }
+  /// Centros de cada mechón según el caniche dibujado (atlas o vectorial).
+  List<Offset> _strandCenters(Strand s) => switch (s) {
+    Strand.forelock => [pet.landmarkScene('headTop')],
+    Strand.ears => [
+      pet.landmarkScene('earRight'),
+      pet.landmarkScene('earLeft'),
+    ],
+    Strand.back => [
+      pet.landmarkScene('shoulderLeft'),
+      pet.landmarkScene('shoulderRight'),
+    ],
+  };
+
+  Offset _strandCenter(Strand s) => _strandCenters(s).first;
 
   void _markers(Canvas c) {
     for (final s in Strand.values) {
@@ -733,16 +843,12 @@ class GroomGame extends StageGame {
     Strand? best;
     var bestD = pet.petSize * 0.16;
     for (final s in Strand.values) {
-      var center = _strandCenter(s);
-      // Orejas y lomo son simétricos.
-      if (s != Strand.forelock &&
-          (p.dx < pet.position.x) != (center.dx < pet.position.x)) {
-        center = Offset(2 * pet.position.x - center.dx, center.dy);
-      }
-      final d = (p - center).distance;
-      if (d < bestD) {
-        bestD = d;
-        best = s;
+      for (final center in _strandCenters(s)) {
+        final d = (p - center).distance;
+        if (d < bestD) {
+          bestD = d;
+          best = s;
+        }
       }
     }
     return best;
@@ -769,5 +875,418 @@ class GroomGame extends StageGame {
   void dragAt(Offset p, Offset delta) {
     final s = strandAt(p);
     if (s != null) brush(s, delta.distance / (pet.petSize * 0.6));
+  }
+}
+
+// ======================================================================
+// Dormir
+// ======================================================================
+
+/// Llevarlo a su cama, arroparlo, apagar la luz y dejarlo dormir. El sueño
+/// cuenta con tiempo de juego, de modo que la pausa también lo detiene.
+class SleepGame extends StageGame {
+  SleepGame({
+    required super.painter,
+    required super.look,
+    super.reducedMotion,
+    super.onChanged,
+    required this.activity,
+  }) : super(
+         room: RoomKind.living,
+         floorY: 0.74,
+         petX: 0.24,
+         petScale: 0.5,
+         pose: PetPose.side,
+       );
+
+  final SleepActivity activity;
+  final bed = BedProp();
+  Image? _blanketImg;
+  double _walkT = 0;
+  bool _walking = false;
+  double _startX = 0;
+  double _blanket = 0;
+  double _dark = 0;
+  double _sleepLeft = 0;
+  void Function()? onStep;
+
+  double get _walkSeconds => reducedMotion ? 0.2 : 1.3;
+  double get _sleepSeconds => reducedMotion ? 1.5 : 4.5;
+
+  Offset get _bedFeet =>
+      Offset(size.x * 0.64, size.y * (floorY + (1 - floorY) * 0.55));
+  Rect get _bedRect => bed.rect(_bedFeet, pet.petSize);
+
+  /// ¿Ha llegado a la cama y se puede arropar?
+  bool get atBed => !_walking && activity.phase != SleepPhase.toBed;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _startX = pet.position.x;
+    bed.load(this);
+    _prop(this, 'props/blanket.webp').then((i) => _blanketImg = i);
+    add(Painted((c) => bed.paintBack(c, _bedRect), priority: 5));
+    add(Painted((c) => bed.paintFront(c, _bedRect), priority: 15));
+    add(Painted(_blanketLayer, priority: 18));
+    add(Painted(_night, priority: 30));
+  }
+
+  /// Paso 1: lo lleva a su cama.
+  bool goToBed() {
+    if (!activity.advance(SleepPhase.toBed)) return false;
+    _walking = true;
+    _walkT = 0;
+    pet.setView(PetView.right);
+    pet.baseAnim = PetAnim.trot;
+    notify();
+    return true;
+  }
+
+  /// Paso 2: lo arropa.
+  bool tuckIn() {
+    if (!atBed || !activity.advance(SleepPhase.blanket)) return false;
+    notify();
+    return true;
+  }
+
+  /// ¿Está la manta puesta del todo, lista para apagar la luz?
+  bool get canLightsOff => atBed && (reducedMotion || _blanket >= 0.99);
+
+  /// Paso 3: apaga la luz y empieza a dormir.
+  bool lightsOff() {
+    if (!canLightsOff) return false;
+    if (!activity.advance(SleepPhase.lights)) return false;
+    _sleepLeft = _sleepSeconds;
+    notify();
+    return true;
+  }
+
+  Offset get _body =>
+      pet.position.toOffset() + Offset(-pet.petSize * 0.02, -pet.petSize * 0.1);
+
+  void _blanketLayer(Canvas c) {
+    if (_blanket <= 0) return;
+    final img = _blanketImg;
+    // La manta cubre el lomo y deja la carita a la vista.
+    final w = pet.petSize * 0.82;
+    final h = img == null ? w * 0.45 : w * img.height / img.width;
+    final rect = Rect.fromCenter(
+      center: _body + Offset(pet.petSize * 0.1, pet.petSize * 0.09),
+      width: w,
+      height: h,
+    );
+    if (img == null) {
+      c.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(14)),
+        Paint()..color = const Color(0xCCE8A7BC),
+      );
+      return;
+    }
+    _drawImage(c, img, rect, opacity: _blanket.clamp(0, 1));
+  }
+
+  void _night(Canvas c) {
+    if (_dark <= 0) return;
+    c.drawRect(
+      Rect.fromLTWH(0, 0, size.x, size.y),
+      Paint()..color = Color.fromRGBO(22, 18, 54, 0.62 * _dark),
+    );
+    final a = (255 * _dark).round();
+    // Luna.
+    final moon = Offset(size.x * 0.84, size.y * 0.13);
+    c.drawCircle(moon, 22, Paint()..color = Color.fromARGB(a, 255, 244, 208));
+    c.drawCircle(
+      moon + const Offset(9, -4),
+      20,
+      Paint()..color = Color.fromRGBO(22, 18, 54, 0.62 * _dark),
+    );
+    for (var i = 0; i < 6; i++) {
+      final tw = reducedMotion ? 1.0 : 0.6 + 0.4 * math.sin(time * 2 + i);
+      c.drawCircle(
+        Offset(size.x * (0.1 + i * 0.15), size.y * (0.07 + (i % 3) * 0.05)),
+        2.2,
+        Paint()..color = Color.fromARGB((a * tw).round(), 255, 244, 208),
+      );
+    }
+    // Zzz sobre la cabeza.
+    if (activity.phase == SleepPhase.sleeping) {
+      final head = _body + Offset(pet.petSize * 0.1, -pet.petSize * 0.25);
+      for (var i = 0; i < 3; i++) {
+        final k = (time * 0.5 + i / 3) % 1;
+        sceneText(
+          'z',
+          16 + i * 6.0,
+          const Color(0xFFFFF4D0),
+        ).paint(c, head + Offset(k * 34 + i * 6, -k * 46 - i * 10));
+      }
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_walking) {
+      _walkT += dt / _walkSeconds;
+      final k = _walkT.clamp(0.0, 1.0);
+      final target = _bedFeet.dx;
+      pet.position.x = _startX + (target - _startX) * k;
+      if (k >= 1) {
+        _walking = false;
+        // Se acurruca: pose de dormir sobre su cama.
+        pet.setView(PetView.front);
+        pet.baseAnim = PetAnim.sleep;
+        pet.position = Vector2(_bedFeet.dx, _bedFeet.dy);
+        notify();
+      }
+    }
+    final blanketOn = activity.phase.index >= SleepPhase.lights.index;
+    final target = blanketOn ? 1.0 : 0.0;
+    final couldSwitchOff = canLightsOff;
+    _blanket = reducedMotion
+        ? target
+        : _blanket + (target - _blanket) * math.min(1, dt * 4);
+    // El botón «Apagar la luz» se activa cuando la manta está puesta del todo.
+    if (!couldSwitchOff && canLightsOff) notify();
+    if (activity.phase == SleepPhase.sleeping ||
+        activity.phase == SleepPhase.done) {
+      _dark = reducedMotion ? 1 : math.min(1, _dark + dt * 1.2);
+    }
+    if (activity.phase == SleepPhase.sleeping) {
+      _sleepLeft -= dt;
+      if (_sleepLeft <= 0 && activity.wake()) notify();
+    }
+  }
+
+  @override
+  void tapAt(Offset p) {
+    switch (activity.phase) {
+      case SleepPhase.toBed:
+        if (_bedRect.inflate(20).contains(p) || pet.hits(p)) goToBed();
+      case SleepPhase.blanket:
+        if (atBed && (_bedRect.inflate(20).contains(p) || pet.hits(p))) {
+          tuckIn();
+        }
+      case SleepPhase.lights:
+        lightsOff();
+      case SleepPhase.sleeping || SleepPhase.done:
+        break;
+    }
+  }
+}
+
+// ======================================================================
+// Veterinario
+// ======================================================================
+
+enum _VetFx { none, listen, paws, pill }
+
+/// Escuchar el corazón, revisar las patas y, si está malito, darle la pastilla.
+class VetGame extends StageGame {
+  VetGame({
+    required super.painter,
+    required super.look,
+    super.reducedMotion,
+    super.onChanged,
+    required this.activity,
+  }) : super(room: RoomKind.vet, floorY: 0.72, petX: 0.4, petScale: 0.52) {
+    pet.fx = PetFx(sick: activity.sick);
+  }
+
+  final VetActivity activity;
+  _VetFx _fx = _VetFx.none;
+  double _fxT = 0;
+
+  double get _fxSeconds => reducedMotion ? 0.5 : 1.3;
+
+  /// Hay una animación en curso: la actividad no se cierra hasta que acabe.
+  bool get busy => _fx != _VetFx.none;
+
+  void _start(_VetFx fx) {
+    _fx = fx;
+    _fxT = 0;
+  }
+
+  /// Paso 1: el fonendo sobre el pecho.
+  bool listen() {
+    if (!activity.listen()) return false;
+    _start(_VetFx.listen);
+    pet.react(PetAnim.idle, seconds: 0.1);
+    notify();
+    return true;
+  }
+
+  /// Paso 2: revisar las patas.
+  bool checkPaws() {
+    if (!activity.checkPaws()) return false;
+    _start(_VetFx.paws);
+    notify();
+    return true;
+  }
+
+  /// Paso 3 (solo malito): la pastilla.
+  bool givePill() {
+    if (!activity.givePill()) return false;
+    _start(_VetFx.pill);
+    notify();
+    return true;
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    add(Painted(_markers, priority: 15));
+    add(Painted(_effects, priority: 20));
+  }
+
+  Offset _at(String landmark) => pet.landmarkScene(landmark);
+
+  /// A qué se toca ahora según la fase.
+  String? get _target => switch (activity.phase) {
+    VetPhase.heart => 'chest',
+    VetPhase.paws => 'paws',
+    VetPhase.pill => 'mouth',
+    VetPhase.done => null,
+  };
+
+  void _markers(Canvas c) {
+    final t = _target;
+    if (t == null || _fx != _VetFx.none && _fxT < _fxSeconds) return;
+    final center = _at(t);
+    final pulse = reducedMotion ? 0.0 : math.sin(time * 4) * 3;
+    c.drawCircle(
+      center,
+      pet.petSize * 0.1 + pulse,
+      Paint()
+        ..color = const Color(0xFF5C354E)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+  }
+
+  void _effects(Canvas c) {
+    if (_fx == _VetFx.none) return;
+    final k = (_fxT / _fxSeconds).clamp(0.0, 1.0);
+    switch (_fx) {
+      case _VetFx.listen:
+        final chest = _at('chest');
+        // Fonendoscopio: tubo en arco hasta el pecho y campana plateada.
+        final tube = Path()
+          ..moveTo(size.x * 0.9, size.y * 0.1)
+          ..quadraticBezierTo(size.x * 0.95, chest.dy, chest.dx + 10, chest.dy);
+        c.drawPath(
+          tube,
+          Paint()
+            ..color = const Color(0xFF34283B)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 4,
+        );
+        c.drawCircle(chest, 14, Paint()..color = const Color(0xFFB9B9C4));
+        c.drawCircle(
+          chest,
+          14,
+          Paint()
+            ..color = const Color(0xFF6E6E7C)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3,
+        );
+        // Latidos.
+        final beat = reducedMotion
+            ? 1.0
+            : 1 + 0.25 * math.max(0, math.sin(k * 10 * math.pi));
+        final heart = sceneText('♥', 26 * beat, const Color(0xFFE0705A));
+        heart.paint(
+          c,
+          chest + Offset(-heart.width / 2 - 30, -heart.height - 14),
+        );
+        final heart2 = sceneText('♥', 18 * beat, const Color(0xFFE0705A));
+        heart2.paint(c, chest + Offset(18, -heart2.height - 26));
+      case _VetFx.paws:
+        final paws = _at('paws');
+        // Lupa sobre las patas.
+        final r = pet.petSize * 0.1;
+        final center =
+            paws + Offset(math.sin(k * math.pi * 2) * pet.petSize * 0.05, -r);
+        c.drawCircle(center, r, Paint()..color = const Color(0x33FFFFFF));
+        c.drawCircle(
+          center,
+          r,
+          Paint()
+            ..color = const Color(0xFF8E6B3F)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 4,
+        );
+        c.drawLine(
+          center + Offset(r * 0.7, r * 0.7),
+          center + Offset(r * 1.7, r * 1.7),
+          Paint()
+            ..color = const Color(0xFF8E6B3F)
+            ..strokeWidth = 5
+            ..strokeCap = StrokeCap.round,
+        );
+      case _VetFx.pill:
+        final mouth = _at('mouth');
+        final start = Offset(size.x * 0.85, size.y * 0.78);
+        final e = Curves.easeInOut.transform(k);
+        final pos =
+            Offset.lerp(start, mouth, e)! +
+            Offset(0, -math.sin(e * math.pi) * 40);
+        if (k < 0.92) {
+          c.save();
+          c.translate(pos.dx, pos.dy);
+          c.rotate(e * 6);
+          final rr = RRect.fromRectAndRadius(
+            Rect.fromCenter(center: Offset.zero, width: 26, height: 12),
+            const Radius.circular(6),
+          );
+          c.drawRRect(rr, Paint()..color = const Color(0xFFFFFFFF));
+          c.drawRRect(
+            RRect.fromRectAndCorners(
+              Rect.fromLTRB(-13, -6, 0, 6),
+              topLeft: const Radius.circular(6),
+              bottomLeft: const Radius.circular(6),
+            ),
+            Paint()..color = const Color(0xFFE0705A),
+          );
+          c.restore();
+        }
+      case _VetFx.none:
+        break;
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_fx != _VetFx.none) {
+      _fxT += dt;
+      if (_fxT >= _fxSeconds) {
+        final finished = _fx;
+        _fx = _VetFx.none;
+        if (finished == _VetFx.pill || (!activity.sick && activity.completed)) {
+          pet.fx = PetFx.none;
+          pet.react(PetAnim.happy, seconds: 2);
+        }
+        notify();
+      }
+    }
+  }
+
+  @override
+  void tapAt(Offset p) {
+    final t = _target;
+    if (t == null) return;
+    if ((p - _at(t)).distance < pet.petSize * 0.2) {
+      switch (activity.phase) {
+        case VetPhase.heart:
+          listen();
+        case VetPhase.paws:
+          checkPaws();
+        case VetPhase.pill:
+          givePill();
+        case VetPhase.done:
+          break;
+      }
+    }
   }
 }

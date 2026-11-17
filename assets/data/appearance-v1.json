@@ -1,31 +1,338 @@
 {
   "schemaVersion": 1,
-  "note": "Metadatos visuales provisionales del caniche vectorial. Sustituir por atlas y pivotes del arte final manteniendo los mismos IDs.",
+  "note": "Metadatos visuales y nombres del catálogo. Las secciones coats, hair, outfits y necks tienen además datos del dibujo vectorial de respaldo; heads, eyes, collars y paws solo etiquetas (se dibujan con el atlas ilustrado).",
   "coats": {
-    "coat.apricot": { "label": "Albaricoque", "base": "#E2A066", "shade": "#B97A44", "light": "#F5CC9C", "skin": "#EDC39A" },
-    "coat.silver": { "label": "Gris plata", "base": "#B8B6BE", "shade": "#86838F", "light": "#E2E0E6", "skin": "#D9CFC9" }
+    "coat.apricot": {
+      "label": "Albaricoque",
+      "base": "#E2A066",
+      "shade": "#B97A44",
+      "light": "#F5CC9C",
+      "skin": "#EDC39A"
+    },
+    "coat.silver": {
+      "label": "Gris plata",
+      "base": "#B8B6BE",
+      "shade": "#86838F",
+      "light": "#E2E0E6",
+      "skin": "#D9CFC9"
+    },
+    "coat.lightgray": {
+      "label": "Gris claro",
+      "base": "#CFCFD6",
+      "shade": "#A3A3AE",
+      "light": "#EEEEF2",
+      "skin": "#E4D8D2"
+    },
+    "coat.white": {
+      "label": "Blanco",
+      "base": "#F4F1EA",
+      "shade": "#CFC9BC",
+      "light": "#FFFFFF",
+      "skin": "#F3E4DA"
+    },
+    "coat.black": {
+      "label": "Negro",
+      "base": "#3A3640",
+      "shade": "#24212A",
+      "light": "#5A5562",
+      "skin": "#6B5A58"
+    }
   },
   "hair": {
-    "hair.natural": { "label": "Rizo natural", "style": "natural" },
-    "hair.pom": { "label": "Corte pompón", "style": "pom" }
+    "hair.natural": {
+      "label": "Rizo natural",
+      "style": "natural"
+    },
+    "hair.pom": {
+      "label": "Corte pompón",
+      "style": "pom"
+    },
+    "hair.teddy": {
+      "label": "Corte osito",
+      "style": "natural"
+    },
+    "hair.puppy": {
+      "label": "Corte cachorro",
+      "style": "natural"
+    }
   },
   "outfits": {
-    "outfit.none": { "label": "Sin prenda", "style": "none" },
-    "outfit.teal": { "label": "Peto verde", "style": "overalls", "color": "#2F6E68", "shade": "#20504B", "trim": "#F3E7CC" }
+    "outfit.none": {
+      "label": "Sin prenda",
+      "style": "none"
+    },
+    "outfit.teal": {
+      "label": "Peto verde",
+      "style": "overalls",
+      "color": "#2F6E68",
+      "shade": "#20504B",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Verde",
+      "swatch": "#2F6E68"
+    },
+    "outfit.overalls_red": {
+      "label": "Peto rojo",
+      "style": "overalls",
+      "color": "#B8433C",
+      "shade": "#8A2F2B",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Rojo",
+      "swatch": "#B8433C"
+    },
+    "outfit.overalls_yellow": {
+      "label": "Peto amarillo",
+      "style": "overalls",
+      "color": "#E2B93B",
+      "shade": "#B38F25",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Amarillo",
+      "swatch": "#E2B93B"
+    },
+    "outfit.sweater_red": {
+      "label": "Jersey rojo",
+      "style": "overalls",
+      "color": "#B63B33",
+      "shade": "#8A2B25",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Rojo",
+      "swatch": "#B63B33"
+    },
+    "outfit.sweater_blue": {
+      "label": "Jersey azul",
+      "style": "overalls",
+      "color": "#3B6FB6",
+      "shade": "#2A5087",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Azul",
+      "swatch": "#3B6FB6"
+    },
+    "outfit.sweater_mustard": {
+      "label": "Jersey mostaza",
+      "style": "overalls",
+      "color": "#C9A02F",
+      "shade": "#9C7A20",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Mostaza",
+      "swatch": "#C9A02F"
+    },
+    "outfit.raincoat_yellow": {
+      "label": "Impermeable amarillo",
+      "style": "overalls",
+      "color": "#EBC52A",
+      "shade": "#B99A1E",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Amarillo",
+      "swatch": "#EBC52A"
+    },
+    "outfit.raincoat_blue": {
+      "label": "Impermeable azul",
+      "style": "overalls",
+      "color": "#2F7FD0",
+      "shade": "#1F5C9C",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Azul",
+      "swatch": "#2F7FD0"
+    },
+    "outfit.raincoat_pink": {
+      "label": "Impermeable rosa",
+      "style": "overalls",
+      "color": "#E36FA2",
+      "shade": "#B24E7C",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Rosa",
+      "swatch": "#E36FA2"
+    },
+    "outfit.dress_pink": {
+      "label": "Vestido rosa",
+      "style": "overalls",
+      "color": "#F0A5C4",
+      "shade": "#C47F9E",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Rosa",
+      "swatch": "#F0A5C4"
+    },
+    "outfit.dress_lilac": {
+      "label": "Vestido lila",
+      "style": "overalls",
+      "color": "#B79BDB",
+      "shade": "#8D74B3",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Lila",
+      "swatch": "#B79BDB"
+    },
+    "outfit.dress_turquoise": {
+      "label": "Vestido turquesa",
+      "style": "overalls",
+      "color": "#5CC6C0",
+      "shade": "#3E9A95",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Turquesa",
+      "swatch": "#5CC6C0"
+    }
   },
   "necks": {
-    "neck.none": { "label": "Sin accesorio", "style": "none" },
-    "neck.coral": { "label": "Pañuelo coral", "style": "scarf", "color": "#F07A62", "shade": "#C65642" }
+    "neck.none": {
+      "label": "Sin accesorio",
+      "style": "none"
+    },
+    "neck.coral": {
+      "label": "Pañuelo coral",
+      "style": "scarf",
+      "color": "#F07A62",
+      "shade": "#C65642"
+    },
+    "neck.bowtie": {
+      "label": "Pajarita azul",
+      "style": "scarf",
+      "color": "#2B3F7A",
+      "shade": "#1D2C57"
+    },
+    "neck.knit": {
+      "label": "Bufanda de lana",
+      "style": "scarf",
+      "color": "#8FD1B6",
+      "shade": "#5FA68B"
+    }
   },
-  "fixed": { "eye": "#2B1D1F", "nose": "#3A2526", "tongue": "#E77A86", "paw": "#5B3A2E", "shadow": "#34283B" },
+  "fixed": {
+    "eye": "#2B1D1F",
+    "nose": "#3A2526",
+    "tongue": "#E77A86",
+    "paw": "#5B3A2E",
+    "shadow": "#34283B"
+  },
   "poses": {
     "front": {
-      "drawOrder": ["shadow", "tail", "legsBack", "body", "legsFront", "outfit", "ears", "head", "hair", "face", "neck"],
-      "anchors": { "neck": [0, -0.64], "chest": [0, -0.48], "head": [0, -0.81] }
+      "drawOrder": [
+        "shadow",
+        "tail",
+        "legsBack",
+        "body",
+        "legsFront",
+        "outfit",
+        "ears",
+        "head",
+        "hair",
+        "face",
+        "neck"
+      ],
+      "anchors": {
+        "neck": [
+          0,
+          -0.64
+        ],
+        "chest": [
+          0,
+          -0.48
+        ],
+        "head": [
+          0,
+          -0.81
+        ]
+      }
     },
     "side": {
-      "drawOrder": ["shadow", "tail", "legsBack", "body", "outfit", "legsFront", "neck", "head", "ears", "face", "hair"],
-      "anchors": { "neck": [0.2, -0.6], "chest": [0.05, -0.45], "head": [0.3, -0.73] }
+      "drawOrder": [
+        "shadow",
+        "tail",
+        "legsBack",
+        "body",
+        "outfit",
+        "legsFront",
+        "neck",
+        "head",
+        "ears",
+        "face",
+        "hair"
+      ],
+      "anchors": {
+        "neck": [
+          0.2,
+          -0.6
+        ],
+        "chest": [
+          0.05,
+          -0.45
+        ],
+        "head": [
+          0.3,
+          -0.73
+        ]
+      }
+    }
+  },
+  "varieties": {
+    "overalls": "Peto",
+    "sweater": "Jersey",
+    "raincoat": "Impermeable",
+    "dress": "Vestido"
+  },
+  "heads": {
+    "head.none": {
+      "label": "Sin accesorio"
+    },
+    "head.bow": {
+      "label": "Lazo rosa"
+    },
+    "head.beanie": {
+      "label": "Gorro de lana"
+    },
+    "head.crown": {
+      "label": "Corona dorada"
+    }
+  },
+  "eyes": {
+    "eyes.none": {
+      "label": "Sin gafas"
+    },
+    "eyes.round": {
+      "label": "Gafas redondas"
+    },
+    "eyes.sun": {
+      "label": "Gafas de sol"
+    },
+    "eyes.heart": {
+      "label": "Gafas de corazón"
+    }
+  },
+  "collars": {
+    "collar.none": {
+      "label": "Sin collar"
+    },
+    "collar.tag": {
+      "label": "Collar con chapa"
+    },
+    "collar.bell": {
+      "label": "Collar con cascabel"
+    },
+    "collar.pearls": {
+      "label": "Collar de perlas"
+    }
+  },
+  "paws": {
+    "paws.none": {
+      "label": "Sin patucos"
+    },
+    "paws.booties": {
+      "label": "Patucos de lana"
+    },
+    "paws.sneakers": {
+      "label": "Zapatillas"
+    },
+    "paws.rain": {
+      "label": "Botas de lluvia"
     }
   }
 }

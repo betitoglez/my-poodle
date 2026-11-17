@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/app_controller.dart';
 import '../../app/app_root.dart';
 import '../../app/app_scope.dart';
 import '../../app/feedback.dart';
@@ -15,6 +18,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/scene_view.dart';
+import '../widgets/turn_control.dart';
 import 'main_shell.dart';
 
 extension SlotUi on Slot {
@@ -22,15 +26,54 @@ extension SlotUi on Slot {
     Slot.coat => 'Colores',
     Slot.hair => 'Peinados',
     Slot.outfit => 'Ropa',
-    Slot.neck => 'Accesorios',
+    Slot.head => 'Cabeza',
+    Slot.eyes => 'Ojos',
+    Slot.collar => 'Collares',
+    Slot.neck => 'Cuello',
+    Slot.paws => 'Patucos',
   };
   IconData get icon => switch (this) {
     Slot.coat => Icons.palette_rounded,
     Slot.hair => Icons.content_cut_rounded,
     Slot.outfit => Icons.checkroom_rounded,
+    Slot.head => Icons.emoji_events_rounded,
+    Slot.eyes => Icons.visibility_rounded,
+    Slot.collar => Icons.loyalty_rounded,
     Slot.neck => Icons.diamond_rounded,
+    Slot.paws => Icons.pets_rounded,
+  };
+
+  /// Las ranuras de accesorio cuelgan de la categoría «Accesorios».
+  bool get isAccessory => switch (this) {
+    Slot.head || Slot.eyes || Slot.collar || Slot.neck || Slot.paws => true,
+    _ => false,
   };
 }
+
+/// Categorías principales del armario; «Accesorios» tiene submenús.
+enum _Category {
+  coat(Slot.coat, 'Colores', Icons.palette_rounded),
+  hair(Slot.hair, 'Peinados', Icons.content_cut_rounded),
+  outfit(Slot.outfit, 'Ropa', Icons.checkroom_rounded),
+  accessories(Slot.head, 'Accesorios', Icons.diamond_rounded);
+
+  const _Category(this.firstSlot, this.label, this.icon);
+  final Slot firstSlot;
+  final String label;
+  final IconData icon;
+
+  static _Category of(Slot s) => s.isAccessory
+      ? _Category.accessories
+      : _Category.values.firstWhere((c) => c.firstSlot == s);
+}
+
+const _accessorySlots = [
+  Slot.head,
+  Slot.eyes,
+  Slot.collar,
+  Slot.neck,
+  Slot.paws,
+];
 
 /// P09 · Armario. La vista previa es una copia del aspecto: no modifica el
 /// estado guardado ni descuenta monedas hasta confirmar.
@@ -53,8 +96,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   StageGame? _game;
   late Appearance _preview;
   late Slot _slot = widget.initialSlot;
+  PetView _view = PetView.front;
   bool _busy = false;
   ShellController? _shell;
+
+  _Category get _category => _Category.of(_slot);
 
   @override
   void didChangeDependencies() {
@@ -94,6 +140,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     setState(() => _preview = a);
     _game!.setLook(c.looks.resolve(a));
     _game!.pet.react(PetAnim.happy, seconds: 1);
+  }
+
+  void _turn(PetView v) {
+    setState(() => _view = v);
+    _game!.pet.setView(v);
   }
 
   /// Salir con una prueba pendiente: aplicar (con compra) o descartar.
@@ -170,6 +221,30 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     return false;
   }
 
+  /// Artículos de la ranura agrupados por variedad (los colores de una
+  /// variedad cuestan lo mismo); los sueltos forman una sola sección.
+  List<_Section> _sections(AppController c, Slot slot) {
+    final out = <_Section>[];
+    final byVariety = <String, _Section>{};
+    for (final it in c.balance.itemsFor(slot)) {
+      final v = c.looks.varietyOf(it.id);
+      if (v == null) {
+        if (out.isEmpty || out.last.variety != null) {
+          out.add(_Section(null, []));
+        }
+        out.last.items.add(it);
+      } else {
+        final sec = byVariety.putIfAbsent(v, () {
+          final created = _Section(v, []);
+          out.add(created);
+          return created;
+        });
+        sec.items.add(it);
+      }
+    }
+    return out;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppScope.of(context);
@@ -181,6 +256,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     final equipped = pet.appearance.of(_slot) == selectedId;
     final dirty = _preview != pet.appearance;
     final cost = c.lookCost(_preview);
+    final zoom = ThumbZoom.of(_slot);
 
     // Acción contextual.
     late final Widget action;
@@ -226,73 +302,154 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
       );
     }
 
+    final sections = _sections(c, _slot);
+    final columns = l.tablet ? 4 : 2;
+
     final content = Column(
       children: [
         if (!widget.standalone)
           const TabHeader(kicker: 'Vestuario', title: 'Armario'),
         Expanded(
-          flex: l.compact ? 4 : 5,
+          flex: l.compact ? 3 : 4,
           child: SceneView(
             game: _game!,
             semanticsLabel:
-                'Vista previa de ${pet.name} con el aspecto elegido',
+                'Vista previa de ${pet.name} con el aspecto elegido, ${_view.label.toLowerCase()}',
             onTap: (_) => _game!.pet.react(PetAnim.happy),
-            overlay: dirty
-                ? Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpace.s),
-                      child: Chip(
-                        avatar: const Icon(Icons.visibility_rounded, size: 18),
-                        label: const Text('Probando'),
-                        backgroundColor: AppColors.cream,
-                      ),
+            overlay: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (dirty)
+                  Positioned(
+                    right: AppSpace.s,
+                    top: AppSpace.s,
+                    child: Chip(
+                      avatar: const Icon(Icons.visibility_rounded, size: 18),
+                      label: const Text('Probando'),
+                      backgroundColor: AppColors.cream,
                     ),
-                  )
-                : null,
+                  ),
+                Positioned(
+                  right: AppSpace.s,
+                  bottom: AppSpace.s,
+                  child: TurnControl(
+                    view: _view,
+                    onTurn: _turn,
+                    compact: l.compact,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         Expanded(
-          flex: l.compact ? 6 : 5,
+          flex: l.compact ? 7 : 6,
           child: Panel(
             child: Column(
               children: [
                 Row(
                   children: [
-                    for (final s in Slot.values)
+                    for (final cat in _Category.values)
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: _CategoryTab(
-                            slot: s,
-                            selected: s == _slot,
-                            onTap: () => setState(() => _slot = s),
+                            label: cat.label,
+                            icon: cat.icon,
+                            selected: cat == _category,
+                            onTap: () => setState(() {
+                              if (cat != _category) _slot = cat.firstSlot;
+                            }),
                           ),
                         ),
                       ),
                   ],
                 ),
+                if (_category == _Category.accessories) ...[
+                  const SizedBox(height: AppSpace.s),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final s in _accessorySlots)
+                          Padding(
+                            padding: const EdgeInsets.only(right: AppSpace.s),
+                            child: ChoiceChip(
+                              avatar: Icon(s.icon, size: 18),
+                              label: Text(s.label),
+                              selected: s == _slot,
+                              showCheckmark: false,
+                              onSelected: (_) => setState(() => _slot = s),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.padded,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpace.s),
                 Expanded(
-                  child: GridView.count(
-                    crossAxisCount: l.tablet ? 4 : 2,
-                    mainAxisSpacing: AppSpace.s,
-                    crossAxisSpacing: AppSpace.s,
-                    childAspectRatio: l.compact ? 1.5 : 1.15,
-                    children: [
-                      for (final it in c.balance.itemsFor(_slot))
-                        _ItemTile(
-                          item: it,
-                          label: c.looks.label(it.id),
-                          look: c.looks.resolve(
-                            _preview.withSlot(_slot, it.id),
+                  child: CustomScrollView(
+                    slivers: [
+                      for (final sec in sections) ...[
+                        if (sec.variety != null)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(2, 6, 2, 6),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    c.looks.varietyLabel(sec.variety!),
+                                    style: AppText.subtitle,
+                                  ),
+                                  const SizedBox(width: AppSpace.s),
+                                  const CoinIcon(size: 16),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      '${sec.items.first.cost} · todos los colores',
+                                      style: AppText.small,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          selected: it.id == selectedId,
-                          owned: pet.owned.contains(it.id),
-                          equipped: pet.appearance.of(_slot) == it.id,
-                          onTap: () =>
-                              _setPreview(_preview.withSlot(_slot, it.id)),
+                        SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                mainAxisSpacing: AppSpace.s,
+                                crossAxisSpacing: AppSpace.s,
+                                childAspectRatio: l.compact ? 1.35 : 1.1,
+                              ),
+                          delegate: SliverChildBuilderDelegate((context, i) {
+                            final it = sec.items[i];
+                            return _ItemTile(
+                              item: it,
+                              label: sec.variety != null
+                                  ? (c.looks.colorLabel(it.id) ??
+                                        c.looks.label(it.id))
+                                  : c.looks.label(it.id),
+                              swatch: c.looks.swatch(it.id),
+                              zoom: zoom,
+                              look: c.looks.resolve(
+                                _preview.withSlot(_slot, it.id),
+                              ),
+                              selected: it.id == selectedId,
+                              owned: pet.owned.contains(it.id),
+                              equipped: pet.appearance.of(_slot) == it.id,
+                              onTap: () =>
+                                  _setPreview(_preview.withSlot(_slot, it.id)),
+                            );
+                          }, childCount: sec.items.length),
                         ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: AppSpace.s),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -354,13 +511,21 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   }
 }
 
+class _Section {
+  _Section(this.variety, this.items);
+  final String? variety;
+  final List<StyleItem> items;
+}
+
 class _CategoryTab extends StatelessWidget {
   const _CategoryTab({
-    required this.slot,
+    required this.label,
+    required this.icon,
     required this.selected,
     required this.onTap,
   });
-  final Slot slot;
+  final String label;
+  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
@@ -369,7 +534,7 @@ class _CategoryTab extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: slot.label,
+      label: label,
       excludeSemantics: true,
       child: Material(
         color: selected ? AppColors.plum : Colors.white,
@@ -383,12 +548,12 @@ class _CategoryTab extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  slot.icon,
+                  icon,
                   size: 20,
                   color: selected ? AppColors.cream : AppColors.plum,
                 ),
                 Text(
-                  slot.label,
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -410,7 +575,9 @@ class _ItemTile extends StatelessWidget {
   const _ItemTile({
     required this.item,
     required this.label,
+    this.swatch,
     required this.look,
+    required this.zoom,
     required this.selected,
     required this.owned,
     required this.equipped,
@@ -418,6 +585,8 @@ class _ItemTile extends StatelessWidget {
   });
   final StyleItem item;
   final String label;
+  final Color? swatch;
+  final ThumbZoom zoom;
   final PetLook look;
   final bool selected;
   final bool owned;
@@ -450,12 +619,33 @@ class _ItemTile extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             child: Column(
               children: [
-                Expanded(child: PetThumb(look: look)),
-                Text(
-                  label,
-                  style: AppText.subtitle.copyWith(fontSize: 15),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: PetThumb(look: look, zoom: zoom),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (swatch != null) ...[
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: swatch,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0x44000000)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: AppText.subtitle.copyWith(fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -493,47 +683,97 @@ class _ItemTile extends StatelessWidget {
   }
 }
 
+/// Zona del caniche que enseña una miniatura: el cuerpo entero o, para
+/// accesorios, la parte donde se ven (cabeza, cuello, patas).
+enum ThumbZoom {
+  body(null),
+  head(Rect.fromLTWH(-0.34, -1.05, 0.62, 0.5)),
+  neck(Rect.fromLTWH(-0.37, -0.82, 0.74, 0.55)),
+  paws(Rect.fromLTWH(-0.38, -0.34, 0.76, 0.38));
+
+  const ThumbZoom(this.rect);
+
+  /// Región en unidades del caniche (altura 1, origen en los pies).
+  final Rect? rect;
+
+  static ThumbZoom of(Slot s) => switch (s) {
+    Slot.head || Slot.eyes => ThumbZoom.head,
+    Slot.collar || Slot.neck => ThumbZoom.neck,
+    Slot.paws => ThumbZoom.paws,
+    _ => ThumbZoom.body,
+  };
+}
+
 /// Miniatura estática del caniche con un aspecto concreto.
 class PetThumb extends StatelessWidget {
-  const PetThumb({super.key, required this.look, this.pose = PetPose.front});
+  const PetThumb({
+    super.key,
+    required this.look,
+    this.pose = PetPose.front,
+    this.zoom = ThumbZoom.body,
+  });
   final PetLook look;
   final PetPose pose;
+  final ThumbZoom zoom;
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-    painter: _ThumbPainter(PetPainterScope.of(context), look, pose),
+    painter: _ThumbPainter(PetPainterScope.of(context), look, pose, zoom),
     size: Size.infinite,
   );
 }
 
 class _ThumbPainter extends CustomPainter {
-  _ThumbPainter(this.painter, this.look, this.pose) : super(repaint: painter);
+  _ThumbPainter(this.painter, this.look, this.pose, this.zoom)
+    : super(repaint: painter);
   final PetPainter painter;
   final PetLook look;
   final PetPose pose;
+  final ThumbZoom zoom;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final s = (size.height * 0.92)
-        .clamp(0.0, size.width * (pose == PetPose.front ? 1.4 : 0.9))
-        .toDouble();
     canvas.save();
-    canvas.translate(
-      size.width / 2 - (pose == PetPose.side ? s * 0.05 : 0),
-      size.height * 0.97,
-    );
-    painter.paint(
-      canvas,
-      look,
-      pose: pose,
-      anim: PetAnim.idle,
-      t: 1,
-      size: s,
-      reducedMotion: true,
-    );
+    canvas.clipRect(Offset.zero & size);
+    final r = zoom.rect;
+    if (r == null) {
+      final s = (size.height * 0.92)
+          .clamp(0.0, size.width * (pose == PetPose.side ? 0.9 : 1.4))
+          .toDouble();
+      canvas.translate(
+        size.width / 2 - (pose == PetPose.side ? s * 0.05 : 0),
+        size.height * 0.97,
+      );
+      painter.paint(
+        canvas,
+        look,
+        pose: pose,
+        anim: PetAnim.idle,
+        t: 1,
+        size: s,
+        reducedMotion: true,
+      );
+    } else {
+      // Encuadre cerrado: la región r llena la miniatura.
+      final s = math.min(size.width / r.width, size.height / r.height);
+      canvas.translate(
+        size.width / 2 - r.center.dx * s,
+        size.height / 2 - r.center.dy * s,
+      );
+      painter.paint(
+        canvas,
+        look,
+        pose: pose,
+        anim: PetAnim.idle,
+        t: 1,
+        size: s,
+        reducedMotion: true,
+      );
+    }
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_ThumbPainter old) => old.look != look || old.pose != pose;
+  bool shouldRepaint(_ThumbPainter old) =>
+      old.look != look || old.pose != pose || old.zoom != zoom;
 }

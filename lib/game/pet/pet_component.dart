@@ -19,6 +19,10 @@ class PetComponent extends PositionComponent {
 
   final PetPainter painter;
   PetLook look;
+
+  /// Aspecto pedido mientras se cargan sus capas; sustituye a [look] al estar
+  /// listo para no enseñar un fotograma a medias.
+  PetLook? _pendingLook;
   PetPose pose;
   PetAnim baseAnim;
   double petSize;
@@ -32,6 +36,31 @@ class PetComponent extends PositionComponent {
   double _reactionLeft = 0;
 
   PetAnim get anim => _reaction ?? baseAnim;
+
+  /// Cambia el aspecto cargando antes sus capas (sin parpadeos).
+  void setLook(PetLook next) {
+    final ids = next.ids;
+    // Mismo aspecto que el actual (o que el pedido): nada que hacer.
+    if (ids != null && ids == (_pendingLook?.ids ?? look.ids)) return;
+    if (ids == null || painter.sprites == null) {
+      look = next;
+      return;
+    }
+    _pendingLook = next;
+    painter.warm(ids).then((_) {
+      if (identical(_pendingLook, next)) {
+        look = next;
+        _pendingLook = null;
+      }
+    });
+  }
+
+  /// Mira desde uno de los cuatro ángulos.
+  void setView(PetView v) {
+    pose = v.pose;
+    facingLeft = v.facingLeft;
+  }
+
   bool get reacting => _reaction != null;
 
   /// Reacción breve que vuelve después a [baseAnim].
@@ -43,6 +72,25 @@ class PetComponent extends PositionComponent {
   void clearReaction() {
     _reaction = null;
     _reactionLeft = 0;
+  }
+
+  double get clock => _t;
+
+  /// Punto del cuerpo (ojos, boca, pecho, costados, patas…) en coordenadas
+  /// de la escena, según la pose y el fotograma que se está dibujando.
+  Offset landmarkScene(String name) {
+    final u = painter.landmark(
+      pose,
+      name,
+      anim: anim,
+      t: _t,
+      reducedMotion: reducedMotion,
+      ids: look.ids,
+    );
+    return Offset(
+      position.x + (facingLeft ? -u.dx : u.dx) * petSize,
+      position.y + u.dy * petSize,
+    );
   }
 
   /// Convierte un punto de la escena al espacio unitario del caniche.
@@ -57,9 +105,16 @@ class PetComponent extends PositionComponent {
   /// ¿El punto toca el cuerpo del caniche? (caja aproximada por pose).
   bool hits(Offset scenePoint) {
     final u = toUnit(scenePoint);
-    return pose == PetPose.front
-        ? u.dx.abs() < 0.3 && u.dy > -1.1 && u.dy < 0.05
-        : u.dx > -0.45 && u.dx < 0.6 && u.dy > -1.0 && u.dy < 0.05;
+    return pose == PetPose.side
+        ? u.dx > -0.45 && u.dx < 0.6 && u.dy > -1.0 && u.dy < 0.05
+        : u.dx.abs() < 0.3 && u.dy > -1.1 && u.dy < 0.05;
+  }
+
+  @override
+  Future<void> onLoad() async {
+    // Todas las poses del aspecto actual, para cambiar de pose sin parpadeo.
+    final ids = look.ids;
+    if (ids != null) await painter.warm(ids);
   }
 
   @override

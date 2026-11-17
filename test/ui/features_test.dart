@@ -1,0 +1,220 @@
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:my_poodle/data/save_codec.dart';
+import 'package:my_poodle/data/save_store.dart';
+import 'package:my_poodle/data/storage_backend.dart';
+import 'package:my_poodle/domain/balance.dart';
+import 'package:my_poodle/domain/pet_state.dart';
+import 'package:my_poodle/domain/rules.dart';
+import 'package:my_poodle/ui/widgets/status_bubbles.dart';
+
+import '../support.dart';
+import 'app_flow_test.dart'
+    show boot, frames, idle, saved, scrollTo, tapIcon, tapText;
+
+/// Partida guardada antes de arrancar, para empezar en un estado concreto.
+MemoryBackend backendWith(PetState Function(PetState) tweak) {
+  final balance = loadBalance();
+  final s = tweak(
+    PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance),
+  );
+  return MemoryBackend()
+    ..files[SaveStore.primary] = SaveCodec(balance).encode(s);
+}
+
+Set<PetCondition> lit(WidgetTester t) =>
+    t.widget<StatusBubbles>(find.byType(StatusBubbles)).active;
+
+void main() {
+  setUp(rootBundle.clear);
+
+  testWidgets(
+    'iconos de estado: se encienden según el estado y llevan a la actividad',
+    (t) async {
+      final backend = backendWith(
+        (s) => s.copyWith(
+          needs100: {
+            Need.satiety: 1500,
+            Need.hygiene: 8000,
+            Need.mood: 2000,
+            Need.energy: 8000,
+          },
+          sickSinceUtc: t0,
+          lastSickUtc: t0,
+        ),
+      );
+      await boot(t, backend);
+      expect(find.byType(StatusBubbles), findsOneWidget);
+      expect(lit(t), {
+        PetCondition.hungry,
+        PetCondition.sad,
+        PetCondition.sick,
+      });
+      // Malito es lo más urgente: la sugerencia y el botón lo mencionan.
+      expect(find.textContaining('Miel'), findsWidgets);
+      expect(find.text('Veterinario'), findsOneWidget);
+      expect(find.text('Malito'), findsWidgets); // medidor de salud
+      // Tocar el icono apagado no hace nada; el encendido abre el veterinario.
+      await t.tap(find.byType(StatusBubbles));
+      await idle(t);
+    },
+  );
+
+  testWidgets('sano y descansado: ningún icono encendido', (t) async {
+    await boot(t, backendWith((s) => s));
+    expect(lit(t), isEmpty);
+    expect(find.text('Sano'), findsOneWidget);
+  });
+
+  testWidgets('veterinario: tres pasos, pastilla y cura una sola vez', (
+    t,
+  ) async {
+    final backend = backendWith(
+      (s) => s.copyWith(sickSinceUtc: t0, lastSickUtc: t0),
+    );
+    await boot(t, backend);
+    await tapText(t, 'Cuidados');
+    expect(find.text('¡Malito!'), findsOneWidget);
+    await tapText(t, 'Veterinario');
+    expect(find.textContaining('está malito'), findsWidgets);
+    // El orden es el del corazón, las patas y la pastilla.
+    expect(find.text('Dar la pastilla'), findsNothing);
+    await tapText(t, 'Escuchar el corazón');
+    await frames(t, seconds: 1.6);
+    await tapText(t, 'Revisar las patas');
+    await frames(t, seconds: 1.6);
+    expect(saved(backend).isSick, isTrue); // aún no se ha guardado nada
+    await tapText(t, 'Dar la pastilla');
+    await frames(t, seconds: 2);
+    await idle(t);
+    expect(find.text('Malito → Sano'), findsOneWidget);
+    final s = saved(backend);
+    expect(s.isSick, isFalse);
+    expect(s.lastSickUtc, t0);
+    expect(s.needPoints(Need.mood), 80);
+    expect(s.revision, 2);
+    expect(s.coins, 0);
+  });
+
+  testWidgets('veterinario sano: revisión de dos pasos sin pastilla', (
+    t,
+  ) async {
+    final backend = backendWith((s) => s);
+    await boot(t, backend);
+    await tapText(t, 'Cuidados');
+    await tapText(t, 'Veterinario');
+    await tapText(t, 'Escuchar el corazón');
+    await frames(t, seconds: 1.6);
+    await tapText(t, 'Revisar las patas');
+    await frames(t, seconds: 1.8);
+    await idle(t);
+    expect(find.text('Dar la pastilla'), findsNothing);
+    expect(saved(backend).needPoints(Need.mood), 80);
+    expect(saved(backend).isSick, isFalse);
+  });
+
+  testWidgets('dormir: cama, manta, luz y +45 de energía una sola vez', (
+    t,
+  ) async {
+    final backend = backendWith(
+      (s) => s.copyWith(needs100: {...s.needs100, Need.energy: 2000}),
+    );
+    await boot(t, backend);
+    expect(lit(t), {PetCondition.tired});
+    await tapText(t, 'Cuidados');
+    await tapText(t, 'Dormir');
+    await tapText(t, 'Llevar a su cama');
+    await frames(t, seconds: 1.8);
+    await tapText(t, 'Arropar');
+    await frames(t, seconds: 1.6);
+    await tapText(t, 'Apagar la luz');
+    await frames(t, seconds: 6);
+    await idle(t);
+    final s = saved(backend);
+    expect(s.needPoints(Need.energy), 65);
+    expect(s.needPoints(Need.mood), 78);
+    expect(s.revision, 2);
+    expect(find.text('DORMIR COMPLETADO'), findsOneWidget);
+  });
+
+  testWidgets('dormir: salir a medias no aplica nada', (t) async {
+    final backend = backendWith(
+      (s) => s.copyWith(needs100: {...s.needs100, Need.energy: 2000}),
+    );
+    await boot(t, backend);
+    await tapText(t, 'Cuidados');
+    await tapText(t, 'Dormir');
+    await tapText(t, 'Llevar a su cama');
+    await frames(t, seconds: 1.8);
+    await tapIcon(t, Icons.close_rounded);
+    await tapText(t, 'Salir');
+    expect(saved(backend).needPoints(Need.energy), 20);
+    expect(saved(backend).revision, 1);
+  });
+
+  testWidgets('armario: submenús de accesorios y compra de un lazo', (t) async {
+    final backend = backendWith((s) => s.copyWith(coins: 30));
+    await boot(t, backend);
+    await tapText(t, 'Armario');
+    await tapText(t, 'Accesorios');
+    for (final sub in ['Cabeza', 'Ojos', 'Collares', 'Cuello', 'Patucos']) {
+      expect(find.text(sub), findsWidgets, reason: sub);
+    }
+    await tapText(t, 'Lazo rosa');
+    await tapText(t, 'Comprar y usar · 14');
+    expect(find.text('Saldo restante'), findsOneWidget);
+    await tapText(t, 'Confirmar');
+    final s = saved(backend);
+    expect([s.coins, s.appearance.head], [16, 'head.bow']);
+    // Otras ranuras siguen libres y los precios más altos piden más monedas.
+    await tapText(t, 'Patucos');
+    await tapText(t, 'Zapatillas');
+    expect(find.text('Faltan 24 · Jugar'), findsOneWidget);
+  });
+
+  testWidgets('armario: ropa por variedad, colores al mismo precio', (t) async {
+    final backend = backendWith((s) => s.copyWith(coins: 50));
+    await boot(t, backend);
+    await tapText(t, 'Armario');
+    await tapText(t, 'Ropa');
+    expect(find.text('Peto'), findsOneWidget);
+    // Todos los colores de una prenda cuestan lo mismo; la prenda marca el precio.
+    await scrollTo(t, find.text('Jersey'));
+    expect(find.text('32 · todos los colores'), findsOneWidget);
+    await scrollTo(t, find.text('Mostaza'));
+    await tapText(t, 'Mostaza');
+    expect(find.text('Comprar y usar · 32'), findsOneWidget);
+    await scrollTo(t, find.text('Impermeable'));
+    expect(find.text('46 · todos los colores'), findsOneWidget);
+    await tapText(t, 'Azul');
+    expect(find.text('Comprar y usar · 46'), findsOneWidget);
+    await scrollTo(t, find.text('Vestido'));
+    expect(find.text('Vestido'), findsOneWidget);
+  });
+
+  testWidgets('girar al caniche recorre los cuatro ángulos', (t) async {
+    await boot(t, backendWith((s) => s));
+    expect(find.text('De frente'), findsOneWidget);
+    final seen = <String>[];
+    for (var i = 0; i < 4; i++) {
+      await tapIcon(t, Icons.rotate_right_rounded);
+      seen.add(
+        [
+          'De frente',
+          'Lado derecho',
+          'De espaldas',
+          'Lado izquierdo',
+        ].firstWhere((l) => find.text(l).evaluate().isNotEmpty),
+      );
+    }
+    expect(seen, [
+      'Lado derecho',
+      'De espaldas',
+      'Lado izquierdo',
+      'De frente',
+    ]);
+    await tapIcon(t, Icons.rotate_left_rounded);
+    expect(find.text('Lado izquierdo'), findsOneWidget);
+  });
+}

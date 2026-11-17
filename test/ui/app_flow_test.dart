@@ -65,16 +65,22 @@ Future<void> reopen(WidgetTester t, MemoryBackend backend, {int? now}) async {
 
 /// Desplaza la lista visible hasta construir y mostrar [finder].
 Future<void> scrollTo(WidgetTester t, Finder finder) async {
-  await t.scrollUntilVisible(
-    finder,
-    200,
-    scrollable: find.byType(Scrollable).last,
+  if (finder.hitTestable().evaluate().isNotEmpty) return;
+  final vertical = find.byWidgetPredicate(
+    (w) => w is Scrollable && w.axis == Axis.vertical,
   );
+  await t.scrollUntilVisible(finder, 200, scrollable: vertical.last);
   await t.pump();
 }
 
 Future<void> tapText(WidgetTester t, String text) async {
-  final f = find.text(text).hitTestable();
+  var f = find.text(text).hitTestable();
+  if (f.evaluate().isEmpty && find.text(text).evaluate().isNotEmpty) {
+    // Puede estar en una fila desplazable (p. ej. submenús del armario).
+    await t.ensureVisible(find.text(text).first);
+    await t.pump();
+    f = find.text(text).hitTestable();
+  }
   expect(f, findsWidgets, reason: 'No se encuentra «$text»');
   await t.tap(f.first);
   await idle(t);
@@ -190,6 +196,7 @@ void main() {
       await tapText(t, 'Casa');
       await tapText(t, 'Armario');
       await tapText(t, 'Accesorios');
+      await tapText(t, 'Cuello');
       await tapText(t, 'Pañuelo coral');
       await tapText(t, 'Comprar y usar · 10');
       expect(find.text('Saldo restante'), findsOneWidget);
@@ -309,8 +316,10 @@ void main() {
     final demo = find.text('Entrar en modo demostración');
     await scrollTo(t, demo);
     await tapText(t, 'Entrar en modo demostración');
-    await tapText(t, '100 monedas');
+    await scrollTo(t, find.text('Necesidades bajas'));
     await tapText(t, 'Necesidades bajas');
+    await scrollTo(t, find.text('100 monedas'));
+    await tapText(t, '100 monedas');
     expect(find.text('DEMO'), findsWidgets);
     final exit = find.text('Salir del modo demostración');
     await scrollTo(t, exit);

@@ -184,7 +184,7 @@ class ActivityFrameState extends State<ActivityFrame>
                       Positioned(
                         left: l.gutter,
                         right: l.gutter,
-                        bottom: AppSpace.m,
+                        top: AppSpace.s,
                         child: Center(child: widget.hint!),
                       ),
                   ],

@@ -61,3 +61,5 @@ flutter:
     - assets/images/scenes/
     - assets/images/rooms/
     - assets/images/pet/
+    - assets/images/props/
+    - assets/images/icons/

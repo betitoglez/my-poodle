@@ -15,8 +15,15 @@ class BalanceFormatException implements Exception {
 enum Need { satiety, hygiene, mood, energy }
 
 class CareRule {
-  const CareRule({required this.steps, required this.delta});
+  const CareRule({
+    required this.steps,
+    required this.delta,
+    this.cures = false,
+  });
   final List<String> steps;
+
+  /// Terminar esta actividad cura la enfermedad (veterinario).
+  final bool cures;
 
   /// Cambio en puntos enteros (no centésimas) por medida.
   final Map<Need, int> delta;
@@ -56,6 +63,45 @@ class FrisbeeRule {
   final List<(double, double)> targetsField;
 }
 
+/// Salud: la enfermedad es un estado (no una medida) que aparece por
+/// descuido o por azar, como máximo una vez por semana, y solo cura el
+/// veterinario. Las probabilidades son por bloque de 15 minutos, sobre 10 000.
+class HealthRule {
+  const HealthRule({
+    required this.cooldownSeconds,
+    required this.graceSeconds,
+    required this.randomChance,
+    required this.neglectChance,
+    required this.neglectSatietyBelow,
+    required this.neglectHygieneBelow,
+    required this.neglectEnergyBelow,
+    required this.sickMoodPerTick100,
+  });
+  final int cooldownSeconds;
+  final int graceSeconds;
+  final int randomChance;
+  final int neglectChance;
+  final int neglectSatietyBelow;
+  final int neglectHygieneBelow;
+  final int neglectEnergyBelow;
+  final int sickMoodPerTick100;
+}
+
+/// Umbrales (en puntos) por debajo de los cuales se enciende cada icono
+/// de estado del visor.
+class StatusRule {
+  const StatusRule({
+    required this.hungryBelow,
+    required this.dirtyBelow,
+    required this.sadBelow,
+    required this.tiredBelow,
+  });
+  final int hungryBelow;
+  final int dirtyBelow;
+  final int sadBelow;
+  final int tiredBelow;
+}
+
 class StyleItem {
   const StyleItem({
     required this.id,
@@ -80,6 +126,8 @@ class Balance {
     required this.fruit,
     required this.frisbee,
     required this.gameCompleteDelta,
+    required this.health,
+    required this.status,
     required List<StyleItem> styles,
   }) : styles = List.unmodifiable(styles) {
     _validate();
@@ -94,6 +142,8 @@ class Balance {
   final FruitRule fruit;
   final FrisbeeRule frisbee;
   final Map<Need, int> gameCompleteDelta;
+  final HealthRule health;
+  final StatusRule status;
   final List<StyleItem> styles;
 
   StyleItem? item(String id) {
@@ -109,12 +159,8 @@ class Balance {
   StyleItem baseFor(Slot slot) =>
       styles.firstWhere((s) => s.slot == slot && s.initial);
 
-  Appearance get initialAppearance => Appearance(
-    coat: baseFor(Slot.coat).id,
-    hair: baseFor(Slot.hair).id,
-    outfit: baseFor(Slot.outfit).id,
-    neck: baseFor(Slot.neck).id,
-  );
+  Appearance get initialAppearance =>
+      Appearance({for (final s in Slot.values) s: baseFor(s).id});
 
   void _validate() {
     final ids = <String>{};
@@ -184,6 +230,7 @@ class Balance {
     careJ.forEach((k, v) {
       final m = v as Map<String, dynamic>;
       care[k] = CareRule(
+        cures: m['cures'] == true,
         steps: List<String>.from(req<List<dynamic>>(m, 'steps')),
         delta: needMap(req<Map<String, dynamic>>(m, 'delta')),
       );
@@ -209,6 +256,8 @@ class Balance {
       );
     }).toList();
 
+    final healthJ = req<Map<String, dynamic>>(j, 'health');
+    final statusJ = req<Map<String, dynamic>>(j, 'status');
     return Balance(
       startCoins: req<int>(j, 'startCoins'),
       tickSeconds: req<int>(needs, 'tickSeconds'),
@@ -238,6 +287,22 @@ class Balance {
       ),
       gameCompleteDelta: needMap(
         req<Map<String, dynamic>>(j, 'gameCompleteDelta'),
+      ),
+      health: HealthRule(
+        cooldownSeconds: req<int>(healthJ, 'cooldownSeconds'),
+        graceSeconds: req<int>(healthJ, 'graceSeconds'),
+        randomChance: req<int>(healthJ, 'randomChance'),
+        neglectChance: req<int>(healthJ, 'neglectChance'),
+        neglectSatietyBelow: req<int>(healthJ, 'neglectSatietyBelow'),
+        neglectHygieneBelow: req<int>(healthJ, 'neglectHygieneBelow'),
+        neglectEnergyBelow: req<int>(healthJ, 'neglectEnergyBelow'),
+        sickMoodPerTick100: req<int>(healthJ, 'sickMoodPerTick100'),
+      ),
+      status: StatusRule(
+        hungryBelow: req<int>(statusJ, 'hungryBelow'),
+        dirtyBelow: req<int>(statusJ, 'dirtyBelow'),
+        sadBelow: req<int>(statusJ, 'sadBelow'),
+        tiredBelow: req<int>(statusJ, 'tiredBelow'),
       ),
       styles: styles,
     );

@@ -42,6 +42,9 @@ class SaveCodec {
     'effects': s.prefs.effects,
     'reducedMotion': s.prefs.reducedMotion,
     'seenHints': (s.prefs.seenHints.toList()..sort()),
+    'sickSinceUtc': s.sickSinceUtc,
+    'lastSickUtc': s.lastSickUtc,
+    'sickSeed': s.sickSeed,
   });
 
   PetState decode(String text) {
@@ -84,6 +87,9 @@ class SaveCodec {
     final ap = req<Map<String, dynamic>>('appearance');
     String slotId(Slot slot) {
       final v = ap[slot.name];
+      // Partidas anteriores a una ranura nueva (cabeza, ojos, collar,
+      // patucos…) no la traen: se usa el artículo base.
+      if (v == null) return balance.baseFor(slot).id;
       if (v is! String || !v.startsWith('${slot.name}.')) {
         throw SaveFormatException('appearance.${slot.name} inválido');
       }
@@ -92,12 +98,9 @@ class SaveCodec {
       return balance.item(v) == null ? balance.baseFor(slot).id : v;
     }
 
-    final appearance = Appearance(
-      coat: slotId(Slot.coat),
-      hair: slotId(Slot.hair),
-      outfit: slotId(Slot.outfit),
-      neck: slotId(Slot.neck),
-    );
+    final appearance = Appearance({
+      for (final slot in Slot.values) slot: slotId(slot),
+    });
     // Los artículos base siempre están en propiedad.
     owned.addAll(balance.initialAppearance.ids);
 
@@ -107,12 +110,16 @@ class SaveCodec {
     }
 
     final muted = optBool('muted', false);
+    final cursor = req<int>('needsCursorUtc');
+    final sickSince = j['sickSinceUtc'];
+    final lastSick = j['lastSickUtc'];
+    final seed = j['sickSeed'];
     final hints = j['seenHints'];
     return PetState(
       revision: revision,
       lastCommitId: req<String>('lastCommitId'),
       name: (nameResult).value,
-      needsCursorUtc: req<int>('needsCursorUtc'),
+      needsCursorUtc: cursor,
       needs100: {
         Need.satiety: need('satiety100'),
         Need.hygiene: need('hygiene100'),
@@ -130,6 +137,15 @@ class SaveCodec {
         reducedMotion: optBool('reducedMotion', false),
         seenHints: hints is List ? hints.whereType<String>().toSet() : const {},
       ),
+      sickSinceUtc: sickSince is int ? sickSince : null,
+      // Partidas anteriores a la salud: sin enfermedad y con el plazo de
+      // una semana medido desde el último cursor menos un día de gracia.
+      lastSickUtc: lastSick is int
+          ? lastSick
+          : cursor -
+                balance.health.cooldownSeconds +
+                balance.health.graceSeconds,
+      sickSeed: seed is int ? seed : (cursor & 0x7fffffff),
     );
   }
 }

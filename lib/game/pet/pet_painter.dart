@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 
+import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
 import 'pet_sprites.dart';
 
@@ -23,15 +24,49 @@ enum PetAnim {
   lookUp,
 }
 
+/// Los cuatro ángulos desde los que se puede ver al caniche. Izquierda es
+/// el perfil derecho reflejado.
+enum PetView {
+  front,
+  right,
+  back,
+  left;
+
+  PetPose get pose => switch (this) {
+    PetView.front => PetPose.front,
+    PetView.back => PetPose.back,
+    _ => PetPose.side,
+  };
+
+  bool get facingLeft => this == PetView.left;
+
+  /// Siguiente ángulo al girar: frente → derecha → espalda → izquierda.
+  PetView get next => PetView.values[(index + 1) % PetView.values.length];
+  PetView get previous =>
+      PetView.values[(index + PetView.values.length - 1) %
+          PetView.values.length];
+
+  String get label => switch (this) {
+    PetView.front => 'De frente',
+    PetView.right => 'Lado derecho',
+    PetView.back => 'De espaldas',
+    PetView.left => 'Lado izquierdo',
+  };
+}
+
 /// Efectos de escena dibujados sobre el personaje (espuma, mechones, agua).
 class PetFx {
   const PetFx({
     this.wet = false,
     this.foam = const [0, 0, 0],
     this.messy = const [0, 0, 0],
+    this.sick = false,
   });
 
   final bool wet;
+
+  /// Malito: tono apagado y temblor.
+  final bool sick;
 
   /// Espuma por zona: lomo, patas, pecho (0..1).
   final List<double> foam;
@@ -58,7 +93,9 @@ class PetPainter extends ChangeNotifier {
   /// pieza) se dibuja el caniche vectorial provisional.
   PetSprites? get sprites => _sprites;
   set sprites(PetSprites? value) {
+    _sprites?.onImageLoaded = null;
     _sprites = value;
+    value?.onImageLoaded = notifyListeners;
     notifyListeners();
   }
 
@@ -84,10 +121,12 @@ class PetPainter extends ChangeNotifier {
     double airborne = 0,
     PetFx fx = PetFx.none,
   }) {
+    // El dibujo vectorial no tiene espalda: usa el frente.
+    final vectorPose = pose == PetPose.back ? PetPose.front : pose;
     final s = _Ctx(
       canvas,
       look,
-      pose,
+      vectorPose,
       anim,
       t,
       reducedMotion ? 0.15 : 1.0,
@@ -102,12 +141,11 @@ class PetPainter extends ChangeNotifier {
       canvas.rotate(s.bodyRot);
       canvas.translate(0, 0.45);
     }
-    if (_paintSprites(s)) {
-      _fx(s);
+    if (_paintSprites(s, pose)) {
       canvas.restore();
       return;
     }
-    final meta = catalog.poses[pose]!;
+    final meta = catalog.poses[vectorPose]!;
     for (final layer in meta.drawOrder) {
       switch (layer) {
         case 'shadow':
@@ -140,113 +178,410 @@ class PetPainter extends ChangeNotifier {
 
   // ---------------------------------------------------------------- sprites
 
+  /// Referencias del dibujo vectorial (respaldo si no hay atlas).
+  static const Map<PetPose, Map<String, Offset>> _vectorLandmarks = {
+    PetPose.front: {
+      'eyes': Offset(0, -0.82),
+      'mouth': Offset(0, -0.72),
+      'neck': Offset(0, -0.64),
+      'chest': Offset(0, -0.47),
+      'flankRight': Offset(0.18, -0.5),
+      'flankLeft': Offset(-0.18, -0.5),
+      'paws': Offset(0, -0.04),
+      'headTop': Offset(0, -0.97),
+      'earRight': Offset(0.19, -0.72),
+      'earLeft': Offset(-0.19, -0.72),
+      'shoulderLeft': Offset(-0.2, -0.55),
+      'shoulderRight': Offset(0.2, -0.55),
+    },
+    PetPose.side: {
+      'mouth': Offset(0.47, -0.66),
+      'neck': Offset(0.2, -0.6),
+      'paws': Offset(0, -0.04),
+      'headTop': Offset(0.29, -0.9),
+    },
+  };
+
+  /// Pose del atlas que corresponde a una pose lógica y una reacción en el
+  /// instante [t]: comer y dormir tienen pose propia, la espalda también y
+  /// el galope recorre sus fotogramas.
+  String spritePoseName(
+    PetPose pose,
+    PetAnim anim,
+    double t, {
+    bool reducedMotion = false,
+  }) {
+    final sp = _sprites;
+    bool has(String p) => sp != null && sp.hasPose(p);
+    if (pose == PetPose.back) return 'back';
+    if (pose == PetPose.front) {
+      if (anim == PetAnim.eat && has('eat')) return 'eat';
+      if (anim == PetAnim.sleep && has('sleep')) return 'sleep';
+      return 'front';
+    }
+    if (anim == PetAnim.jump || anim == PetAnim.catchDisc) return 'jump';
+    final frames = has('run_a') && has('run_b');
+    if (anim == PetAnim.run && !reducedMotion) {
+      const gallop = ['run_b', 'run_a', 'jump'];
+      return frames
+          ? gallop[(t * 9).floor() % 3]
+          : ((t * 11).floor().isOdd ? 'jump' : 'side');
+    }
+    if (anim == PetAnim.trot && !reducedMotion && frames) {
+      const trot = ['side', 'run_b', 'side', 'run_a'];
+      return trot[(t * 5).floor() % 4];
+    }
+    return 'side';
+  }
+
+  /// Si falta algo en una pose se prueba con la siguiente de la cadena. Un
+  /// artículo sin capa en una pose «de reposo» (comer, dormir) simplemente
+  /// no se dibuja; en las demás obliga a cambiar de pose.
+  static const Map<String, List<String>> _poseChains = {
+    'front': ['front'],
+    'back': ['back', 'front'],
+    'side': ['side', 'front'],
+    'jump': ['jump', 'side'],
+    'run_a': ['run_a', 'side'],
+    'run_b': ['run_b', 'side'],
+    'eat': ['eat', 'front'],
+    'sleep': ['sleep', 'front'],
+  };
+  static const Set<String> _dropItemsIn = {'eat', 'sleep'};
+
+  /// Pose que realmente se dibuja y artículos visibles en ella (orden de
+  /// capas: prenda, patucos, collar, cuello, ojos, cabeza). Null si el
+  /// atlas no puede dibujar este aspecto.
+  ({String pose, List<String> items})? resolve(String desired, Appearance ids) {
+    final sp = _sprites;
+    if (sp == null || !sp.hasCoat(ids.coat)) return null;
+    final equipped = [
+      ids.outfit,
+      ids.paws,
+      ids.collar,
+      ids.neck,
+      ids.eyes,
+      ids.head,
+    ].where(sp.knowsItem).toList();
+    for (final cand in _poseChains[desired] ?? [desired]) {
+      if (!sp.hasPose(cand) || !sp.hasHair(ids.hair, cand)) continue;
+      final missing = equipped.where((i) => !sp.supportsItem(i, cand));
+      if (missing.isNotEmpty && !_dropItemsIn.contains(cand)) continue;
+      return (
+        pose: cand,
+        items: equipped.where((i) => sp.itemVisible(i, cand)).toList(),
+      );
+    }
+    return null;
+  }
+
+  /// Carga de antemano lo que hace falta para dibujar un aspecto sin
+  /// parpadeos en estas poses.
+  Future<void> warm(
+    Appearance ids, {
+    Iterable<String> poses = const [
+      'front',
+      'side',
+      'back',
+      'sleep',
+      'eat',
+      'jump',
+      'run_a',
+      'run_b',
+    ],
+  }) async {
+    final sp = _sprites;
+    if (sp == null) return;
+    final names = <String>{};
+    for (final p in poses) {
+      final r = resolve(p, ids);
+      if (r != null) names.add(r.pose);
+    }
+    await sp.preload(hair: ids.hair, items: ids.ids, poseNames: names);
+  }
+
+  /// Punto del cuerpo en unidades (origen en los pies) para colocar efectos,
+  /// marcas o el disco: del atlas si está cargado, si no del vectorial.
+  Offset landmark(
+    PetPose pose,
+    String name, {
+    PetAnim anim = PetAnim.idle,
+    double t = 0,
+    bool reducedMotion = false,
+    Appearance? ids,
+  }) {
+    final sp = _sprites;
+    if (sp != null) {
+      var poseName = spritePoseName(
+        pose,
+        anim,
+        t,
+        reducedMotion: reducedMotion,
+      );
+      if (ids != null) poseName = resolve(poseName, ids)?.pose ?? poseName;
+      final v = sp.poses[poseName]?.landmarks[name];
+      if (v != null) return v;
+    }
+    return _vectorLandmarks[pose == PetPose.back
+            ? PetPose.front
+            : pose]?[name] ??
+        Offset.zero;
+  }
+
+  /// Malito: menos color y un tinte verdoso pálido, bien visible sobre
+  /// cualquier pelaje.
+  static const List<double> _sickMatrix = [
+    0.62, 0.34, 0.06, 0, -6, //
+    0.17, 0.78, 0.07, 0, 6,
+    0.15, 0.32, 0.50, 0, -2,
+    0, 0, 0, 1, 0,
+  ];
+
   /// Pinta el caniche ilustrado: base del peinado teñida con la matriz del
-  /// pelaje, expresión y capas de artículos en orden. Devuelve false si el
-  /// atlas no cubre este aspecto, para usar el dibujo vectorial.
-  bool _paintSprites(_Ctx s) {
+  /// pelaje, estado (despeinado), expresión y capas de artículos en orden.
+  /// Devuelve false si el atlas aún no puede dibujar este aspecto (se usa
+  /// el dibujo vectorial).
+  bool _paintSprites(_Ctx s, PetPose requested) {
     final sp = _sprites;
     final ids = s.look.ids;
-    if (sp == null || ids == null || !sp.hasCoat(ids.coat)) return false;
-    var poseName = s.pose == PetPose.front ? 'front' : 'side';
-    if (s.pose == PetPose.side) {
-      final airborne = s.anim == PetAnim.jump || s.anim == PetAnim.catchDisc;
-      // Galope: alterna apoyo y zancada (sin alternancia en movimiento reducido).
-      final gallop =
-          s.anim == PetAnim.run && s.m > 0.5 && (s.t * 5.5) % 1 >= 0.5;
-      if (airborne || gallop) poseName = 'jump';
-    }
-    final base = sp.hair(ids.hair, poseName);
+    if (sp == null || ids == null) return false;
+    final desired = spritePoseName(
+      requested,
+      s.anim,
+      s.t,
+      reducedMotion: s.m < 0.5,
+    );
+    final r = resolve(desired, ids);
+    if (r == null) return false;
+    final poseName = r.pose;
+    final base = sp.hairLayer(ids.hair, poseName);
     final meta = sp.poses[poseName];
     if (base == null || meta == null) return false;
 
-    _shadow(s);
     final c = s.c;
     final k = 1 / sp.unitHeightPx;
-    final dst = Rect.fromLTWH(
+    _spriteShadow(c, poseName);
+    final canvasRect = Rect.fromLTWH(
       -meta.anchor.dx * k,
       -meta.anchor.dy * k,
       meta.size.width * k,
       meta.size.height * k,
     );
-    final src = Rect.fromLTWH(0, 0, meta.size.width, meta.size.height);
+    Rect rectOf(Rect? box) => box == null
+        ? canvasRect
+        : Rect.fromLTWH(
+            canvasRect.left + box.left * k,
+            canvasRect.top + box.top * k,
+            box.width * k,
+            box.height * k,
+          );
+    Rect fullSrc(Image i) =>
+        Rect.fromLTWH(0, 0, i.width.toDouble(), i.height.toDouble());
 
     // Movimiento por transformaciones del lienzo, con un reloj común.
     c.save();
     final breath = math.sin(s.t * 2 * math.pi / 2.6) * 0.012 * s.m;
     var tilt = 0.0;
     var squash = 1.0 + breath;
+    var dy = 0.0;
     switch (s.anim) {
-      case PetAnim.trot:
-        tilt = math.sin(s.t * 2 * math.pi * 3.2) * 0.03 * s.m;
       case PetAnim.sniff:
         tilt = 0.06 + math.sin(s.t * 9) * 0.01 * s.m;
       case PetAnim.brush || PetAnim.happy:
         tilt = math.sin(s.t * 2.4) * 0.035 * s.m;
       case PetAnim.eat:
-        squash = 0.97 + math.sin(s.t * 11) * 0.012 * math.max(s.m, 0.4);
+        // Masticar: la cabeza baja y sube un poco sobre el cuenco.
+        dy = (math.sin(s.t * 11) * 0.5 + 0.5) * 0.012 * math.max(s.m, 0.4);
       case PetAnim.sleep:
-        squash = 0.94;
+        squash =
+            1 + math.sin(s.t * 2 * math.pi / 3.4) * 0.018 * math.max(s.m, 0.4);
       default:
         break;
     }
+    if (s.fx.sick) {
+      // Malito: tiembla un poco y se encoge.
+      tilt += math.sin(s.t * 19) * 0.012 * math.max(s.m, 0.3);
+      squash *= 0.985;
+    }
     if (tilt != 0) c.rotate(tilt);
+    if (dy != 0) c.translate(0, dy);
     c.scale(1, squash);
 
     final coatPaint = Paint()..filterQuality = FilterQuality.medium;
-    final matrix = _coatMatrix(sp.coatMatrix(ids.coat), s.fx.wet ? 0.82 : 1);
+    var matrix = sp.coatMatrix(ids.coat);
+    if (s.fx.sick) matrix = PetSprites.chain(matrix, _sickMatrix);
+    if (s.fx.wet) matrix = PetSprites.chain(matrix, _darken(0.82));
     if (matrix != null) coatPaint.colorFilter = ColorFilter.matrix(matrix);
-    c.drawImageRect(base, src, dst, coatPaint);
+    c.drawImageRect(
+      base.image,
+      fullSrc(base.image),
+      rectOf(base.box),
+      coatPaint,
+    );
 
-    if (s.pose == PetPose.front) {
+    // Despeinado: la variante se ve solo alrededor de cada mechón pendiente
+    // y se desvanece al cepillar.
+    final messy = sp.stateLayer('messy', ids.hair, poseName);
+    if (messy != null && s.fx.messy.any((m) => m > 0.01)) {
+      final spots = <(Offset, double)>[];
+      const names = [
+        ['headTop'],
+        ['earLeft', 'earRight'],
+        ['shoulderLeft', 'shoulderRight'],
+      ];
+      for (var i = 0; i < 3; i++) {
+        final m = s.fx.messy[i];
+        if (m <= 0.01) continue;
+        for (final n in names[i]) {
+          final p = meta.landmarks[n];
+          if (p != null) spots.add((p, m));
+        }
+      }
+      c.saveLayer(canvasRect, Paint());
+      c.drawImageRect(
+        messy.image,
+        fullSrc(messy.image),
+        rectOf(messy.box),
+        coatPaint,
+      );
+      c.saveLayer(canvasRect, Paint()..blendMode = BlendMode.dstIn);
+      for (final (p, m) in spots) {
+        final a = m.clamp(0, 1).toDouble();
+        c.drawCircle(
+          p,
+          0.16,
+          Paint()
+            ..shader = Gradient.radial(
+              p,
+              0.16,
+              [
+                const Color(0xFFFFFFFF).withValues(alpha: a),
+                const Color(0xFFFFFFFF).withValues(alpha: a),
+                const Color(0x00FFFFFF),
+              ],
+              [0, 0.55, 1],
+            ),
+        );
+      }
+      c.restore();
+      c.restore();
+    }
+
+    if (poseName == 'front') {
       final expr = switch (s.eyes) {
         _Eyes.blink || _Eyes.closed => 'blink',
         _Eyes.happy => 'happy',
         _ => s.tongue ? 'happy' : null,
       };
-      final img = expr == null ? null : sp.expression(expr, poseName);
-      if (img != null) c.drawImageRect(img, src, dst, coatPaint);
+      final img = expr == null ? null : sp.expressionLayer(expr, poseName);
+      if (img != null) {
+        c.drawImageRect(
+          img.image,
+          fullSrc(img.image),
+          rectOf(img.box),
+          coatPaint,
+        );
+      }
     }
-    // Artículos en orden de capa; los que no tienen imagen («sin prenda»)
-    // simplemente no se dibujan.
-    final itemPaint = Paint()..filterQuality = FilterQuality.medium;
-    for (final id in [ids.outfit, ids.neck]) {
-      final img = sp.item(id, poseName);
-      if (img != null) c.drawImageRect(img, src, dst, itemPaint);
+    // Artículos en orden de capa; los que no se ven en esta pose no están.
+    for (final id in r.items) {
+      final layer = sp.itemLayer(id, poseName);
+      if (layer == null) continue;
+      final paint = Paint()..filterQuality = FilterQuality.medium;
+      final m = sp.itemMatrix(id);
+      if (m != null) paint.colorFilter = ColorFilter.matrix(m);
+      c.drawImageRect(
+        layer.image,
+        fullSrc(layer.image),
+        rectOf(layer.box),
+        paint,
+      );
     }
     c.restore();
+    _foamAtLandmarks(s, meta.landmarks);
+    _sickMarks(s, meta.landmarks);
     return true;
   }
 
-  /// Matriz del pelaje (identidad si es null) oscurecida al mojarse.
-  static List<double>? _coatMatrix(List<double>? m, double darken) {
-    if (m == null && darken == 1) return null;
-    final base =
-        m ??
-        const <double>[
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-        ];
-    if (darken == 1) return base;
-    return [for (var i = 0; i < 20; i++) i < 15 ? base[i] * darken : base[i]];
+  /// Gotas de sudor y un hilo de nubecilla sobre la cabeza cuando está malito.
+  void _sickMarks(_Ctx s, Map<String, Offset> lm) {
+    if (!s.fx.sick) return;
+    final top = lm['headTop'];
+    if (top == null) return;
+    final c = s.c;
+    final drop = Paint()
+      ..color = const Color(0xFF7FB6E8).withValues(alpha: 0.95);
+    final edge = Paint()
+      ..color = const Color(0xFF3F78B0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.006;
+    for (var i = 0; i < 2; i++) {
+      final ph = (s.t * 0.7 + i * 0.5) % 1.0;
+      final x = top.dx + (i == 0 ? -0.16 : 0.17);
+      final y = top.dy + 0.07 + ph * 0.08;
+      final w = 0.04;
+      final path = Path()
+        ..moveTo(x, y - 0.08)
+        ..quadraticBezierTo(x + w * 1.4, y - 0.01, x, y + 0.02)
+        ..quadraticBezierTo(x - w * 1.4, y - 0.01, x, y - 0.08);
+      c.drawPath(path, drop);
+      c.drawPath(path, edge);
+    }
   }
+
+  void _spriteShadow(Canvas c, String pose) {
+    final w = switch (pose) {
+      'sleep' => 0.8,
+      'side' || 'run_a' || 'run_b' || 'jump' => 0.7,
+      'eat' => 0.55,
+      _ => 0.5,
+    };
+    c.drawOval(
+      Rect.fromCenter(center: const Offset(0, 0.01), width: w, height: 0.07),
+      Paint()..color = catalog.fixed['shadow']!.withValues(alpha: 0.18),
+    );
+  }
+
+  /// Espuma vectorial de respaldo colocada en las referencias del atlas.
+  /// (El baño estampa su espuma ilustrada y entonces pasa foam a cero.)
+  void _foamAtLandmarks(_Ctx s, Map<String, Offset> lm) {
+    if (!s.fx.foam.any((f) => f > 0)) return;
+    final bubble = Paint()
+      ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.92);
+    final ring = Paint()
+      ..color = const Color(0xFFB9A6D6)
+      ..strokeWidth = 0.005
+      ..style = PaintingStyle.stroke;
+    final zones = [
+      [lm['flankLeft'], lm['flankRight']],
+      [lm['paws']],
+      [lm['chest']],
+    ];
+    for (var z = 0; z < 3; z++) {
+      final f = s.fx.foam[z];
+      if (f <= 0) continue;
+      for (final p in zones[z].whereType<Offset>()) {
+        for (var i = 0; i < (8 * f).round(); i++) {
+          final o =
+              p +
+              Offset(
+                (_rand(z * 97 + i) - 0.5) * 0.12,
+                (_rand(i * 13 + z) - 0.5) * 0.07,
+              );
+          final r = 0.02 + _rand(i * 7 + z * 3) * 0.02;
+          s.c.drawCircle(o, r, bubble);
+          s.c.drawCircle(o, r, ring);
+        }
+      }
+    }
+  }
+
+  static List<double> _darken(double k) => [
+    k, 0, 0, 0, 0, //
+    0, k, 0, 0, 0,
+    0, 0, k, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
 
   // ---------------------------------------------------------------- capas
 

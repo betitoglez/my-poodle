@@ -102,6 +102,18 @@ class StageGame extends FlameGame {
     return Rect.fromLTWH((size.x - w) / 2, size.y - h, w, h);
   }
 
+  /// Rectángulo de la ilustración (fracciones) en coordenadas de escena.
+  Rect? imageFraction(Rect f) {
+    if (roomImage == null) return null;
+    final r = imageRect;
+    return Rect.fromLTRB(
+      r.left + f.left * r.width,
+      r.top + f.top * r.height,
+      r.left + f.right * r.width,
+      r.top + f.bottom * r.height,
+    );
+  }
+
   /// Pies del caniche y tamaño según el área disponible.
   void layoutPet() {
     if (!isLoaded && size.x == 0) return;
@@ -136,11 +148,69 @@ class StageGame extends FlameGame {
     time += dt;
   }
 
-  void setLook(PetLook look) => pet.look = look;
+  void setLook(PetLook look) => pet.setLook(look);
 
   void tapAt(Offset p) {}
   void dragAt(Offset p, Offset delta) {}
   void notify() => onChanged?.call();
+}
+
+/// Cama del caniche (imagen de atrezo). El caniche duerme sobre ella: el
+/// fondo y la cara posterior se pintan detrás y el borde delantero delante.
+class BedProp {
+  Image? image;
+
+  Future<void> load(StageGame g) async {
+    try {
+      image = await g.images.load('props/bed.webp');
+    } catch (_) {
+      image = null; // Respaldo vectorial.
+    }
+  }
+
+  /// Cama bajo los pies del caniche tumbado: su barriga queda al 62 % de la altura.
+  Rect rect(Offset feet, double petSize) {
+    final w = petSize * 1.5;
+    final img = image;
+    final h = img == null ? w * 0.4 : w * img.height / img.width;
+    return Rect.fromLTWH(feet.dx - w / 2, feet.dy - h * 0.62, w, h);
+  }
+
+  static const double frontRim = 0.5;
+
+  void paintBack(Canvas c, Rect r) {
+    final img = image;
+    if (img == null) {
+      c.drawOval(r, Paint()..color = const Color(0xFF8E3B55));
+      c.drawOval(
+        r.deflate(r.width * 0.08),
+        Paint()..color = const Color(0xFFA9506C),
+      );
+      return;
+    }
+    c.drawImageRect(
+      img,
+      Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+      r,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+  }
+
+  void paintFront(Canvas c, Rect r) {
+    final img = image;
+    if (img == null) return;
+    c.save();
+    c.clipRect(
+      Rect.fromLTRB(r.left, r.top + r.height * frontRim, r.right, r.bottom),
+    );
+    c.drawImageRect(
+      img,
+      Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+      r,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    c.restore();
+  }
 }
 
 /// Casa: caricia al tocar al caniche y descanso en el cojín.
@@ -155,39 +225,33 @@ class HomeGame extends StageGame {
   final void Function()? onPetTapped;
   bool resting = false;
 
+  final bed = BedProp();
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    add(Painted(_cushion, priority: 5));
+    // La cama llega sin bloquear la escena; mientras, cojín vectorial.
+    bed.load(this);
+    add(Painted(_bedBack, priority: 5));
+    add(Painted(_bedFront, priority: 15));
     add(Painted(_zzz, priority: 20));
   }
 
   void setResting(bool value) {
     resting = value;
     pet.baseAnim = value ? PetAnim.sleep : PetAnim.idle;
+    if (value) pet.setView(PetView.front);
     pet.clearReaction();
   }
 
-  void _cushion(Canvas c) {
-    if (!resting) return;
-    final f = pet.position.toOffset();
-    final w = pet.petSize * 0.9;
-    c.drawOval(
-      Rect.fromCenter(
-        center: f + Offset(0, -w * 0.04),
-        width: w,
-        height: w * 0.32,
-      ),
-      Paint()..color = const Color(0xFF8E3B55),
-    );
-    c.drawOval(
-      Rect.fromCenter(
-        center: f + Offset(0, -w * 0.08),
-        width: w * 0.82,
-        height: w * 0.2,
-      ),
-      Paint()..color = const Color(0xFFA9506C),
-    );
+  Rect get _bedRect => bed.rect(pet.position.toOffset(), pet.petSize);
+
+  void _bedBack(Canvas c) {
+    if (resting) bed.paintBack(c, _bedRect);
+  }
+
+  void _bedFront(Canvas c) {
+    if (resting) bed.paintFront(c, _bedRect);
   }
 
   void _zzz(Canvas c) {

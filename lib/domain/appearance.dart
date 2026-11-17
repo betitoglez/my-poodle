@@ -1,55 +1,52 @@
-/// Las cuatro ranuras independientes del aspecto del caniche.
-enum Slot { coat, hair, outfit, neck }
+/// Ranuras independientes del aspecto del caniche. Una por categoría del
+/// armario; cada una admite «sin artículo» salvo color y peinado.
+enum Slot { coat, hair, outfit, head, eyes, collar, neck, paws }
 
 /// Aspecto: un ID de catálogo por ranura. Inmutable.
 class Appearance {
-  const Appearance({
-    required this.coat,
-    required this.hair,
-    required this.outfit,
-    required this.neck,
-  });
+  Appearance(Map<Slot, String> ids) : _ids = Map.unmodifiable(ids) {
+    for (final s in Slot.values) {
+      if (!_ids.containsKey(s)) {
+        throw ArgumentError('Falta la ranura ${s.name}');
+      }
+    }
+  }
 
-  final String coat;
-  final String hair;
-  final String outfit;
-  final String neck;
+  final Map<Slot, String> _ids;
 
-  String of(Slot slot) => switch (slot) {
-    Slot.coat => coat,
-    Slot.hair => hair,
-    Slot.outfit => outfit,
-    Slot.neck => neck,
-  };
+  String of(Slot slot) => _ids[slot]!;
 
-  /// Cambiar una ranura conserva las otras tres.
-  Appearance withSlot(Slot slot, String id) => Appearance(
-    coat: slot == Slot.coat ? id : coat,
-    hair: slot == Slot.hair ? id : hair,
-    outfit: slot == Slot.outfit ? id : outfit,
-    neck: slot == Slot.neck ? id : neck,
-  );
+  String get coat => of(Slot.coat);
+  String get hair => of(Slot.hair);
+  String get outfit => of(Slot.outfit);
+  String get head => of(Slot.head);
+  String get eyes => of(Slot.eyes);
+  String get collar => of(Slot.collar);
+  String get neck => of(Slot.neck);
+  String get paws => of(Slot.paws);
 
-  List<String> get ids => [coat, hair, outfit, neck];
+  /// Cambiar una ranura conserva las demás.
+  Appearance withSlot(Slot slot, String id) => Appearance({..._ids, slot: id});
+
+  /// IDs en el orden de [Slot.values].
+  List<String> get ids => [for (final s in Slot.values) _ids[s]!];
 
   Map<String, String> toJson() => {
-    'coat': coat,
-    'hair': hair,
-    'outfit': outfit,
-    'neck': neck,
+    for (final s in Slot.values) s.name: _ids[s]!,
   };
 
   @override
-  bool operator ==(Object other) =>
-      other is Appearance &&
-      other.coat == coat &&
-      other.hair == hair &&
-      other.outfit == outfit &&
-      other.neck == neck;
+  bool operator ==(Object other) {
+    if (other is! Appearance) return false;
+    for (final s in Slot.values) {
+      if (other._ids[s] != _ids[s]) return false;
+    }
+    return true;
+  }
 
   @override
-  int get hashCode => Object.hash(coat, hair, outfit, neck);
+  int get hashCode => Object.hashAll(ids);
 
   @override
-  String toString() => 'Appearance($coat, $hair, $outfit, $neck)';
+  String toString() => 'Appearance(${ids.join(', ')})';
 }

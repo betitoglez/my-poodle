@@ -147,6 +147,27 @@ Widget _needChange(Receipt r, Need n) {
   );
 }
 
+Widget _healthChange() => Padding(
+  padding: const EdgeInsets.symmetric(vertical: 3),
+  child: Row(
+    children: [
+      const Icon(Icons.favorite_rounded, color: AppColors.leaf),
+      const SizedBox(width: AppSpace.s),
+      const Expanded(child: Text('Salud', style: AppText.subtitle)),
+      const Text('Malito → Sano', style: AppText.number),
+      const SizedBox(width: AppSpace.s),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.leafSoft,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Text('+65', style: AppText.number.copyWith(fontSize: 14)),
+      ),
+    ],
+  ),
+);
+
 /// P14 · Resultado del cuidado.
 class CareResultScreen extends StatefulWidget {
   const CareResultScreen({
@@ -165,8 +186,9 @@ class _CareResultScreenState extends State<CareResultScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final cured = widget.kind == CareKind.vet && widget.receipt.before.isSick;
     _message = Texts().pick(
-      Texts.careDone[widget.kind]!,
+      cured ? Texts.curedMessages : Texts.careDone[widget.kind]!,
       name: AppScope.read(context).pet.name,
     );
   }
@@ -179,13 +201,19 @@ class _CareResultScreenState extends State<CareResultScreen> {
       CareKind.feed => RoomKind.kitchen,
       CareKind.bath => RoomKind.bath,
       CareKind.groom => RoomKind.salon,
+      CareKind.vet => RoomKind.vet,
       _ => RoomKind.living,
     };
     return _ResultLayout(
       room: room,
       kicker: '${Texts.careTitles[widget.kind]} completado',
       title: _message,
-      body: Column(children: [for (final n in delta.keys) _needChange(r, n)]),
+      body: Column(
+        children: [
+          if (r.before.isSick && !r.after.isSick) _healthChange(),
+          for (final n in delta.keys) _needChange(r, n),
+        ],
+      ),
       actions: [
         if (widget.kind == CareKind.groom)
           AppButton(

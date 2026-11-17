@@ -120,7 +120,8 @@ class _MyPoodleAppState extends State<MyPoodleApp> {
       _feedback.prefs = () => s.controller.prefs;
       setState(() => _services = s);
       await s.controller.boot();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Arranque fallido: $e\n$st');
       setState(() => _error = e);
     }
   }

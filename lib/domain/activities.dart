@@ -144,3 +144,71 @@ class GroomActivity extends StepActivity {
     return true;
   }
 }
+
+enum SleepPhase { toBed, blanket, lights, sleeping, done }
+
+/// Dormir: llevarlo a su cama, arroparlo, apagar la luz y esperar a que
+/// se duerma (el tiempo de sueño lo cuenta la escena con tiempo de juego).
+class SleepActivity extends StepActivity {
+  SleepPhase _phase = SleepPhase.toBed;
+
+  SleepPhase get phase => _phase;
+  @override
+  int get done => switch (_phase) {
+    SleepPhase.toBed => 0,
+    SleepPhase.blanket => 1,
+    SleepPhase.lights => 2,
+    SleepPhase.sleeping => 3,
+    SleepPhase.done => 3,
+  };
+  @override
+  int get total => 3;
+  @override
+  bool get completed => _phase == SleepPhase.done;
+
+  /// Avanza un paso si [from] es la fase actual; repetir un toque no cuenta.
+  bool advance(SleepPhase from) {
+    if (_phase != from) return false;
+    _phase = SleepPhase.values[_phase.index + 1];
+    return true;
+  }
+
+  /// La escena avisa cuando termina el sueño.
+  bool wake() => advance(SleepPhase.sleeping);
+}
+
+enum VetPhase { heart, paws, pill, done }
+
+/// Veterinario: escuchar el corazón, revisar las patas y, si está malito,
+/// darle la pastilla. Sano, la consulta es una revisión de dos pasos.
+class VetActivity extends StepActivity {
+  VetActivity({required this.sick});
+  final bool sick;
+  VetPhase _phase = VetPhase.heart;
+
+  VetPhase get phase => _phase;
+  @override
+  int get total => sick ? 3 : 2;
+  @override
+  int get done => switch (_phase) {
+    VetPhase.heart => 0,
+    VetPhase.paws => 1,
+    VetPhase.pill => 2,
+    VetPhase.done => total,
+  };
+  @override
+  bool get completed => _phase == VetPhase.done;
+
+  bool listen() => _step(VetPhase.heart, VetPhase.paws);
+
+  bool checkPaws() =>
+      _step(VetPhase.paws, sick ? VetPhase.pill : VetPhase.done);
+
+  bool givePill() => sick && _step(VetPhase.pill, VetPhase.done);
+
+  bool _step(VetPhase from, VetPhase to) {
+    if (_phase != from) return false;
+    _phase = to;
+    return true;
+  }
+}

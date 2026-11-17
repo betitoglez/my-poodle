@@ -43,7 +43,8 @@ class Texts {
     CareKind.bath: 'Bañar',
     CareKind.walk: 'Pasear',
     CareKind.groom: 'Peluquería',
-    CareKind.vet: 'Consulta',
+    CareKind.sleep: 'Dormir',
+    CareKind.vet: 'Veterinario',
   };
 
   static const careDone = {
@@ -63,8 +64,62 @@ class Texts {
       '¡Rizos perfectos para {name}!',
       '{name} se mira al espejo encantado.',
     ],
+    CareKind.sleep: [
+      '{name} ha dormido como un angelito.',
+      '¡Qué bien ha descansado {name}!',
+    ],
     CareKind.vet: ['{name} está sano y tranquilo.'],
   };
+
+  static const curedMessages = [
+    '¡{name} ya está sanito! La pastilla ha funcionado.',
+    '¡Adiós, malestar! {name} se encuentra mucho mejor.',
+  ];
+
+  /// Qué decir y qué hacer según lo más urgente (para la tarjeta de Casa).
+  static const conditionSuggestions = {
+    PetCondition.sick: [
+      '¡{name} está malito! El veterinario le dará una pastilla.',
+      '{name} no se encuentra bien. Vamos al veterinario.',
+    ],
+    PetCondition.hungry: [
+      '{name} tiene hambre. ¿Le preparamos la comida?',
+      'Ruge la tripita de {name}. ¿Comemos?',
+    ],
+    PetCondition.dirty: [
+      '{name} está sucio. ¿Un baño de espuma?',
+      '{name} necesita un baño.',
+    ],
+    PetCondition.sad: [
+      '{name} está triste. ¿Jugamos un rato?',
+      '{name} tiene ganas de jugar contigo.',
+    ],
+    PetCondition.tired: [
+      '{name} está cansado. A dormir un ratito.',
+      '{name} se cae de sueño. ¿Lo acostamos?',
+    ],
+  };
+
+  static const conditionActions = {
+    PetCondition.sick: 'Veterinario',
+    PetCondition.hungry: 'Comer',
+    PetCondition.dirty: 'Bañar',
+    PetCondition.sad: 'Jugar',
+    PetCondition.tired: 'Dormir',
+  };
+
+  static const conditionNames = {
+    PetCondition.sick: 'Malito',
+    PetCondition.hungry: 'Hambre',
+    PetCondition.dirty: 'Sucio',
+    PetCondition.sad: 'Triste',
+    PetCondition.tired: 'Cansado',
+  };
+
+  static const allGood = [
+    '{name} está feliz y sano.',
+    'Todo en orden con {name}.',
+  ];
 
   static const gameDone = [
     '¡Bien jugado!',

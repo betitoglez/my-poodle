@@ -27,6 +27,10 @@ const slotSections = {
   Slot.hair: 'hair',
   Slot.outfit: 'outfits',
   Slot.neck: 'necks',
+  Slot.head: 'heads',
+  Slot.eyes: 'eyes',
+  Slot.collar: 'collars',
+  Slot.paws: 'paws',
 };
 const assets = [
   'assets/images/cards/kitchen.jpg',
@@ -44,6 +48,18 @@ const assets = [
   'assets/images/rooms/salon.jpg',
   'assets/images/rooms/wardrobe.jpg',
   'assets/images/rooms/nursery.jpg',
+  'assets/images/props/tub.webp',
+  'assets/images/props/foam.webp',
+  'assets/images/props/bowl_full.webp',
+  'assets/images/props/bowl_empty.webp',
+  'assets/images/props/bed.webp',
+  'assets/images/props/blanket.webp',
+  'assets/images/icons/hungry.webp',
+  'assets/images/icons/dirty.webp',
+  'assets/images/icons/sad.webp',
+  'assets/images/icons/sick.webp',
+  'assets/images/icons/tired.webp',
+  'assets/images/rooms/vet.jpg',
 ];
 
 void main() {
@@ -88,44 +104,81 @@ void main() {
       errors.add('pose $pose con capas repetidas');
     }
   }
-  // Atlas ilustrado: cada peinado y artículo visible del catálogo necesita
-  // capa en todas las poses, y cada pelaje su entrada de color.
+  // Atlas ilustrado: cada peinado necesita base en frente, perfil y espalda;
+  // cada artículo, capa (o «no se ve») en esas tres poses; cada pelaje, su
+  // matriz de color; y todos los ficheros referenciados deben existir.
   final sprites = jsonDecode(
     File('assets/data/pet-sprites-v1.json').readAsStringSync(),
   ) as Map<String, dynamic>;
   final spritePoses = (sprites['poses'] as Map<String, dynamic>).keys.toList();
+  const mainPoses = ['front', 'side', 'back'];
+  Map<String, dynamic> group(String k) =>
+      (sprites[k] as Map<String, dynamic>?) ?? const {};
+  void checkFile(Object? entry, String what) {
+    if (entry == null) return;
+    final file = entry is String
+        ? entry
+        : (entry as Map<String, dynamic>)['file'] as String;
+    if (!File('assets/images/pet/$file').existsSync()) {
+      errors.add('pet-sprites: no existe assets/images/pet/$file ($what)');
+    }
+  }
+
+  for (final kind in ['hair', 'items', 'expressions']) {
+    group(kind).forEach((id, poses) {
+      (poses as Map<String, dynamic>).forEach((pose, e) {
+        if (!spritePoses.contains(pose)) {
+          errors.add('pet-sprites: pose desconocida $pose en $id');
+        }
+        checkFile(e, '$id/$pose');
+      });
+    });
+  }
   if (balance != null) {
+    final variants = group('variants');
     for (final item in balance.styles) {
-      final group = switch (item.slot) {
-        Slot.coat => 'coats',
-        Slot.hair => 'hair',
-        _ => 'items',
-      };
-      final entry = (sprites[group] as Map<String, dynamic>)[item.id];
       if (item.slot == Slot.coat) {
-        if (!(sprites['coats'] as Map<String, dynamic>).containsKey(item.id)) {
+        if (!group('coats').containsKey(item.id)) {
           errors.add('pet-sprites: falta el pelaje ${item.id}');
         }
         continue;
       }
-      // «Sin prenda» y «sin accesorio» no tienen capa.
-      if (item.initial && item.slot != Slot.hair) continue;
-      for (final pose in spritePoses) {
-        final file = (entry as Map<String, dynamic>?)?[pose] as String?;
-        if (file == null) {
-          errors.add('pet-sprites: falta ${item.id} en la pose $pose');
-        } else if (!File('assets/images/pet/$file').existsSync()) {
-          errors.add('pet-sprites: no existe assets/images/pet/$file');
+      if (item.slot == Slot.hair) {
+        final entry = group('hair')[item.id] as Map<String, dynamic>?;
+        for (final pose in mainPoses) {
+          if (entry == null || !entry.containsKey(pose)) {
+            errors.add('pet-sprites: falta ${item.id} en la pose $pose');
+          }
+        }
+        continue;
+      }
+      // «Sin prenda», «sin gafas»… no tienen capa.
+      if (item.initial) continue;
+      final layerId =
+          (variants[item.id] as Map<String, dynamic>?)?['of'] ?? item.id;
+      final entry = group('items')[layerId] as Map<String, dynamic>?;
+      for (final pose in mainPoses) {
+        if (entry == null || !entry.containsKey(pose)) {
+          errors.add(
+            'pet-sprites: falta ${item.id} ($layerId) en la pose $pose',
+          );
         }
       }
     }
+    // Cada variante apunta a una capa que existe.
+    variants.forEach((id, v) {
+      final of = (v as Map<String, dynamic>)['of'];
+      if (!group('items').containsKey(of)) {
+        errors.add('pet-sprites: la variante $id usa «$of», que no tiene capa');
+      }
+    });
   }
   for (final a in assets) {
     if (!File(a).existsSync()) errors.add('recurso ausente: $a');
   }
   if (errors.isEmpty) {
     stdout.writeln(
-      'Contenido válido: ${balance!.styles.length} artículos, 2 poses vectoriales, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
+      'Contenido válido: ${balance!.styles.length} artículos, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
     );
   } else {
     for (final e in errors) {

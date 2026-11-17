@@ -105,10 +105,28 @@ class FrisbeeGame extends FlameGame {
   }
 
   /// El caniche espera en el aro, corre hacia el disco y vuelve.
+  /// Momento del vuelo (0..1) en que el caniche intercepta el disco en el
+  /// aire. El resultado lo decide la simulación; esto solo lo representa.
+  static const double interceptT = 0.82;
+
+  /// El disco va en la boca: durante la caída tras atraparlo y al volver.
+  bool discInMouth = false;
+
+  double _dogSize(FieldPoint p) => (size.y * 0.27) * (1 - p.depth / 14);
+
+  static double _smooth(double x) => x * x * (3 - 2 * x);
+
+  FieldPoint _lerp(FieldPoint a, FieldPoint b, double k) =>
+      FieldPoint(a.x + (b.x - a.x) * k, a.depth + (b.depth - a.depth) * k);
+
+  /// El caniche espera en el aro, corre hacia el disco, salta a por él y
+  /// vuelve con él en la boca.
   void _placePet() {
     final target = sim.currentTarget;
-    double scaleAt(FieldPoint p) => (size.y * 0.2) * (1 - p.depth / 14);
     FieldPoint where = target;
+    var lift = 0.0;
+    var shiftX = 0.0;
+    discInMouth = false;
     switch (sim.phase) {
       case FrisbeePhase.aim:
         pet.pose = PetPose.front;
@@ -116,51 +134,86 @@ class FrisbeeGame extends FlameGame {
         pet.airborne = 0;
       case FrisbeePhase.flight:
         final dest = sim.destination!;
-        final reach = target.distanceTo(dest) <= sim.catchRadius
-            ? dest
-            : target;
         final k = sim.flightProgress;
-        where = FieldPoint(
-          target.x + (reach.x - target.x) * k,
-          target.depth + (reach.depth - target.depth) * k,
-        );
-        pet.pose = PetPose.side;
-        pet.facingLeft = reach.x < target.x;
-        pet.baseAnim = k > 0.75 ? PetAnim.catchDisc : PetAnim.run;
-        pet.airborne = k > 0.75 ? 6 : 0;
+        if (sim.wouldCatch(dest)) {
+          final (pI, eI) = FrisbeeSim.pointAt(dest, interceptT);
+          where = _lerp(target, pI, _smooth((k / interceptT).clamp(0.0, 1.0)));
+          pet.pose = PetPose.side;
+          pet.facingLeft = pI.x < target.x - 0.05;
+          final leapStart = interceptT - 0.28;
+          final leaping = k > leapStart && !reducedMotion;
+          pet.baseAnim = leaping ? PetAnim.catchDisc : PetAnim.run;
+          pet.airborne = leaping ? 6 : 0;
+          pet.petSize = _dogSize(where);
+          // Altura del salto para que la boca llegue al disco.
+          final mouth = painter.landmark(
+            PetPose.side,
+            'mouth',
+            anim: PetAnim.catchDisc,
+          );
+          final ground = project(pI).dy;
+          final discY = ground - eI * sd;
+          final needed = math.max(0.0, ground + mouth.dy * pet.petSize - discY);
+          if (leaping) {
+            final curve = k < interceptT
+                ? math.sin(
+                    (k - leapStart) / (interceptT - leapStart) * math.pi / 2,
+                  )
+                : math.cos((k - interceptT) / (1 - interceptT) * math.pi / 2);
+            lift = needed * curve;
+          }
+          // Desplaza al caniche para que su boca quede bajo la trayectoria.
+          shiftX =
+              -(pet.facingLeft ? -1 : 1) *
+              mouth.dx *
+              pet.petSize *
+              _smooth((k / interceptT).clamp(0.0, 1.0));
+          discInMouth = k >= interceptT;
+        } else {
+          // Fallo: corre un poco hacia donde caerá y se detiene.
+          where = _lerp(target, dest, 0.45 * _smooth(k));
+          pet.pose = PetPose.side;
+          pet.facingLeft = dest.x < target.x;
+          pet.baseAnim = k < 0.8 ? PetAnim.run : PetAnim.idle;
+          pet.airborne = 0;
+        }
       case FrisbeePhase.catchAnim:
         final dest = _lastDest ?? target;
-        where = _lastCaught == true ? dest : target;
-        pet.pose = PetPose.front;
-        pet.baseAnim = _lastCaught == true ? PetAnim.celebrate : PetAnim.idle;
+        if (_lastCaught == true) {
+          where = FrisbeeSim.pointAt(dest, interceptT).$1;
+          pet.pose = PetPose.front;
+          pet.baseAnim = PetAnim.celebrate;
+          discInMouth = true;
+        } else {
+          where = _lerp(
+            sim.targets[(sim.attempts - 1).clamp(0, sim.throws - 1)],
+            dest,
+            0.45,
+          );
+          pet.pose = PetPose.front;
+          pet.baseAnim = PetAnim.idle;
+        }
       case FrisbeePhase.returning:
         final next = sim.attempts < sim.throws
             ? sim.targets[sim.attempts]
             : target;
+        final prev = sim.targets[(sim.attempts - 1).clamp(0, sim.throws - 1)];
         final from = _lastCaught == true
-            ? (_lastDest ?? target)
-            : sim.targets[(sim.attempts - 1).clamp(0, sim.throws - 1)];
+            ? FrisbeeSim.pointAt(_lastDest ?? prev, interceptT).$1
+            : _lerp(prev, _lastDest ?? prev, 0.45);
         final k = (sim.phaseTime / FrisbeeSim.returnSeconds).clamp(0.0, 1.0);
-        where = FieldPoint(
-          from.x + (next.x - from.x) * k,
-          from.depth + (next.depth - from.depth) * k,
-        );
+        where = _lerp(from, next, k);
         pet.pose = PetPose.side;
         pet.facingLeft = next.x < from.x;
         pet.baseAnim = PetAnim.trot;
+        discInMouth = _lastCaught == true;
       case FrisbeePhase.finished:
         pet.pose = PetPose.front;
         pet.baseAnim = PetAnim.celebrate;
     }
-    final lift =
-        sim.phase == FrisbeePhase.flight &&
-            sim.flightProgress > 0.75 &&
-            !reducedMotion
-        ? math.sin((sim.flightProgress - 0.75) / 0.25 * math.pi) * sd * 0.8
-        : 0.0;
     final p = project(where);
-    pet.position = Vector2(p.dx, p.dy - lift);
-    pet.petSize = scaleAt(where);
+    pet.position = Vector2(p.dx + shiftX, p.dy - lift);
+    pet.petSize = _dogSize(where);
   }
 
   void _background(Canvas c) {
@@ -268,7 +321,14 @@ class FrisbeeGame extends FlameGame {
         mark,
       );
     }
-    if (sim.phase == FrisbeePhase.flight) {
+    if (discInMouth) {
+      final m = pet.landmarkScene('mouth');
+      _drawDisc(
+        c,
+        m + Offset(0, pet.petSize * 0.02),
+        pet.petSize / (size.y * 0.27) * 0.85,
+      );
+    } else if (sim.phase == FrisbeePhase.flight) {
       final (p, e) = FrisbeeSim.pointAt(sim.destination!, sim.flightProgress);
       final shadow = project(p);
       final k = 1 - p.depth / 14;

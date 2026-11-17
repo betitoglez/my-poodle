@@ -44,15 +44,20 @@ void main() {
     });
   });
 
-  test('adopción: revisión 1, 0 monedas, cuatro artículos base', () {
+  test('adopción: revisión 1, 0 monedas, un artículo base por ranura', () {
     final s = adopt();
     expect(s.revision, 1);
     expect(s.coins, 0);
+    expect(s.isSick, isFalse);
     expect(s.owned, {
       'coat.apricot',
       'hair.natural',
       'outfit.none',
+      'head.none',
+      'eyes.none',
+      'collar.none',
       'neck.none',
+      'paws.none',
     });
     expect([for (final n in Need.values) s.needPoints(n)], [65, 70, 75, 80]);
   });
@@ -196,7 +201,13 @@ void main() {
       expect(
         rules.lookCost(
           adopt(),
-          combos.firstWhere((a) => !a.ids.any(base.ids.contains)),
+          combos.firstWhere(
+            (a) =>
+                a.coat != base.coat &&
+                a.hair != base.hair &&
+                a.outfit != base.outfit &&
+                a.neck != base.neck,
+          ),
         ),
         24 + 30 + 18 + 10,
       );
@@ -269,6 +280,8 @@ void main() {
         fruit: balance.fruit,
         frisbee: balance.frisbee,
         gameCompleteDelta: balance.gameCompleteDelta,
+        health: balance.health,
+        status: balance.status,
         styles: [...balance.styles, balance.styles.first],
       ),
       throwsA(isA<BalanceFormatException>()),

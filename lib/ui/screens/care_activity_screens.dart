@@ -46,11 +46,14 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
   void _changed() {
     if (!mounted) return;
     refreshAfterFrame(() {
-      if (autoFinish && activity.completed) finish();
+      if (autoFinish && isDone) finish();
     });
   }
 
   bool get autoFinish => true;
+
+  /// Cuándo se da por terminada (por defecto, al completar los pasos).
+  bool get isDone => activity.completed;
 
   Future<void> finish() async {
     if (finishing) return;
@@ -518,6 +521,186 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================================================================
+// Dormir
+// ======================================================================
+
+class SleepScreen extends StatefulWidget {
+  const SleepScreen({super.key});
+  @override
+  State<SleepScreen> createState() => _SleepScreenState();
+}
+
+class _SleepScreenState extends CareActivityState<SleepScreen, SleepGame> {
+  final _activity = SleepActivity();
+  @override
+  CareKind get kind => CareKind.sleep;
+  @override
+  StepActivity get activity => _activity;
+  @override
+  SleepGame createGame(AppController c) => SleepGame(
+    painter: PetPainterScope.of(context),
+    look: c.look,
+    reducedMotion: c.reducedMotion,
+    activity: _activity,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final name = AppScope.of(context).pet.name;
+    final g = game!;
+    final (text, label, icon, action) = switch (_activity.phase) {
+      SleepPhase.toBed => (
+        'Toca su cama para que $name se acueste.',
+        'Llevar a su cama',
+        Icons.hotel_rounded,
+        () {
+          g.goToBed();
+          AppScope.feedbackOf(context).play(Sfx.step);
+        },
+      ),
+      SleepPhase.blanket => (
+        g.atBed ? 'Arropa a $name con su manta.' : '$name va hacia su cama…',
+        'Arropar',
+        Icons.dry_cleaning_rounded,
+        g.atBed ? g.tuckIn : null,
+      ),
+      SleepPhase.lights => (
+        'Apaga la luz para que $name duerma.',
+        'Apagar la luz',
+        Icons.lightbulb_outline_rounded,
+        g.canLightsOff ? g.lightsOff : null,
+      ),
+      _ => (
+        '$name duerme plácidamente… Zzz.',
+        'Durmiendo…',
+        Icons.bedtime_rounded,
+        null,
+      ),
+    };
+    return frame(
+      title: 'A dormir',
+      scene: SceneView(
+        game: g,
+        semanticsLabel: 'Salón con la cama de ${AppScope.of(context).pet.name}',
+        onTap: g.tapAt,
+      ),
+      hintWidget: hint('Toca la cama para acostarlo.', Icons.hotel_rounded),
+      controls: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _instruction(text, icon: Icons.bedtime_rounded),
+          const SizedBox(height: AppSpace.m),
+          AppButton(
+            label: label,
+            icon: icon,
+            big: true,
+            expand: true,
+            onPressed: action == null ? null : () => action(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================================================================
+// Veterinario
+// ======================================================================
+
+class VetScreen extends StatefulWidget {
+  const VetScreen({super.key});
+  @override
+  State<VetScreen> createState() => _VetScreenState();
+}
+
+class _VetScreenState extends CareActivityState<VetScreen, VetGame> {
+  late final VetActivity _activity;
+  @override
+  CareKind get kind => CareKind.vet;
+  @override
+  StepActivity get activity => _activity;
+  @override
+  bool get isDone => _activity.completed && !(game?.busy ?? false);
+  @override
+  VetGame createGame(AppController c) {
+    _activity = VetActivity(sick: c.pet.isSick);
+    return VetGame(
+      painter: PetPainterScope.of(context),
+      look: c.look,
+      reducedMotion: c.reducedMotion,
+      activity: _activity,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = AppScope.of(context).pet.name;
+    final g = game!;
+    final busy = g.busy;
+    final sick = _activity.sick;
+    final (text, label, icon, action) = switch (_activity.phase) {
+      VetPhase.heart => (
+        sick
+            ? '$name está malito. Empieza escuchando su corazón.'
+            : 'Una revisión: escucha el corazón de $name.',
+        'Escuchar el corazón',
+        Icons.favorite_rounded,
+        g.listen,
+      ),
+      VetPhase.paws => (
+        'Ahora revisa sus patitas.',
+        'Revisar las patas',
+        Icons.pets_rounded,
+        g.checkPaws,
+      ),
+      VetPhase.pill => (
+        'Dale la pastilla para que se ponga bueno.',
+        'Dar la pastilla',
+        Icons.medication_rounded,
+        g.givePill,
+      ),
+      VetPhase.done => (
+        sick ? '¡Ya está sanito!' : '¡Todo en orden!',
+        'Hecho',
+        Icons.check_rounded,
+        null,
+      ),
+    };
+    return frame(
+      title: 'El veterinario',
+      scene: SceneView(
+        game: g,
+        semanticsLabel: 'Consulta del veterinario con $name',
+        onTap: g.tapAt,
+      ),
+      hintWidget: hint(
+        'Toca el círculo para empezar.',
+        Icons.touch_app_rounded,
+      ),
+      controls: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _instruction(text, icon: Icons.medical_services_rounded),
+          const SizedBox(height: AppSpace.m),
+          AppButton(
+            label: label,
+            icon: icon,
+            big: true,
+            expand: true,
+            onPressed: action == null || busy || finishing
+                ? null
+                : () {
+                    action();
+                    AppScope.feedbackOf(context).play(Sfx.tap);
+                  },
           ),
         ],
       ),

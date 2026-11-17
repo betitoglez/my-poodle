@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import '../../domain/appearance.dart';
 
-enum PetPose { front, side }
+enum PetPose { front, side, back }
 
 enum HairStyle { natural, pom }
 
@@ -69,7 +69,24 @@ class AppearanceCatalog {
     this.poses,
     this.fixed,
     this.labels,
+    this._varieties,
+    this._varietyOf,
+    this._colorLabel,
+    this._swatch,
   );
+
+  final Map<String, String> _varieties;
+  final Map<String, String> _varietyOf;
+  final Map<String, String> _colorLabel;
+  final Map<String, Color> _swatch;
+
+  /// Variedad a la que pertenece un artículo (p. ej. «sweater»), si tiene.
+  String? varietyOf(String id) => _varietyOf[id];
+  String varietyLabel(String variety) => _varieties[variety] ?? variety;
+
+  /// Nombre del color dentro de su variedad («Rojo»), si lo tiene.
+  String? colorLabel(String id) => _colorLabel[id];
+  Color? swatch(String id) => _swatch[id];
 
   final Map<String, CoatPalette> _coats;
   final Map<String, HairStyle> _hair;
@@ -140,6 +157,33 @@ class AppearanceCatalog {
         anchors,
       );
     });
+    // Accesorios sin dibujo vectorial: solo etiquetas.
+    final varietyOf = <String, String>{};
+    final colorLabel = <String, String>{};
+    final swatch = <String, Color>{};
+    for (final section in const [
+      'coats',
+      'hair',
+      'outfits',
+      'necks',
+      'heads',
+      'eyes',
+      'collars',
+      'paws',
+    ]) {
+      ((j[section] as Map<String, dynamic>?) ?? const {}).forEach((k, v) {
+        final m = v as Map<String, dynamic>;
+        labels[k] = m['label'] as String;
+        if (m['variety'] != null) varietyOf[k] = m['variety'] as String;
+        if (m['colorLabel'] != null) colorLabel[k] = m['colorLabel'] as String;
+        if (m['swatch'] != null) swatch[k] = _c(m['swatch']);
+      });
+    }
+    final varieties = {
+      for (final e
+          in ((j['varieties'] as Map<String, dynamic>?) ?? const {}).entries)
+        e.key: e.value as String,
+    };
     return AppearanceCatalog._(
       coats,
       hair,
@@ -148,6 +192,10 @@ class AppearanceCatalog {
       poses,
       fixed,
       labels,
+      varieties,
+      varietyOf,
+      colorLabel,
+      swatch,
     );
   }
 
@@ -158,7 +206,8 @@ class AppearanceCatalog {
             !_coats.containsKey(id) &&
             !_hair.containsKey(id) &&
             !_outfits.containsKey(id) &&
-            !_necks.containsKey(id),
+            !_necks.containsKey(id) &&
+            !labels.containsKey(id),
       )
       .toList();
 

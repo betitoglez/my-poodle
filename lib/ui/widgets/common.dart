@@ -334,3 +334,59 @@ class DemoBadge extends StatelessWidget {
     ),
   );
 }
+
+/// Medidor de salud: sano 100, malito 35. No es una necesidad más: solo el
+/// veterinario lo recupera.
+class HealthMeter extends StatelessWidget {
+  const HealthMeter({super.key, required this.points, required this.sick});
+  final int points;
+  final bool sick;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = sick ? AppColors.coral : AppColors.leaf;
+    return Semantics(
+      label: 'Salud: ${sick ? 'malito' : 'sano'}, $points de 100',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.75),
+          borderRadius: BorderRadius.circular(AppRadii.s),
+          border: Border.all(
+            color: sick ? AppColors.coral : const Color(0x22000000),
+            width: sick ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              sick ? Icons.sick_rounded : Icons.favorite_rounded,
+              size: 18,
+              color: color,
+            ),
+            const SizedBox(width: 6),
+            Text('Salud', style: AppText.small.copyWith(color: AppColors.ink)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                child: LinearProgressIndicator(
+                  value: points / 100,
+                  minHeight: 8,
+                  color: color,
+                  backgroundColor: color.withValues(alpha: 0.18),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              sick ? 'Malito' : 'Sano',
+              style: AppText.number.copyWith(fontSize: 14, color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

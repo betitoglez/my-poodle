@@ -4,7 +4,10 @@ import 'needs_clock.dart';
 import 'pet_state.dart';
 
 /// Actividades con resultado confirmable. Los IDs coinciden con balance-v1.
-enum CareKind { feed, bath, walk, groom, vet }
+enum CareKind { feed, bath, walk, groom, sleep, vet }
+
+/// Estados que enciende el visor, estilo tamagotchi.
+enum PetCondition { hungry, dirty, sad, tired, sick }
 
 enum GameId { fruit, frisbee }
 
@@ -58,7 +61,10 @@ class Rules {
     if (rule == null) throw RuleException('Cuidado desconocido: ${kind.name}');
     final before = clock.advance(s, nowUtc);
     final after = _commit(
-      before.copyWith(needs100: _applyDelta(before, rule.delta)),
+      before.copyWith(
+        needs100: _applyDelta(before, rule.delta),
+        cured: rule.cures,
+      ),
       opId,
     );
     return Receipt(opId: opId, before: before, after: after);
@@ -149,6 +155,38 @@ class Rules {
       opId,
     );
     return Purchased(Receipt(opId: opId, before: before, after: after), cost);
+  }
+
+  /// Iconos que deben estar encendidos en el visor.
+  Set<PetCondition> conditions(PetState s) {
+    final st = balance.status;
+    return {
+      if (s.needPoints(Need.satiety) < st.hungryBelow) PetCondition.hungry,
+      if (s.needPoints(Need.hygiene) < st.dirtyBelow) PetCondition.dirty,
+      if (s.needPoints(Need.mood) < st.sadBelow) PetCondition.sad,
+      if (s.needPoints(Need.energy) < st.tiredBelow) PetCondition.tired,
+      if (s.isSick) PetCondition.sick,
+    };
+  }
+
+  /// Lo más urgente que atender (enfermo primero), o null si está bien.
+  PetCondition? mostUrgent(PetState s) {
+    final c = conditions(s);
+    if (c.contains(PetCondition.sick)) return PetCondition.sick;
+    PetCondition? best;
+    var bestValue = 1 << 30;
+    for (final (cond, need) in [
+      (PetCondition.hungry, Need.satiety),
+      (PetCondition.dirty, Need.hygiene),
+      (PetCondition.sad, Need.mood),
+      (PetCondition.tired, Need.energy),
+    ]) {
+      if (c.contains(cond) && s.need100(need) < bestValue) {
+        best = cond;
+        bestValue = s.need100(need);
+      }
+    }
+    return best;
   }
 
   /// Necesidad más baja a sugerir. Energía baja sugiere descansar.

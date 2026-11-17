@@ -1,93 +1,1052 @@
 {
-  "schemaVersion": 1,
-  "unitHeightPx": 520,
-  "poses": {
-    "front": {
-      "size": [
-        285,
-        541
-      ],
-      "anchor": [
-        158.6,
-        536.9
-      ]
-    },
-    "side": {
-      "size": [
-        533,
-        554
-      ],
-      "anchor": [
-        231.4,
-        548.6
-      ]
-    },
-    "jump": {
-      "size": [
-        575,
-        551
-      ],
-      "anchor": [
-        288.6,
-        545.8
-      ]
-    }
-  },
-  "hair": {
-    "hair.natural": {
-      "front": "front__hair_natural.webp",
-      "side": "side__hair_natural.webp",
-      "jump": "jump__hair_natural.webp"
-    },
-    "hair.pom": {
-      "front": "front__hair_pom.webp",
-      "side": "side__hair_pom.webp",
-      "jump": "jump__hair_pom.webp"
-    }
-  },
-  "items": {
-    "outfit.teal": {
-      "front": "front__outfit_teal.webp",
-      "side": "side__outfit_teal.webp",
-      "jump": "jump__outfit_teal.webp"
-    },
-    "neck.coral": {
-      "front": "front__neck_coral.webp",
-      "side": "side__neck_coral.webp",
-      "jump": "jump__neck_coral.webp"
-    }
-  },
-  "expressions": {
-    "blink": {
-      "front": "front__blink.webp"
-    },
-    "happy": {
-      "front": "front__happy.webp"
-    }
-  },
-  "coats": {
-    "coat.apricot": null,
-    "coat.silver": [
-      0.3,
-      0.55,
-      0.1,
-      0,
-      22,
-      0.29,
-      0.54,
-      0.1,
-      0,
-      22,
-      0.31,
-      0.57,
-      0.12,
-      0,
-      30,
-      0,
-      0,
-      0,
-      1,
-      0
+ "schemaVersion": 1,
+ "unitHeightPx": 520,
+ "poses": {
+  "front": {
+   "size": [
+    332,
+    582
+   ],
+   "anchor": [
+    179.7,
+    559.5
+   ],
+   "landmarks": {
+    "paws": [
+     -0.032,
+     -0.05
+    ],
+    "headTop": [
+     -0.028,
+     -0.935
+    ],
+    "eyes": [
+     -0.036,
+     -0.792
+    ],
+    "mouth": [
+     -0.02,
+     -0.659
+    ],
+    "earRight": [
+     0.164,
+     -0.733
+    ],
+    "earLeft": [
+     -0.232,
+     -0.733
+    ],
+    "neck": [
+     0.017,
+     -0.546
+    ],
+    "chest": [
+     0.017,
+     -0.367
+    ],
+    "flankRight": [
+     0.108,
+     -0.447
+    ],
+    "flankLeft": [
+     -0.186,
+     -0.447
+    ],
+    "shoulderLeft": [
+     -0.116,
+     -0.527
+    ],
+    "shoulderRight": [
+     0.059,
+     -0.527
     ]
+   }
+  },
+  "side": {
+   "size": [
+    534,
+    603
+   ],
+   "anchor": [
+    231.4,
+    582.0
+   ],
+   "landmarks": {
+    "paws": [
+     0.073,
+     -0.05
+    ],
+    "headTop": [
+     0.351,
+     -0.934
+    ],
+    "mouth": [
+     0.488,
+     -0.72
+    ],
+    "neck": [
+     0.278,
+     -0.551
+    ]
+   }
+  },
+  "jump": {
+   "size": [
+    575,
+    551
+   ],
+   "anchor": [
+    288.6,
+    545.8
+   ],
+   "landmarks": {
+    "paws": [
+     0.0,
+     -0.049
+    ],
+    "headTop": [
+     0.186,
+     -0.925
+    ],
+    "mouth": [
+     0.42,
+     -0.624
+    ],
+    "neck": [
+     0.195,
+     -0.519
+    ]
+   }
+  },
+  "eat": {
+   "size": [
+    309,
+    472
+   ],
+   "anchor": [
+    149.6,
+    467.6
+   ],
+   "landmarks": {
+    "paws": [
+     0.008,
+     -0.039
+    ],
+    "headTop": [
+     -0.025,
+     -0.74
+    ]
+   }
+  },
+  "sleep": {
+   "size": [
+    386,
+    428
+   ],
+   "anchor": [
+    194.3,
+    404.0
+   ],
+   "landmarks": {
+    "paws": [
+     0.0,
+     -0.031
+    ],
+    "headTop": [
+     -0.04,
+     -0.575
+    ]
+   }
+  },
+  "run_a": {
+   "size": [
+    579,
+    454
+   ],
+   "anchor": [
+    289.3,
+    448.2
+   ],
+   "landmarks": {
+    "paws": [
+     0.0,
+     -0.037
+    ],
+    "headTop": [
+     0.143,
+     -0.702
+    ],
+    "mouth": [
+     0.384,
+     -0.446
+    ],
+    "neck": [
+     0.175,
+     -0.37
+    ]
+   }
+  },
+  "run_b": {
+   "size": [
+    535,
+    523
+   ],
+   "anchor": [
+    271.5,
+    517.9
+   ],
+   "landmarks": {
+    "paws": [
+     0.0,
+     -0.047
+    ],
+    "headTop": [
+     0.144,
+     -0.885
+    ],
+    "mouth": [
+     0.42,
+     -0.61
+    ],
+    "neck": [
+     0.193,
+     -0.483
+    ]
+   }
+  },
+  "back": {
+   "size": [
+    347,
+    567
+   ],
+   "anchor": [
+    187.5,
+    547.3
+   ],
+   "landmarks": {
+    "paws": [
+     -0.025,
+     -0.05
+    ],
+    "headTop": [
+     -0.03,
+     -0.936
+    ]
+   }
   }
+ },
+ "hair": {
+  "hair.natural": {
+   "front": "front__hair_natural.webp",
+   "side": "side__hair_natural.webp",
+   "jump": "jump__hair_natural.webp",
+   "eat": "eat__hair_natural.webp",
+   "sleep": "sleep__hair_natural.webp",
+   "run_a": "run_a__hair_natural.webp",
+   "run_b": "run_b__hair_natural.webp",
+   "back": "back__hair_natural.webp"
+  },
+  "hair.pom": {
+   "front": "front__hair_pom.webp",
+   "side": "side__hair_pom.webp",
+   "jump": "jump__hair_pom.webp",
+   "eat": "eat__hair_pom.webp",
+   "sleep": "sleep__hair_pom.webp",
+   "run_a": "run_a__hair_pom.webp",
+   "run_b": "run_b__hair_pom.webp",
+   "back": "back__hair_pom.webp"
+  },
+  "hair.teddy": {
+   "front": "front__hair_teddy.webp",
+   "side": "side__hair_teddy.webp",
+   "sleep": "sleep__hair_teddy.webp",
+   "back": "back__hair_teddy.webp"
+  },
+  "hair.puppy": {
+   "front": "front__hair_puppy.webp",
+   "side": "side__hair_puppy.webp",
+   "sleep": "sleep__hair_puppy.webp",
+   "back": "back__hair_puppy.webp"
+  }
+ },
+ "items": {
+  "outfit.teal": {
+   "front": {
+    "file": "front__outfit_teal.webp",
+    "box": [
+     31,
+     125,
+     272,
+     371
+    ]
+   },
+   "side": {
+    "file": "side__outfit_teal.webp",
+    "box": [
+     41,
+     235,
+     413,
+     253
+    ]
+   },
+   "jump": {
+    "file": "jump__outfit_teal.webp",
+    "box": [
+     55,
+     239,
+     420,
+     243
+    ]
+   },
+   "eat": {
+    "file": "eat__outfit_teal.webp",
+    "box": [
+     27,
+     58,
+     242,
+     360
+    ]
+   },
+   "sleep": {
+    "file": "sleep__outfit_teal.webp",
+    "box": [
+     17,
+     85,
+     323,
+     296
+    ]
+   },
+   "run_a": {
+    "file": "run_a__outfit_teal.webp",
+    "box": [
+     68,
+     194,
+     387,
+     197
+    ]
+   },
+   "run_b": {
+    "file": "run_b__outfit_teal.webp",
+    "box": [
+     46,
+     218,
+     414,
+     236
+    ]
+   },
+   "back": {
+    "file": "back__outfit_teal.webp",
+    "box": [
+     87,
+     205,
+     194,
+     253
+    ]
+   }
+  },
+  "neck.coral": {
+   "front": {
+    "file": "front__neck_coral.webp",
+    "box": [
+     24,
+     81,
+     279,
+     400
+    ]
+   },
+   "side": {
+    "file": "side__neck_coral.webp",
+    "box": [
+     257,
+     148,
+     198,
+     237
+    ]
+   },
+   "jump": {
+    "file": "jump__neck_coral.webp",
+    "box": [
+     272,
+     33,
+     204,
+     325
+    ]
+   },
+   "eat": {
+    "file": "eat__neck_coral.webp",
+    "box": [
+     11,
+     141,
+     294,
+     303
+    ]
+   },
+   "sleep": {
+    "file": "sleep__neck_coral.webp",
+    "box": [
+     21,
+     113,
+     358,
+     312
+    ]
+   },
+   "run_a": {
+    "file": "run_a__neck_coral.webp",
+    "box": [
+     38,
+     59,
+     431,
+     275
+    ]
+   },
+   "run_b": {
+    "file": "run_b__neck_coral.webp",
+    "box": [
+     269,
+     28,
+     194,
+     319
+    ]
+   },
+   "back": {
+    "file": "back__neck_coral.webp",
+    "box": [
+     44,
+     119,
+     236,
+     378
+    ]
+   }
+  },
+  "outfit.sweater_red": {
+   "front": {
+    "file": "front__outfit_sweater_red.webp",
+    "box": [
+     33,
+     124,
+     269,
+     340
+    ]
+   },
+   "side": {
+    "file": "side__outfit_sweater_red.webp",
+    "box": [
+     154,
+     224,
+     317,
+     267
+    ]
+   },
+   "back": {
+    "file": "back__outfit_sweater_red.webp",
+    "box": [
+     74,
+     175,
+     207,
+     276
+    ]
+   }
+  },
+  "outfit.raincoat_yellow": {
+   "front": {
+    "file": "front__outfit_raincoat_yellow.webp",
+    "box": [
+     33,
+     124,
+     269,
+     340
+    ]
+   },
+   "side": {
+    "file": "side__outfit_raincoat_yellow.webp",
+    "box": [
+     94,
+     167,
+     367,
+     237
+    ]
+   },
+   "back": {
+    "file": "back__outfit_raincoat_yellow.webp",
+    "box": [
+     77,
+     150,
+     203,
+     226
+    ]
+   }
+  },
+  "outfit.dress_pink": {
+   "front": {
+    "file": "front__outfit_dress_pink.webp",
+    "box": [
+     5,
+     125,
+     320,
+     295
+    ]
+   },
+   "side": {
+    "file": "side__outfit_dress_pink.webp",
+    "box": [
+     66,
+     177,
+     378,
+     287
+    ]
+   },
+   "back": {
+    "file": "back__outfit_dress_pink.webp",
+    "box": [
+     3,
+     199,
+     341,
+     244
+    ]
+   }
+  },
+  "head.bow": {
+   "front": {
+    "file": "front__head_bow.webp",
+    "box": [
+     24,
+     36,
+     279,
+     426
+    ]
+   },
+   "side": {
+    "file": "side__head_bow.webp",
+    "box": [
+     314,
+     71,
+     125,
+     130
+    ]
+   },
+   "back": {
+    "file": "back__head_bow.webp",
+    "box": [
+     101,
+     62,
+     179,
+     434
+    ]
+   }
+  },
+  "head.beanie": {
+   "front": {
+    "file": "front__head_beanie.webp",
+    "box": [
+     49,
+     3,
+     249,
+     438
+    ]
+   },
+   "side": {
+    "file": "side__head_beanie.webp",
+    "box": [
+     305,
+     4,
+     186,
+     192
+    ]
+   },
+   "back": {
+    "file": "back__head_beanie.webp",
+    "box": [
+     38,
+     4,
+     265,
+     493
+    ]
+   }
+  },
+  "head.crown": {
+   "front": {
+    "file": "front__head_crown.webp",
+    "box": [
+     24,
+     39,
+     279,
+     425
+    ]
+   },
+   "side": {
+    "file": "side__head_crown.webp",
+    "box": [
+     320,
+     21,
+     128,
+     133
+    ]
+   },
+   "back": {
+    "file": "back__head_crown.webp",
+    "box": [
+     134,
+     3,
+     146,
+     493
+    ]
+   }
+  },
+  "eyes.round": {
+   "front": {
+    "file": "front__eyes_round.webp",
+    "box": [
+     24,
+     42,
+     279,
+     490
+    ]
+   },
+   "side": {
+    "file": "side__eyes_round.webp",
+    "box": [
+     20,
+     66,
+     501,
+     463
+    ]
+   },
+   "back": null
+  },
+  "eyes.sun": {
+   "front": {
+    "file": "front__eyes_sun.webp",
+    "box": [
+     24,
+     42,
+     279,
+     491
+    ]
+   },
+   "side": {
+    "file": "side__eyes_sun.webp",
+    "box": [
+     20,
+     66,
+     497,
+     463
+    ]
+   },
+   "back": null
+  },
+  "eyes.heart": {
+   "front": {
+    "file": "front__eyes_heart.webp",
+    "box": [
+     24,
+     42,
+     279,
+     491
+    ]
+   },
+   "side": {
+    "file": "side__eyes_heart.webp",
+    "box": [
+     21,
+     66,
+     494,
+     456
+    ]
+   },
+   "back": null
+  },
+  "collar.tag": {
+   "front": {
+    "file": "front__collar_tag.webp",
+    "box": [
+     24,
+     42,
+     279,
+     490
+    ]
+   },
+   "side": {
+    "file": "side__collar_tag.webp",
+    "box": [
+     20,
+     66,
+     439,
+     456
+    ]
+   },
+   "back": {
+    "file": "back__collar_tag.webp",
+    "box": [
+     37,
+     30,
+     273,
+     500
+    ]
+   }
+  },
+  "collar.bell": {
+   "front": {
+    "file": "front__collar_bell.webp",
+    "box": [
+     24,
+     42,
+     279,
+     484
+    ]
+   },
+   "side": {
+    "file": "side__collar_bell.webp",
+    "box": [
+     21,
+     73,
+     435,
+     448
+    ]
+   },
+   "back": {
+    "file": "back__collar_bell.webp",
+    "box": [
+     37,
+     29,
+     273,
+     510
+    ]
+   }
+  },
+  "collar.pearls": {
+   "front": {
+    "file": "front__collar_pearls.webp",
+    "box": [
+     24,
+     42,
+     279,
+     491
+    ]
+   },
+   "side": {
+    "file": "side__collar_pearls.webp",
+    "box": [
+     20,
+     66,
+     442,
+     464
+    ]
+   },
+   "back": {
+    "file": "back__collar_pearls.webp",
+    "box": [
+     37,
+     30,
+     273,
+     511
+    ]
+   }
+  },
+  "neck.bowtie": {
+   "front": {
+    "file": "front__neck_bowtie.webp",
+    "box": [
+     24,
+     82,
+     278,
+     358
+    ]
+   },
+   "side": {
+    "file": "side__neck_bowtie.webp",
+    "box": [
+     320,
+     148,
+     151,
+     159
+    ]
+   },
+   "back": {
+    "file": "back__neck_bowtie.webp",
+    "box": [
+     44,
+     117,
+     191,
+     125
+    ]
+   }
+  },
+  "neck.knit": {
+   "front": {
+    "file": "front__neck_knit.webp",
+    "box": [
+     24,
+     83,
+     279,
+     367
+    ]
+   },
+   "side": {
+    "file": "side__neck_knit.webp",
+    "box": [
+     275,
+     148,
+     200,
+     358
+    ]
+   },
+   "back": {
+    "file": "back__neck_knit.webp",
+    "box": [
+     85,
+     167,
+     195,
+     272
+    ]
+   }
+  },
+  "paws.booties": {
+   "front": {
+    "file": "front__paws_booties.webp",
+    "box": [
+     24,
+     82,
+     279,
+     480
+    ]
+   },
+   "side": {
+    "file": "side__paws_booties.webp",
+    "box": [
+     31,
+     149,
+     415,
+     441
+    ]
+   },
+   "back": {
+    "file": "back__paws_booties.webp",
+    "box": [
+     44,
+     117,
+     241,
+     433
+    ]
+   }
+  },
+  "paws.sneakers": {
+   "front": {
+    "file": "front__paws_sneakers.webp",
+    "box": [
+     24,
+     81,
+     279,
+     498
+    ]
+   },
+   "side": {
+    "file": "side__paws_sneakers.webp",
+    "box": [
+     24,
+     147,
+     432,
+     452
+    ]
+   },
+   "back": {
+    "file": "back__paws_sneakers.webp",
+    "box": [
+     44,
+     117,
+     247,
+     447
+    ]
+   }
+  },
+  "paws.rain": {
+   "front": {
+    "file": "front__paws_rain.webp",
+    "box": [
+     24,
+     81,
+     279,
+     486
+    ]
+   },
+   "side": {
+    "file": "side__paws_rain.webp",
+    "box": [
+     27,
+     147,
+     426,
+     445
+    ]
+   },
+   "back": {
+    "file": "back__paws_rain.webp",
+    "box": [
+     44,
+     119,
+     246,
+     435
+    ]
+   }
+  }
+ },
+ "expressions": {
+  "blink": {
+   "front": {
+    "file": "front__blink.webp",
+    "box": [
+     24,
+     42,
+     279,
+     490
+    ]
+   }
+  },
+  "happy": {
+   "front": {
+    "file": "front__happy.webp",
+    "box": [
+     24,
+     42,
+     279,
+     491
+    ]
+   }
+  }
+ },
+ "coats": {
+  "coat.apricot": null,
+  "coat.silver": [
+   0.3,
+   0.55,
+   0.1,
+   0,
+   22,
+   0.29,
+   0.54,
+   0.1,
+   0,
+   22,
+   0.31,
+   0.57,
+   0.12,
+   0,
+   30,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "coat.lightgray": [
+   0.2392,
+   0.4696,
+   0.0912,
+   0,
+   46,
+   0.2392,
+   0.4696,
+   0.0912,
+   0,
+   46,
+   0.2392,
+   0.4696,
+   0.0912,
+   0,
+   54,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "coat.white": [
+   0.1854,
+   0.3639,
+   0.0707,
+   0,
+   116,
+   0.1854,
+   0.3639,
+   0.0707,
+   0,
+   114,
+   0.1854,
+   0.3639,
+   0.0707,
+   0,
+   110,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "coat.black": [
+   0.1076,
+   0.2113,
+   0.041,
+   0,
+   -4,
+   0.1076,
+   0.2113,
+   0.041,
+   0,
+   -4,
+   0.1076,
+   0.2113,
+   0.041,
+   0,
+   6,
+   0,
+   0,
+   0,
+   1,
+   0
+  ]
+ },
+ "variants": {
+  "outfit.overalls_red": {
+   "of": "outfit.teal",
+   "hue": 190
+  },
+  "outfit.overalls_yellow": {
+   "of": "outfit.teal",
+   "hue": 240,
+   "light": 1.25
+  },
+  "outfit.sweater_blue": {
+   "of": "outfit.sweater_red",
+   "hue": 220
+  },
+  "outfit.sweater_mustard": {
+   "of": "outfit.sweater_red",
+   "hue": 42,
+   "light": 1.1
+  },
+  "outfit.raincoat_blue": {
+   "of": "outfit.raincoat_yellow",
+   "hue": 170
+  },
+  "outfit.raincoat_pink": {
+   "of": "outfit.raincoat_yellow",
+   "hue": 280
+  },
+  "outfit.dress_lilac": {
+   "of": "outfit.dress_pink",
+   "hue": 300
+  },
+  "outfit.dress_turquoise": {
+   "of": "outfit.dress_pink",
+   "hue": 200
+  }
+ },
+ "states": {
+  "messy": {
+   "hair.natural": {
+    "front": "front__messy__hair_natural.webp"
+   },
+   "hair.pom": {
+    "front": "front__messy__hair_pom.webp"
+   }
+  }
+ }
 }

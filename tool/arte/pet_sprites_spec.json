@@ -1,29 +1,368 @@
 {
-  "note": "Fuente del atlas del caniche. Cada peinado es una base por pose; cada artículo es una capa por pose extraída comparando su variante con la base del peinado de referencia. Un artículo puede declarar capas específicas por peinado (byHair) y ocultar zonas del pelo (hides) cuando choca con él.",
-  "sourceDir": "docs/arte/meshy/originales",
-  "outDir": "assets/images/pet",
-  "metaOut": "assets/data/pet-sprites-v1.json",
-  "unitHeightPx": 520,
-  "referenceHair": "hair.natural",
-  "poses": {
-    "front": { "anchor": "feet", "unitFrom": "front" },
-    "side": { "anchor": "feet", "unitFrom": "side" },
-    "jump": { "anchor": "bottom", "unitFrom": "side" }
+ "note": "Fuente del atlas del caniche. Cada peinado es una base por pose; cada artículo es una capa por pose extraída comparando su variante con la base del peinado de referencia. Una pose ausente en un artículo significa «no soportada» (el pintor cambia de pose o lo omite); null significa «no se ve en esa pose». Las variantes de color (variants) reutilizan la capa de otro artículo y la tiñen en tiempo de ejecución, sin imágenes nuevas.",
+ "sourceDir": "docs/arte/meshy/originales",
+ "outDir": "assets/images/pet",
+ "metaOut": "assets/data/pet-sprites-v1.json",
+ "unitHeightPx": 520,
+ "referenceHair": "hair.natural",
+ "poses": {
+  "front": {
+   "anchor": "feet",
+   "unitFrom": "front",
+   "view": "front"
   },
-  "hair": {
-    "hair.natural": { "front": "pet_front", "side": "pet_side", "jump": "side_jump" },
-    "hair.pom": { "front": "front_pom", "side": "side_pom", "jump": "jump_pom" }
+  "side": {
+   "anchor": "feet",
+   "unitFrom": "side",
+   "view": "side"
   },
-  "items": {
-    "outfit.teal": { "front": "front_overalls", "side": "side_overalls", "jump": "jump_overalls" },
-    "neck.coral": { "front": "front_scarf", "side": "side_scarf", "jump": "jump_scarf" }
+  "jump": {
+   "anchor": "bottom",
+   "unitFrom": "side",
+   "view": "side"
   },
-  "expressions": {
-    "blink": { "front": "front_blink" },
-    "happy": { "front": "front_happy" }
+  "eat": {
+   "anchor": "feet",
+   "unitFrom": "front",
+   "view": "none"
   },
-  "coats": {
-    "coat.apricot": null,
-    "coat.silver": [0.30, 0.55, 0.10, 0, 22, 0.29, 0.54, 0.10, 0, 22, 0.31, 0.57, 0.12, 0, 30, 0, 0, 0, 1, 0]
+  "sleep": {
+   "anchor": "bottom",
+   "unitFrom": "front",
+   "view": "none"
+  },
+  "run_a": {
+   "anchor": "bottom",
+   "unitFrom": "side",
+   "view": "side"
+  },
+  "run_b": {
+   "anchor": "bottom",
+   "unitFrom": "side",
+   "view": "side"
+  },
+  "back": {
+   "anchor": "feet",
+   "unitFrom": "back",
+   "view": "back"
   }
+ },
+ "hair": {
+  "hair.natural": {
+   "front": "pet_front",
+   "side": "pet_side",
+   "jump": "side_jump",
+   "eat": "eat_natural",
+   "sleep": "sleep_natural",
+   "run_a": "run_reach",
+   "run_b": "run_gather",
+   "back": "pet_back"
+  },
+  "hair.pom": {
+   "front": "front_pom",
+   "side": "side_pom",
+   "jump": "jump_pom",
+   "eat": "eat_pom",
+   "sleep": "sleep_pom",
+   "run_a": "run_reach_pom",
+   "run_b": "run_gather_pom",
+   "back": "back_pom"
+  },
+  "hair.teddy": {
+   "front": "teddy_front",
+   "side": "teddy_side",
+   "back": "teddy_back",
+   "sleep": "teddy_sleep"
+  },
+  "hair.puppy": {
+   "front": "puppy_front",
+   "side": "puppy_side",
+   "back": "puppy_back",
+   "sleep": "puppy_sleep"
+  }
+ },
+ "items": {
+  "outfit.teal": {
+   "front": "front_overalls",
+   "side": "side_overalls",
+   "jump": "jump_overalls",
+   "eat": "eat_overalls",
+   "sleep": "sleep_overalls",
+   "run_a": "run_reach_overalls",
+   "run_b": "run_gather_overalls",
+   "back": "overalls_back"
+  },
+  "neck.coral": {
+   "front": "front_scarf",
+   "side": "side_scarf",
+   "jump": "jump_scarf",
+   "eat": "eat_scarf",
+   "sleep": "sleep_scarf",
+   "run_a": "run_reach_scarf",
+   "run_b": "run_gather_scarf",
+   "back": "neck_coral_back"
+  },
+  "outfit.sweater_red": {
+   "front": "sweater_front",
+   "side": "sweater_side",
+   "back": "sweater_back"
+  },
+  "outfit.raincoat_yellow": {
+   "front": "raincoat_front",
+   "side": "raincoat_side",
+   "back": "raincoat_back"
+  },
+  "outfit.dress_pink": {
+   "front": "dress_front",
+   "side": "dress_side",
+   "back": "dress_back"
+  },
+  "head.bow": {
+   "front": "head_bow_front",
+   "side": "head_bow_side",
+   "back": "head_bow_back"
+  },
+  "head.beanie": {
+   "front": "head_beanie_front",
+   "side": "head_beanie_side",
+   "back": "head_beanie_back"
+  },
+  "head.crown": {
+   "front": "head_crown_front",
+   "side": "head_crown_side",
+   "back": "head_crown_back"
+  },
+  "eyes.round": {
+   "front": "eyes_round_front",
+   "side": "eyes_round_side",
+   "back": null
+  },
+  "eyes.sun": {
+   "front": "eyes_sun_front",
+   "side": "eyes_sun_side",
+   "back": null
+  },
+  "eyes.heart": {
+   "front": "eyes_heart_front",
+   "side": "eyes_heart_side",
+   "back": null
+  },
+  "collar.tag": {
+   "front": "collar_tag_front",
+   "side": "collar_tag_side",
+   "back": "collar_tag_back"
+  },
+  "collar.bell": {
+   "front": "collar_bell_front",
+   "side": "collar_bell_side",
+   "back": "collar_bell_back"
+  },
+  "collar.pearls": {
+   "front": "collar_pearls_front",
+   "side": "collar_pearls_side",
+   "back": "collar_pearls_back"
+  },
+  "neck.bowtie": {
+   "front": "neck_bowtie_front",
+   "side": "neck_bowtie_side",
+   "back": "neck_bowtie_back"
+  },
+  "neck.knit": {
+   "front": "neck_knit_front",
+   "side": "neck_knit_side",
+   "back": "neck_knit_back"
+  },
+  "paws.booties": {
+   "front": "paws_booties_front",
+   "side": "paws_booties_side",
+   "back": "paws_booties_back"
+  },
+  "paws.sneakers": {
+   "front": "paws_sneakers_front",
+   "side": "paws_sneakers_side",
+   "back": "paws_sneakers_back"
+  },
+  "paws.rain": {
+   "front": "paws_rain_front",
+   "side": "paws_rain_side",
+   "back": "paws_rain_back"
+  }
+ },
+ "expressions": {
+  "blink": {
+   "front": "front_blink"
+  },
+  "happy": {
+   "front": "front_happy"
+  }
+ },
+ "states": {
+  "messy": {
+   "hair.natural": {
+    "front": "messy_natural"
+   },
+   "hair.pom": {
+    "front": "messy_pom"
+   }
+  }
+ },
+ "coats": {
+  "coat.apricot": null,
+  "coat.silver": [
+   0.3,
+   0.55,
+   0.1,
+   0,
+   22,
+   0.29,
+   0.54,
+   0.1,
+   0,
+   22,
+   0.31,
+   0.57,
+   0.12,
+   0,
+   30,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "coat.lightgray": [
+   0.2392,
+   0.4696,
+   0.0912,
+   0,
+   46,
+   0.2392,
+   0.4696,
+   0.0912,
+   0,
+   46,
+   0.2392,
+   0.4696,
+   0.0912,
+   0,
+   54,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "coat.white": [
+   0.1854,
+   0.3639,
+   0.0707,
+   0,
+   116,
+   0.1854,
+   0.3639,
+   0.0707,
+   0,
+   114,
+   0.1854,
+   0.3639,
+   0.0707,
+   0,
+   110,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "coat.black": [
+   0.1076,
+   0.2113,
+   0.041,
+   0,
+   -4,
+   0.1076,
+   0.2113,
+   0.041,
+   0,
+   -4,
+   0.1076,
+   0.2113,
+   0.041,
+   0,
+   6,
+   0,
+   0,
+   0,
+   1,
+   0
+  ]
+ },
+ "variants": {
+  "outfit.overalls_red": {
+   "of": "outfit.teal",
+   "hue": 190
+  },
+  "outfit.overalls_yellow": {
+   "of": "outfit.teal",
+   "hue": 240,
+   "light": 1.25
+  },
+  "outfit.sweater_blue": {
+   "of": "outfit.sweater_red",
+   "hue": 220
+  },
+  "outfit.sweater_mustard": {
+   "of": "outfit.sweater_red",
+   "hue": 42,
+   "light": 1.1
+  },
+  "outfit.raincoat_blue": {
+   "of": "outfit.raincoat_yellow",
+   "hue": 170
+  },
+  "outfit.raincoat_pink": {
+   "of": "outfit.raincoat_yellow",
+   "hue": 280
+  },
+  "outfit.dress_lilac": {
+   "of": "outfit.dress_pink",
+   "hue": 300
+  },
+  "outfit.dress_turquoise": {
+   "of": "outfit.dress_pink",
+   "hue": 200
+  }
+ },
+ "extract": {
+  "outfit.*": {
+   "threshold": 38,
+   "opening": 7,
+   "close": 15
+  },
+  "head.*": {
+   "threshold": 30,
+   "opening": 5,
+   "close": 9
+  },
+  "eyes.*": {
+   "threshold": 28,
+   "opening": 3,
+   "close": 5
+  },
+  "collar.*": {
+   "threshold": 28,
+   "opening": 3,
+   "close": 7
+  },
+  "neck.*": {
+   "threshold": 34,
+   "opening": 5,
+   "close": 9
+  },
+  "paws.*": {
+   "threshold": 30,
+   "opening": 5,
+   "close": 9
+  }
+ }
 }

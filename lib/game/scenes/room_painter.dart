@@ -4,24 +4,34 @@ import 'dart:ui';
 /// Escenarios vectoriales provisionales. Cada sala usa su paleta para
 /// reconocer la actividad: casa crema y madera, baño lavanda, exteriores
 /// verdes. Sustituibles por ilustraciones finales con el mismo encuadre.
-enum RoomKind { living, kitchen, bath, salon, wardrobe, nursery }
+enum RoomKind { living, kitchen, bath, salon, wardrobe, nursery, vet }
 
 /// Ilustración de sala con el punto de apoyo del caniche en coordenadas
 /// relativas de la imagen y su altura relativa. Generadas con Meshy
 /// (image-to-image) a partir de las referencias de docs/arte.
 class RoomArt {
-  const RoomArt(this.asset, this.feet, this.petHeight);
+  const RoomArt(this.asset, this.feet, this.petHeight, {this.mirror});
   final String asset;
   final Offset feet;
   final double petHeight;
+
+  /// Cristal de un espejo pintado en la ilustración (fracciones de imagen,
+  /// caja de la elipse), para dibujar el reflejo del caniche.
+  final Rect? mirror;
 
   static const Map<RoomKind, RoomArt> of = {
     RoomKind.living: RoomArt('rooms/living.jpg', Offset(0.5, 0.8), 0.42),
     RoomKind.kitchen: RoomArt('rooms/kitchen.jpg', Offset(0.48, 0.8), 0.42),
     RoomKind.bath: RoomArt('rooms/bath.jpg', Offset(0.5, 0.78), 0.42),
-    RoomKind.salon: RoomArt('rooms/salon.jpg', Offset(0.36, 0.9), 0.42),
+    RoomKind.salon: RoomArt(
+      'rooms/salon.jpg',
+      Offset(0.3, 0.88),
+      0.42,
+      mirror: Rect.fromLTRB(0.565, 0.04, 0.915, 0.665),
+    ),
     RoomKind.wardrobe: RoomArt('rooms/wardrobe.jpg', Offset(0.45, 0.86), 0.54),
     RoomKind.nursery: RoomArt('rooms/nursery.jpg', Offset(0.52, 0.69), 0.4),
+    RoomKind.vet: RoomArt('rooms/vet.jpg', Offset(0.42, 0.84), 0.42),
   };
 }
 
@@ -62,6 +72,35 @@ class RoomPainter {
         _wood(c, s, floorY);
         _rug(c, s, floorY, 0xFFD9C6A0, 0xFF8FA98A);
         _plant(c, Offset(s.width * 0.92, s.height * floorY), s.height * 0.22);
+      case RoomKind.vet:
+        _wall(c, s, floorY, 0xFFDCE6D5, 0xFFC9D8C2);
+        final top = s.height * (floorY - 0.3);
+        c.drawRect(
+          Rect.fromLTWH(s.width * 0.55, top, s.width * 0.45, s.height * 0.3),
+          _p(0xFFF4F1EA),
+        );
+        for (var i = 0; i < 3; i++) {
+          c.drawRect(
+            Rect.fromLTWH(
+              s.width * (0.58 + i * 0.13),
+              top + 8,
+              s.width * 0.1,
+              s.height * 0.12,
+            ),
+            _p(0xFFB8D4E3),
+          );
+        }
+        _arch(
+          c,
+          Rect.fromLTWH(
+            s.width * 0.08,
+            s.height * 0.08,
+            s.width * 0.3,
+            s.height * (floorY - 0.3),
+          ),
+          t,
+        );
+        _wood(c, s, floorY);
       case RoomKind.nursery:
         _wall(c, s, floorY, 0xFFF3E3CB, 0xFFE6CFAF);
         _arch(

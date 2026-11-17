@@ -363,6 +363,16 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Enferma o cura a la partida de muestra.
+  void demoSetSick(bool sick) => _demoSet(
+    (s) => sick
+        ? s.copyWith(
+            sickSinceUtc: clock.nowUtcSeconds(),
+            lastSickUtc: clock.nowUtcSeconds(),
+          )
+        : s.copyWith(cured: true),
+  );
+
   void demoSetCoins(int coins) => _demoSet((s) => s.copyWith(coins: coins));
 
   void demoLowNeeds() => _demoSet(

@@ -66,10 +66,23 @@
     "vet": {
       "steps": [
         "heart",
-        "paws"
+        "paws",
+        "pill"
       ],
       "delta": {
         "mood": 5
+      },
+      "cures": true
+    },
+    "sleep": {
+      "steps": [
+        "bed",
+        "blanket",
+        "lights"
+      ],
+      "delta": {
+        "energy": 45,
+        "mood": 3
       }
     }
   },
@@ -121,6 +134,24 @@
       "initial": false
     },
     {
+      "id": "coat.lightgray",
+      "slot": "coat",
+      "cost": 30,
+      "initial": false
+    },
+    {
+      "id": "coat.white",
+      "slot": "coat",
+      "cost": 38,
+      "initial": false
+    },
+    {
+      "id": "coat.black",
+      "slot": "coat",
+      "cost": 46,
+      "initial": false
+    },
+    {
       "id": "hair.natural",
       "slot": "hair",
       "cost": 0,
@@ -130,6 +161,18 @@
       "id": "hair.pom",
       "slot": "hair",
       "cost": 30,
+      "initial": false
+    },
+    {
+      "id": "hair.teddy",
+      "slot": "hair",
+      "cost": 40,
+      "initial": false
+    },
+    {
+      "id": "hair.puppy",
+      "slot": "hair",
+      "cost": 52,
       "initial": false
     },
     {
@@ -145,6 +188,144 @@
       "initial": false
     },
     {
+      "id": "outfit.overalls_red",
+      "slot": "outfit",
+      "cost": 18,
+      "initial": false
+    },
+    {
+      "id": "outfit.overalls_yellow",
+      "slot": "outfit",
+      "cost": 18,
+      "initial": false
+    },
+    {
+      "id": "outfit.sweater_red",
+      "slot": "outfit",
+      "cost": 32,
+      "initial": false
+    },
+    {
+      "id": "outfit.sweater_blue",
+      "slot": "outfit",
+      "cost": 32,
+      "initial": false
+    },
+    {
+      "id": "outfit.sweater_mustard",
+      "slot": "outfit",
+      "cost": 32,
+      "initial": false
+    },
+    {
+      "id": "outfit.raincoat_yellow",
+      "slot": "outfit",
+      "cost": 46,
+      "initial": false
+    },
+    {
+      "id": "outfit.raincoat_blue",
+      "slot": "outfit",
+      "cost": 46,
+      "initial": false
+    },
+    {
+      "id": "outfit.raincoat_pink",
+      "slot": "outfit",
+      "cost": 46,
+      "initial": false
+    },
+    {
+      "id": "outfit.dress_pink",
+      "slot": "outfit",
+      "cost": 64,
+      "initial": false
+    },
+    {
+      "id": "outfit.dress_lilac",
+      "slot": "outfit",
+      "cost": 64,
+      "initial": false
+    },
+    {
+      "id": "outfit.dress_turquoise",
+      "slot": "outfit",
+      "cost": 64,
+      "initial": false
+    },
+    {
+      "id": "head.none",
+      "slot": "head",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "head.bow",
+      "slot": "head",
+      "cost": 14,
+      "initial": false
+    },
+    {
+      "id": "head.beanie",
+      "slot": "head",
+      "cost": 30,
+      "initial": false
+    },
+    {
+      "id": "head.crown",
+      "slot": "head",
+      "cost": 64,
+      "initial": false
+    },
+    {
+      "id": "eyes.none",
+      "slot": "eyes",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "eyes.round",
+      "slot": "eyes",
+      "cost": 20,
+      "initial": false
+    },
+    {
+      "id": "eyes.sun",
+      "slot": "eyes",
+      "cost": 36,
+      "initial": false
+    },
+    {
+      "id": "eyes.heart",
+      "slot": "eyes",
+      "cost": 52,
+      "initial": false
+    },
+    {
+      "id": "collar.none",
+      "slot": "collar",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "collar.tag",
+      "slot": "collar",
+      "cost": 12,
+      "initial": false
+    },
+    {
+      "id": "collar.bell",
+      "slot": "collar",
+      "cost": 24,
+      "initial": false
+    },
+    {
+      "id": "collar.pearls",
+      "slot": "collar",
+      "cost": 48,
+      "initial": false
+    },
+    {
       "id": "neck.none",
       "slot": "neck",
       "cost": 0,
@@ -155,11 +336,63 @@
       "slot": "neck",
       "cost": 10,
       "initial": false
+    },
+    {
+      "id": "neck.bowtie",
+      "slot": "neck",
+      "cost": 22,
+      "initial": false
+    },
+    {
+      "id": "neck.knit",
+      "slot": "neck",
+      "cost": 34,
+      "initial": false
+    },
+    {
+      "id": "paws.none",
+      "slot": "paws",
+      "cost": 0,
+      "initial": true
+    },
+    {
+      "id": "paws.booties",
+      "slot": "paws",
+      "cost": 26,
+      "initial": false
+    },
+    {
+      "id": "paws.sneakers",
+      "slot": "paws",
+      "cost": 40,
+      "initial": false
+    },
+    {
+      "id": "paws.rain",
+      "slot": "paws",
+      "cost": 56,
+      "initial": false
     }
   ],
   "ads": {
     "eligibleScene": "Home",
     "minimumActiveSeconds": 900,
     "maxInterstitialsPerSession": 1
+  },
+  "health": {
+    "cooldownSeconds": 604800,
+    "graceSeconds": 86400,
+    "randomChance": 12,
+    "neglectChance": 250,
+    "neglectSatietyBelow": 15,
+    "neglectHygieneBelow": 15,
+    "neglectEnergyBelow": 10,
+    "sickMoodPerTick100": -50
+  },
+  "status": {
+    "hungryBelow": 30,
+    "dirtyBelow": 30,
+    "sadBelow": 30,
+    "tiredBelow": 25
   }
 }

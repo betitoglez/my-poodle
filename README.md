@@ -21,7 +21,7 @@ El repositorio contiene la especificación y el diseño interactivo. La decisió
 
 ## Prototipo Flutter
 
-Experiencia completa y navegable: 19 vistas, cuatro cuidados, Huerto saltarín y Frisbee en el prado con Flame, armario con 16 combinaciones y partida guardada solo en el dispositivo. Todo el texto visible está en español.
+Experiencia completa y navegable: 19 vistas, seis cuidados (comer, bañar, pasear, peluquería, dormir y veterinario), iconos de estado estilo Tamagotchi y salud (el caniche puede ponerse malito, como mucho una vez por semana, y lo cura el veterinario), Huerto saltarín y Frisbee en el prado con Flame, armario con 42 artículos (colores, peinados, ropa por variedad y accesorios con submenús), caniche visible desde cuatro ángulos y partida guardada solo en el dispositivo. Todo el texto visible está en español.
 
 ### Ejecutar
 
@@ -82,16 +82,18 @@ Casa → Ajustes → «Mantén pulsado para entrar» (2 s) → Zona adulta → �
 
 | Área | Estado | Para la versión publicable |
 |---|---|---|
-| Caniche | Ilustrado por capas generado con Meshy: base por peinado y pose (frente, perfil, salto), pelaje por matriz de color y capas de ropa y cuello ([cómo ampliarlo](docs/arte/meshy/FUENTES.md#cómo-ampliar-el-armario)). El vectorial queda como respaldo | Poses propias de comer y dormir, más fotogramas de carrera, revisar derechos de uso |
+| Caniche | Ilustrado por capas generado con Meshy: base por peinado y pose (frente, perfil, espalda, salto, comer, dormir, galope), pelaje por matriz de color y capas de ropa y cuello ([cómo ampliarlo](docs/arte/meshy/FUENTES.md#cómo-ampliar-el-armario)). El vectorial queda como respaldo | Revisar derechos de uso; más poses si se añaden actividades |
 | Salón, cocina, baño, peluquería, armario y cojín de adopción | Ilustraciones generadas con Meshy a partir de las referencias de `docs/arte` ([origen](docs/arte/meshy/FUENTES.md)); el sendero del paseo sigue siendo vectorial | Revisar derechos de uso de Meshy; ilustrar el sendero |
 | Fondos del huerto y del prado, miniaturas de tarjetas | Recortes de las ilustraciones de referencia del propietario (`docs/arte`) | Confirmar derechos y exportar a resolución final |
+| Armario ampliado | Peinados osito y cachorro, ropa, accesorios y colores nuevos con capas generadas por Meshy; los colores de una prenda son variantes de tono de una sola capa. Los artículos y peinados nuevos no tienen capas de salto, comer ni galope: en esas poses se usa el perfil o no se dibujan | Capas propias para cada pose |
 | Animaciones | Transformaciones por capas sobre un reloj común (reposo, parpadeo, caricia, comida, baño, cepillado, trote, olfateo, carrera, salto, captura, celebración, descanso) | Secuencias dibujadas |
 | Audio | No hay archivos; efectos con respuesta háptica y ajustes guardados | Música Mureka y efectos ElevenLabs, un reproductor y licencias por archivo |
 | Tipografía | Fuentes del sistema | Empaquetar Young Serif y Nunito (OFL) |
 | Textos | Privacidad marcada como provisional; resto de textos de juego definitivos para revisión | Política legal real |
+| Veterinario y dormir | Escenas con efectos vectoriales (estetoscopio, lupa, pastilla, manta, noche); consulta ilustrada con Meshy | Animaciones dibujadas |
 | Acceso adulto | Pulsación mantenida | Revisar con las normas infantiles de cada tienda |
 | Publicidad | Solo `NoAds` y banda simulada; punto de integración en `AdsController.onReturnHome` | Elegir proveedor compatible con Flutter y audiencia infantil (ver ENTREGA) |
 
 Falta además para publicar: Android SDK y pruebas en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), firma, fichas y autorización de distribución del propietario.
 
-Capturas de la vista previa web: [armario con el caniche ilustrado](docs/capturas/armario-sprites.jpg) · [16 combinaciones](docs/capturas/meshy-16-combinaciones.jpg) · [comparativa con Meshy](docs/capturas/comparativa-meshy.jpg) · [Casa](docs/capturas/casa-salas.jpg) · [Casa antes](docs/capturas/casa.jpg) · [Cuidados](docs/capturas/cuidados.jpg) · [Baño](docs/capturas/bano.jpg) · [Huerto](docs/capturas/huerto.jpg) · [Frisbee](docs/capturas/frisbee.jpg) · [Resultado](docs/capturas/resultado-juego.jpg) · [Armario](docs/capturas/armario.jpg).
+Capturas: [escenas ilustradas](docs/capturas/escenas-ilustradas.jpg) · [poses del caniche](docs/capturas/poses-caniche.jpg) · [armario con el caniche ilustrado](docs/capturas/armario-sprites.jpg) · [16 combinaciones](docs/capturas/meshy-16-combinaciones.jpg) · [comparativa con Meshy](docs/capturas/comparativa-meshy.jpg) · [Casa](docs/capturas/casa-salas.jpg) · [Casa antes](docs/capturas/casa.jpg) · [Cuidados](docs/capturas/cuidados.jpg) · [Baño](docs/capturas/bano.jpg) · [Huerto](docs/capturas/huerto.jpg) · [Frisbee](docs/capturas/frisbee.jpg) · [Resultado](docs/capturas/resultado-juego.jpg) · [Armario](docs/capturas/armario.jpg).
