@@ -1,6 +1,8 @@
 # Estado de la implementación
 
-Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (ninguno todavía).
+Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (smoke test en iPhone; ver última sesión).
+
+**Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 124 pruebas Flutter correctas y builds web/iOS correctos. Smoke test físico iPhone en Profile y persistencia entre procesos correctos. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y falta Android SDK. Ver el registro F07.5 al final; las tablas de sesiones anteriores son históricas.
 
 ## Sesión 2026-11-16 · Prototipo completo Flutter + Flame
 
@@ -216,3 +218,86 @@ Adopción con «María José», persistencia tras recargar, Casa, Cuidados, Bañ
 - Icono adaptativo con distintas máscaras de lanzador, icono temático de Android 13, arranque de Android 12+ y ≤ 11: requiere Android SDK y un dispositivo o emulador.
 - Icono y arranque en un iPhone real (solo comprobado en simulador).
 - Si el icono se aprueba como definitivo, revisar con el propietario los términos comerciales de Meshy (ver [FUENTES.md](arte/meshy/FUENTES.md)) antes de publicar.
+
+## Sesión 2026-11-17 · F07.5 compras nativas implementadas; validación parcial
+
+**Alcance:** adaptador nativo, arranque, configuración y pruebas. Sin cambios de balance, monedas, catálogo ni esquema de partida. Sin productos creados en consolas, compras reales ni publicación. F07.5 sigue abierta por las pruebas nativas y Android pendientes.
+
+### Versiones verificadas
+
+| Pieza | Versión / requisito observado |
+|---|---|
+| Flutter / Dart / Flame | 3.50.0 (ab2912035e) / 3.14.0 / 1.38.2 |
+| `in_app_purchase` | 3.3.1, fijado en pubspec y lockfile |
+| Implementación Android / StoreKit | 0.5.5 / 0.4.17, fijadas como dependencias directas por usar sus APIs oficiales |
+| Play Billing | 9.1.0 declarada en el Gradle del paquete Android descargado; grafo resuelto y manifiesto fusionado pendientes |
+| Android | mínimo 24 en la app; compile/target heredados de Flutter; Android SDK ausente |
+| iOS | mínimo 15.0 existente; StoreKit 2 por defecto; Swift Package Manager de Flutter |
+| Crypto | 3.0.8 resuelto; SHA-256 para IDs de eventos |
+| Xcode / simulador | 26.6 (17F113) / iPhone 17 Pro, runtime iOS 26.5 (23F77), creado solo para esta prueba |
+
+Fuentes consultadas el 17 de noviembre de 2026: [plugin oficial](https://pub.dev/packages/in_app_purchase), [Android](https://pub.dev/packages/in_app_purchase_android), [StoreKit](https://pub.dev/packages/in_app_purchase_storekit) y el código de las versiones descargadas. [Calendario Billing](https://developer.android.com/google/play/billing/deprecation-faq): Billing 9 figura admitida para nuevas apps y actualizaciones hasta 31-08-2028; revisar de nuevo antes de distribuir.
+
+### Implementado
+
+- `store/iap_client.dart`: frontera inyectable con el plugin oficial; compra no consumible, restauración, consulta Android y confirmación. Datos de compra nativos solo en memoria.
+- `store/iap_store.dart`: suscripción al escuchar los eventos antes de Casa; precio localizado, producto ausente, pendiente, cancelación, error, compra y restauración. ID estable SHA-256 separado por estado para que una aprobación no se descarte como duplicado de su pendiente. Solo entrega el producto del balance. Confirma únicamente cuando lo pide `pendingCompletePurchase`, después de guardar el derecho. Si guardar o confirmar falla, permite la reentrega. No registra excepciones nativas de confirmación con posibles datos de transacción.
+- Android consulta propiedad sin interacción: devuelve `owned` para compra confirmada, `notOwned` solo ante respuesta correcta sin el producto, `unknown` para error, timeout, no disponible o pendiente. Reentrega las compras consultadas para confirmar las que aún estén pendientes de acknowledgement.
+- iOS no restaura automáticamente. Lee `revocationDate` del JSON de la transacción StoreKit 2 verificada que entrega el plugin y traduce la actualización a `revoked`; no interpreta una restauración vacía como reembolso. El JSON no se persiste.
+- `default_store.dart` y AppRoot: IapStore en Android/iOS para Debug/Profile/Release; NoStore en web/escritorio sin tocar el singleton nativo. SimulatedStore solo por inyección expresa. El modo demostración conserva su superposición en memoria. Los derechos simulados se ignoran con proveedor nativo incluso en Debug, y siempre en Release.
+- StoreController ignora eventos de otros productos y descarta consultas de propiedad anteriores a un evento más reciente, evitando revocar una compra recién confirmada.
+- iOS: capacidad In-App Purchase, `Runner/MyPoodle.storekit` con un no consumible local y selección en Run/Debug y Test del esquema compartido. El archivo se copia solo a los recursos de RunnerTests. Android: permiso BILLING explícito y mínimo 24; la app no fuerza la biblioteca Billing.
+- `RunnerTests.swift`: prueba nativa escrita para compra/reembolso → plugin → Dart → archivo de derecho. Compila, pero su ejecución está bloqueada por el fallo de StoreKitTest descrito abajo; no se acredita su recorrido.
+- README, TODO, FASES, TECNICA, INTEGRACION, PRUEBAS y ENTREGA reconciliados con lo implementado y sus límites. Retiradas las referencias obsoletas del README a banner, todo desbloqueado y pulsación adulta de 2 s.
+
+### Verificado en este Mac
+
+| Comando / comprobación | Resultado |
+|---|---|
+| `flutter analyze` | Sin incidencias; repetido tras los ajustes finales |
+| `dart run tool/validate_content.dart` | 42 artículos (18 gratis / 24 completos), producto, 8 poses y 27 imágenes válidos |
+| `flutter test --reporter expanded` | **124/124 pasan** |
+| `flutter test test/store --reporter expanded` | **23/23 pasan** tras el ajuste final del fallback de ID vacío y del log de confirmación |
+| `flutter build web --release` | Correcto; también el dry run Wasm |
+| `flutter build ios --simulator --debug` | Correcto, plugin registrado y compilado con Swift Package Manager |
+| `xcodebuild test`, simulador dedicado | Compila app y RunnerTests. Prueba nativa **fallida**: StoreKitTest no puede guardar la configuración (SKInternalErrorDomain Code=3) y `buyProduct` devuelve `notEntitled`; no llega a compra ni reembolso |
+| `flutter build apk --debug` | **No compila**: «No Android SDK found». No se acredita APK ni manifiesto fusionado |
+| `git diff --check` | Correcto |
+
+Pruebas nuevas: 11 del adaptador nativo con IapClient falso, dos del controlador y un recorrido de widgets con compra externa durante Frisbee (conserva pantalla y monedas). Incluyen consulta Android con compra y pendiente, revocación StoreKit, fallo de disco antes de confirmar, fallo de confirmación y reentrega, privacidad del documento, duplicados y separación de proveedores. Los clientes falsos no sustituyen una compra en la hoja nativa.
+
+La prueba nativa se intentó sin firma y con firma ad hoc de simulador, con StoreKit local en Run y Test: mismo Code=3/notEntitled. No se usó firma de distribución. El comportamiento observado coincide con el [hilo de Apple sobre StoreKitTest e iOS 26.5](https://developer.apple.com/forums/thread/826971); la coincidencia es una inferencia, no una causa demostrada aquí. Repetir con un runtime compatible o desde Xcode y registrar el resultado real. Informes locales de esta sesión: `/private/tmp/my-poodle-f075/StoreKit-run2.xcresult` y `StoreKit-run3.xcresult`; logs Flutter y builds en el mismo directorio (temporales, no versionados).
+
+### Pendiente para cerrar F07.5 y continuar
+
+1. Resolver StoreKitTest en un runtime compatible y acreditar compra, pendiente/aprobación/rechazo, cancelación, restauración, reinicio y reembolso desde la app/hoja nativa. La prueba Swift añadida cubre compra/reembolso cuando el entorno permita ejecutarla; el resto requiere recorrido adicional.
+2. Instalar/configurar Android SDK y JDK, compilar APK y verificar `com.android.vending.BILLING`, metadato de versión Billing y permisos efectivos en el manifiesto fusionado. Verificar el grafo Gradle.
+3. F07.6: confirmar Bundle ID/applicationId y producto definitivos; acuerdos de pagos, consolas, precios y pruebas sandbox/TestFlight/Play Internal con las cuentas del propietario. Un producto ausente muestra «No disponible ahora» y permite seguir jugando gratis.
+4. F07.7: dispositivos reales, modo avión con derecho cacheado, segundo plano, restauración/transferencia y rendimiento. Ninguna compra nativa ni recorrido móvil real queda acreditado por esta sesión.
+
+
+## Sesión 2026-11-17 · Smoke test físico en iPhone (Profile)
+
+**Dispositivo y build:** iPhone 16 Pro, iOS 27.2.1, Flutter 3.50.0 / Dart 3.14.0, app 0.1.0+1. Firma de desarrollo con el Team ya configurado. Arranque normal Debug observado en Xcode con Impeller/Metal; después pruebas en Profile. No se publicó ni se hicieron compras.
+
+**Implementado para las pruebas:** `integration_test` del SDK Flutter, `integration_test/device_smoke_test.dart` y `test_driver/integration_test.dart`. Se usan dominio, navegación, sprites, canal Swift y FileBackend reales, con la partida de prueba en `MyPoodle/qa/QA_RUN`. IapStore real; no se llama a comprar ni restaurar. El harness registra TestTextInput para inyectar texto en Profile: no acredita el teclado nativo.
+
+### Resultados físicos
+
+| Comprobación | Resultado |
+|---|---|
+| Firma, instalación y lanzamiento | Correctos en Debug y Profile; el primer lanzamiento Debug esperó al desbloqueo del teléfono y al depurador |
+| Entrada normal tras los tests | Reinstalada `lib/main.dart` en Profile. Flutter perdió la conexión al terminar; se relanzó con devicectl y se verificó un proceso vivo que corresponde a la instalación actual, con el teléfono desbloqueado. El propietario confirma: «Sí, carga rápido y se ve el juego» |
+| Primer proceso Profile | **Pasa**: Adopción, entrada de nombre, tres bocados, saciedad 65→85 una vez, monedas 0, archivo de partida nativo, acceso adulto y consulta del producto en Versión completa |
+| Segundo proceso Profile | **Pasa**: conserva nombre, monedas, revisión y mejora de alimentación tras nueva ejecución; proveedor IapStore y caché simulada desactivada |
+| Desde MyPoodleApp a pantalla | 24 ms en primera fase; 15 ms al reabrir |
+| Desde MyPoodleApp a escena Flame cargada | 244 ms en primera fase; 247 ms al reabrir |
+| Regresión en Mac | **124/124 pruebas Flutter pasan** tras añadir integration_test; flutter analyze y git diff --check correctos |
+
+Evidencia resumida versionada en [pruebas/iphone-2026-11-17.json](pruebas/iphone-2026-11-17.json). Los informes originales del driver y logs están en `/private/tmp/my-poodle-device-qa/` (temporales, no versionados). Las dos invocaciones definitivas usaron QA_RUN=iphone_20261117_f y `--keep-app-running`, y finalizaron con «All tests passed» y «Leaving the application running».
+
+**Interpretación de la demora inicial:** la carga lenta comunicada por el propietario ocurrió en el primer despliegue Debug. Hubo compilación, instalación, espera de desbloqueo y conexión del depurador. La demora no se reprodujo en la parte Flutter medida en Profile, pero estas dos muestras empiezan al crear MyPoodleApp: excluyen el arranque nativo, no garantizan que todas las capas del caniche estén listas y no acreditan el objetivo de arranque frío total ni la matriz de rendimiento. El propietario confirma que la entrada normal en Profile carga rápido y muestra el juego. Medir lanzamiento completo con Instruments si la demora vuelve a ocurrir; esta confirmación visual no es una medición de arranque frío.
+
+**Incidencias del harness:** los primeros intentos fallaron en la automatización de texto; corregido el registro de TestTextInput para Profile. El primer intento de verificar reapertura falló porque `flutter drive` desinstala la app al terminar por defecto (`FlutterDriverService.stop` en el SDK), no porque fallase el lector de la partida. Los intentos iniciales retiraron la instalación del teléfono y sus datos; no se debe afirmar que una partida normal creada durante esos intentos se conservó. Se corrigieron comandos y documentación con `--keep-app-running`; la repetición definitiva conservó los archivos y pasó. No se borró ninguna partida mediante el código del test. Los comandos reproducibles están en [PRUEBAS](PRUEBAS.md#recorrido-físico-ios).
+
+**Pendientes:** teclado iOS real, modo avión, interrupciones/segundo plano, restauración/transferencia de backup, muestreo de 60 s por escena, StoreKit local/sandbox (F07.5/07.6), Android SDK y aceptación Android. El smoke test físico cubre parte de F07.7, no cierra esa fase ni F07.5.

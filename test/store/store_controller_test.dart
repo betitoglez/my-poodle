@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_poodle/data/entitlement_store.dart';
 import 'package:my_poodle/data/storage_backend.dart';
@@ -22,6 +24,14 @@ class FlakyBackend extends MemoryBackend {
 }
 
 Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 20));
+
+class DeferredOwnershipStore extends SimulatedStore {
+  DeferredOwnershipStore()
+    : super(delay: Duration.zero, silentOwnershipQuery: false);
+  final result = Completer<StoreOwnership>();
+  @override
+  Future<StoreOwnership> queryOwnership(String id) => result.future;
+}
 
 void main() {
   late FlakyBackend backend;
@@ -187,6 +197,50 @@ void main() {
     expect(backend.files.containsKey(EntitlementStore.primary), isFalse);
     c.setDemo(null);
     expect(c.full, isFalse);
+  });
+
+  test('una consulta antigua no revoca una compra recién recibida', () async {
+    final provider = DeferredOwnershipStore();
+    final c = StoreController(
+      provider: provider,
+      entitlements: EntitlementStore(backend, productId: id),
+      clock: FakeClock(t0),
+    );
+    addTearDown(c.dispose);
+    await c.start();
+    final query = c.checkOwnership();
+    provider.emit(
+      const StoreEvent(
+        StoreEventKind.purchased,
+        eventId: 'new-buy',
+        productId: id,
+      ),
+    );
+    await settle();
+    expect(c.full, isTrue);
+    provider.result.complete(StoreOwnership.notOwned);
+    await query;
+    expect(c.full, isTrue);
+  });
+
+  test('un evento de otro producto no interrumpe la compra activa', () async {
+    store.next = SimulatedOutcome.pending;
+    final c = make();
+    await c.start();
+    await c.buy();
+    await settle();
+    expect(c.pending, isTrue);
+    store.emit(
+      const StoreEvent(
+        StoreEventKind.error,
+        eventId: 'other-error',
+        productId: 'otro',
+      ),
+    );
+    await settle();
+    expect(c.notice, StoreNotice.pending);
+    expect(c.pending, isTrue);
+    c.dispose();
   });
 
   test('NoStore: sin producto y sin cambios', () async {

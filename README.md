@@ -19,7 +19,7 @@ La descarga es gratuita y lo básico se juega para siempre sin pagar. Una compra
 | [Build y distribución](docs/ENTREGA.md) | Configuración nativa, compra integrada y precios, firma, beta, publicación y recuperación |
 | [Estado](docs/ESTADO.md) | Versiones, pruebas ejecutadas, evidencia y pendientes |
 
-El repositorio contiene la especificación y el diseño interactivo. La decisión del 16 de noviembre de 2026 fija **Flutter + Flame y arte completamente 2D** para personaje, escenarios y minijuegos. El prototipo Flutter jugable está en este repositorio (ver abajo y [ESTADO](docs/ESTADO.md)); las fases de versión completa, firma y tiendas siguen pendientes. Los valores de balance y los objetivos de rendimiento son valores iniciales de diseño que el agente puede implementar y medir. Una partida por instalación, economía local, juego offline e infraestructura propia sin coste mensual. [GitHub](https://github.com/betitoglez/my-poodle) · `git@github.com:betitoglez/my-poodle.git` · clon del propietario en `/Users/agonzalez/Projects/Personal/my-poodle`.
+El repositorio contiene la especificación y el diseño interactivo. La decisión del 16 de noviembre de 2026 fija **Flutter + Flame y arte completamente 2D** para personaje, escenarios y minijuegos. El prototipo Flutter jugable está en este repositorio (ver abajo y [ESTADO](docs/ESTADO.md)); el flujo de versión completa y el adaptador nativo están implementados; la validación móvil y la configuración de tiendas siguen pendientes. Los valores de balance y los objetivos de rendimiento son valores iniciales de diseño que el agente puede implementar y medir. Una partida por instalación, economía local, juego offline e infraestructura propia sin coste mensual. [GitHub](https://github.com/betitoglez/my-poodle) · `git@github.com:betitoglez/my-poodle.git` · clon del propietario en `/Users/agonzalez/Projects/Personal/my-poodle`.
 
 ## Prototipo Flutter
 
@@ -47,7 +47,9 @@ Comprobaciones antes de compilar:
 flutter analyze && dart run tool/validate_content.dart && flutter test
 ```
 
-Compilaciones verificadas en esta máquina: `flutter build web --release` y `flutter build ios --simulator --debug`. Android necesita instalar el Android SDK (`flutter doctor`).
+Pruebas de integración en iPhone conectado: ver [recorrido físico iOS](docs/PRUEBAS.md#recorrido-físico-ios).
+
+Compilaciones verificadas en esta máquina: `flutter build web --release` y `flutter build ios --simulator --debug`. Android necesita instalar el Android SDK (`flutter doctor`); el APK y su manifiesto fusionado siguen pendientes de validar.
 
 ### Estructura
 
@@ -72,13 +74,16 @@ La UI solo emite intenciones; `AppController` aplica las reglas puras, serializa
 | `flame` | Escenas 2D, bucle de juego y minijuegos (decisión del propietario) |
 | `material_ui` | Widgets Material (separados del framework desde Flutter 3.47) |
 | `characters` | Contar el nombre por grafemas (1–16) |
-| `web` | `localStorage` para la vista previa web sin dependencias de plugins |
+| `web` | `localStorage` para la vista previa web |
+| `in_app_purchase` 3.3.1 | Producto no consumible con StoreKit 2 / Google Play |
+| `in_app_purchase_android` 0.5.5 / `in_app_purchase_storekit` 0.4.17 | APIs oficiales de consulta de propiedad y metadatos de revocación |
+| `crypto` | SHA-256 de IDs de evento; no se guardan recibos ni IDs en claro |
 
-Sin backend, analítica, SDK publicitario ni plugins nativos de terceros. La versión completa añadirá solo `in_app_purchase`, el plugin oficial de Flutter para compras en App Store y Google Play (ver [TECNICA](docs/TECNICA.md#versión-completa-compra-única)).
+Sin backend, analítica ni SDK publicitario. Compras mediante el plugin oficial de Flutter y sus implementaciones federadas. Android/iOS usan `IapStore` en Debug, Profile y Release; web/escritorio usan `NoStore`. `SimulatedStore` solo se inyecta expresamente en pruebas. Los derechos simulados no se aceptan al usar una tienda nativa ni en Release. Ver [TECNICA](docs/TECNICA.md#versión-completa-compra-única) y [pruebas StoreKit](docs/PRUEBAS.md#compras-nativas-f075).
 
 ### Modo demostración
 
-Casa → Ajustes → «Mantén pulsado para entrar» (2 s) → Zona adulta → «Entrar en modo demostración». Usa una partida de muestra en memoria (etiqueta DEMO visible): necesidades bajas o llenas, 0/9/10/12/100 monedas, combinaciones de aspecto y el espacio de banner en Casa. Al salir se recupera la partida normal sin cambios.
+Casa → Ajustes → «Soy un adulto» → puerta numérica → Zona adulta → «Entrar en modo demostración». Usa una partida de muestra en memoria (etiqueta DEMO visible): necesidades bajas o llenas, 0/9/10/12/100 monedas, combinaciones de aspecto y simulación de versión completa, pendiente y reembolso. Al salir se recupera la partida normal sin cambios.
 
 ### Qué es provisional
 
@@ -93,8 +98,8 @@ Casa → Ajustes → «Mantén pulsado para entrar» (2 s) → Zona adulta → �
 | Tipografía | Fuentes del sistema | Empaquetar Young Serif y Nunito (OFL) |
 | Textos | Privacidad marcada como provisional; resto de textos de juego definitivos para revisión | Política legal real |
 | Veterinario y dormir | Escenas con efectos vectoriales (estetoscopio, lupa, pastilla, manta, noche); consulta ilustrada con Meshy | Animaciones dibujadas |
-| Acceso adulto | Pulsación mantenida de 2 s | Puerta adulta con número escrito en letras ([UI-UX](docs/UI-UX.md#puerta-adulta)) |
-| Monetización | Todo desbloqueado; quedan `NoAds` y la banda simulada de un plan anterior | Sin publicidad: retirar el módulo de anuncios e implementar la versión completa con compra única (F07 en [FASES](docs/FASES.md)) |
+| Acceso adulto | Puerta con número escrito en letras y espera tras tres fallos | Revisión de aceptación en teléfonos |
+| Monetización | Sin anuncios. 18 artículos y Frisbee gratis; 24 artículos y Huerto requieren versión completa. Adaptador nativo y StoreKit local implementados | Validaciones pendientes de F07.5 y producto real/sandbox en F07.6 ([estado](docs/ESTADO.md)) |
 
 Falta además para publicar: Android SDK y pruebas en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), producto «Versión completa» y precios en ambas tiendas, firma, fichas y autorización de distribución del propietario.
 

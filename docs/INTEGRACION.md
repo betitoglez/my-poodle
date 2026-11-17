@@ -10,7 +10,7 @@
 
 ## Composición y entrada
 
-1. AppRoot crea catálogos, almacenamiento, documento de derecho, StoreController, reloj, audio y sesión una vez. StoreController se suscribe a la tienda antes de mostrar Casa. Mostrar Loading hasta completar lectura; después Adopción o Casa. Los tests pueden inyectar dependencias, pero el arranque normal usa las reales.
+1. AppRoot crea catálogos, almacenamiento, documento de derecho, StoreController, reloj, audio y sesión una vez. StoreController se suscribe a la tienda antes de mostrar Casa. Mostrar Loading hasta completar lectura; después Adopción o Casa. Los tests pueden inyectar dependencias; el arranque normal usa IapStore en Android/iOS y NoStore en web/escritorio, también en Debug. El modo demostración solo superpone el derecho en memoria; no realiza compras reales.
 2. AppShell con SafeArea, cabecera, navegación y modales Flutter. Un modal bloquea interacción inferior. Ajustar formularios al teclado; Atrás cierra primero teclado/modal. Salir de actividad descarta progreso sin confirmar.
 3. Cada controlador pertenece a una sesión. Crear FlameGame fuera de build y alojarlo en GameWidget; el HUD y botones accesibles son widgets. Al cerrar ruta, pausar y liberar controladores/listeners; ignorar resultados de sesiones anteriores. Animaciones solo dan feedback; dominio concede premios.
 4. Botón Saltar y toque de campo emiten la misma intención. Reservar áreas distintas para controles Flutter y entrada Flame; un gesto nunca dispara ambas. Capturar primer pointerId, soltar/cancelar al salir, pausar o perder foco; ignorar segundo dedo. Transformar pantalla → viewport → mundo antes de probar zonas y colisiones.

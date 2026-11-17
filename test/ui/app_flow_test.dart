@@ -6,6 +6,7 @@ import 'package:my_poodle/data/save_codec.dart';
 import 'package:my_poodle/data/save_store.dart';
 import 'package:my_poodle/data/storage_backend.dart';
 import 'package:my_poodle/domain/balance.dart';
+import 'package:my_poodle/domain/entitlements.dart';
 import 'package:my_poodle/domain/needs_clock.dart';
 import 'package:my_poodle/domain/pet_state.dart';
 import 'package:my_poodle/store/simulated_store.dart';
@@ -345,6 +346,35 @@ void main() {
     expect(saved(backend).revision, rev);
     expect(saved(backend).coins, 0);
     expect(find.text('Nube'), findsWidgets);
+  });
+
+  testWidgets('P06 · compra externa durante frisbee conserva escena y premio', (
+    t,
+  ) async {
+    final backend = MemoryBackend();
+    final store = SimulatedStore(delay: Duration.zero);
+    await boot(t, backend, store: store);
+    await adopt(t, 'Coco');
+    await tapText(t, 'Juegos');
+    await t.ensureVisible(find.text('Frisbee en el prado'));
+    await tapText(t, 'Frisbee en el prado');
+    await tapText(t, 'Jugar');
+    final before = saved(backend).coins;
+    store.emit(
+      const StoreEvent(
+        StoreEventKind.purchased,
+        eventId: 'outside-game',
+        productId: 'mypoodle.full_version',
+      ),
+    );
+    await idle(t);
+    expect(find.text('Pide ayuda a un adulto'), findsNothing);
+    expect(find.text('Desbloquear'), findsNothing);
+    expect(find.byIcon(Icons.pause_circle_rounded), findsOneWidget);
+    expect(saved(backend).coins, before);
+    await tapIcon(t, Icons.close_rounded);
+    await tapText(t, 'Salir');
+    expect(saved(backend).coins, before);
   });
 
   for (final size in const [Size(320, 568), Size(430, 932)]) {

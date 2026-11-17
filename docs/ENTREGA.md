@@ -4,7 +4,7 @@
 
 Completar F00. Registrar versión exacta de Flutter/Dart/Flame, lockfile y herramientas nativas con flutter --version y flutter doctor -v. Comprobar identificador con el propietario antes de registrar tienda. Fijar version en pubspec.yaml (por ejemplo 0.1.0+1 solo para ficha nueva) y números internos crecientes. Firma y claves en almacén seguro local, nunca en repositorio o logs. Revisar requisitos actuales de SDK y tiendas al preparar candidata.
 
-Los comandos siguientes son para la app que se implementará en F00; no acreditan que ya exista o compile. Desde la raíz:
+La app ya está implementada. Estos comandos son el procedimiento de validación; solo los resultados registrados en ESTADO acreditan compilación o prueba. Desde la raíz:
 
 ```sh
 flutter pub get
@@ -36,7 +36,7 @@ Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. La comp
 
 ## Compra integrada, precios y fichas
 
-Una sola variante de build, sin publicidad. La versión completa es un producto no consumible (`mypoodle.full_version`, ver [TECNICA](TECNICA.md#versión-completa-compra-única)). Crear el producto, firmar acuerdos y fijar precios requiere la cuenta del propietario; mientras falte, desarrollar con SimulatedStore y el archivo StoreKit local, y registrar en ESTADO el dato pendiente.
+Una sola variante de build, sin publicidad. La versión completa es un producto no consumible (`mypoodle.full_version`, ver [TECNICA](TECNICA.md#versión-completa-compra-única)). Crear el producto, firmar acuerdos y fijar precios requiere la cuenta del propietario; mientras falte, probar con el archivo StoreKit local en Xcode y con SimulatedStore inyectado en pruebas. El arranque normal de móvil ya usa IapStore. Registrar en ESTADO el dato pendiente.
 
 **Precio.** 1,99 € y 1,99 US$, impuestos incluidos. Resto de divisas: equivalente de 1,99 € del día de configuración, redondeado al punto de precio más cercano terminado en ,49 o ,99 (empate: el más bajo). Divisas sin decimales: terminación 49 o 99 en la última cifra que admita la tienda. Si una tienda no ofrece ese punto, usar el más cercano y anotarlo como excepción. Registrar aquí, al configurar, la tabla aplicada (divisa, precio, fecha y tipo de cambio de referencia):
 
@@ -69,3 +69,12 @@ Una sola variante de build, sin publicidad. La versión completa es un producto 
 Ejecutar validación de catálogos, referencias, poses, fuentes, rutas registradas y permisos antes de Release. Bloquear Release si el ID del producto falta, si SimulatedStore o un documento de derecho `simulated` pueden activarse, o si el manifiesto contiene permisos distintos de los previstos. Registrar SHA Git, hashes, esquema, versiones, teléfonos y QA; diferenciar comprobaciones pendientes.
 
 Ante incidencia, detener distribución gradual si está disponible, preparar actualización con número superior y lector compatible con partida ya escrita, conservando el documento de derecho existente. Probar sobre la build afectada antes de distribuir. No se ha compilado ni publicado ninguna candidata por actualizar esta documentación.
+
+
+## Pruebas locales de compra (F07.5)
+
+Abrir `ios/Runner.xcworkspace` en Xcode, esquema Runner y configuración Debug. Run → Options ya selecciona `Runner/MyPoodle.storekit`: una compra local no hace cargos ni requiere producto en App Store Connect. Desde Zona adulta → Versión completa se consulta el precio de la tienda local y se compra/restaura. Para sandbox/TestFlight desactivar el archivo StoreKit en las opciones de Run; Archive/Release no lo utiliza. No usar los precios del archivo para acreditar precios configurados en las consolas.
+
+`RunnerTests` prueba el camino StoreKit → plugin → controlador Dart → archivo de derecho con `SKTestSession`. Ejecutar en simulador dedicado siguiendo [PRUEBAS](PRUEBAS.md#compras-nativas-f075); no usar una instalación con partida personal. El producto local permite activar Ask to Buy, errores y transacciones desde Debug → StoreKit → Manage Transactions. F07.6 sigue requiriendo sandbox y Play Internal, autorización y cuentas del propietario.
+
+Versiones fijadas: plugin 3.3.1, Android 0.5.5 (declara Billing 9.1.0), StoreKit 0.4.17. El mínimo Android de la app es 24; el objetivo/compilación siguen la toolchain Flutter. Antes de publicar revisar el grafo Gradle y el manifiesto fusionado. [Calendario oficial de Billing](https://developer.android.com/google/play/billing/deprecation-faq): Billing 9 admite nuevas apps/actualizaciones hasta el 31 de agosto de 2028 según la consulta del 17 de noviembre de 2026; volver a verificar al distribuir.

@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-17",
+  "device": "iPhone 16 Pro",
+  "os": "iOS 27.2.1",
+  "flutter": "3.50.0",
+  "mode": "profile",
+  "appVersion": "0.1.0+1",
+  "firstProcess": {
+    "result": "passed",
+    "bootToScreenMs": 24,
+    "phase": "first",
+    "bootToSceneMs": 244
+  },
+  "secondProcess": {
+    "result": "passed",
+    "bootToScreenMs": 15,
+    "phase": "reopen",
+    "bootToSceneMs": 247
+  },
+  "measurementScope": "MyPoodleApp creation to visible first screen / Flame isLoaded; excludes native process launch and final pet layers",
+  "storage": "native file backend in isolated QA subdirectory",
+  "store": "IapStore; product query only, no purchase or restore",
+  "textInput": "registered TestTextInput; does not validate iOS keyboard",
+  "driver": "flutter drive --profile --keep-app-running",
+  "limitations": [
+    "No airplane-mode test",
+    "No physical background-interruption test",
+    "No StoreKit local purchase or sandbox payment",
+    "No 60-second frame-performance sample",
+    "No backup/transfer validation"
+  ],
+  "normalAppVisualConfirmation": {
+    "source": "owner",
+    "result": "Game visible and loads quickly in Profile",
+    "coldStartTimed": false
+  }
+}

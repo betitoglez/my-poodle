@@ -4,8 +4,14 @@ Recomendaciones de la revisión del 17 de noviembre de 2026. El plan por tareas 
 
 ## Falta para publicar
 
-- [ ] **Icono de la app.** Android, iOS y web usan el logo de Flutter. Icono adaptativo en Android (fondo, primer plano y monocromo para iconos temáticos de Android 13+), todos los tamaños de iOS (1024 px sin canal alfa) y favicon e iconos web. *En curso en una sesión aparte.*
-- [ ] **Pantalla de arranque (splash).** Android solo pinta el fondo del sistema; en iOS `LaunchImage` es un PNG transparente (pantalla vacía). Configurar la SplashScreen de Android 12+, el `launch_background` anterior y el `LaunchScreen` de iOS con el mismo color que `LoadingScreen`, sin destello al pasar a Flutter. *En curso en una sesión aparte.*
+- [x] **F07.5 · Adaptador nativo y configuración.** `IapStore` Android/iOS, precio localizado, compra/restauración, eventos, guardado antes de confirmar, StoreKit local y capacidad iOS, BILLING en Android. Ver [ESTADO](docs/ESTADO.md): implementar no equivale a cerrar todas las pruebas de aceptación.
+- [ ] **Cerrar validación F07.5.** APK y manifiesto fusionado (falta Android SDK), StoreKitTest bloqueado en iOS 26.5 (Code=3/notEntitled), y recorridos nativos de compra, pendiente, cancelación, restauración y reembolso todavía sin acreditar.
+- [ ] **F07.6 · Productos y cuentas reales.** IDs definitivos, acuerdos de pagos, producto en ambas consolas, precios y pruebas sandbox/Play Internal en teléfonos.
+- [x] **Smoke test iPhone en Profile.** Adopción, alimentación, guardado nativo, puerta adulta, consulta de tienda y conservación entre procesos; evidencia en ESTADO.
+- [ ] **F07.7 · Aceptación móvil restante.** Modo avión, segundo plano, transferencia/restauración y rendimiento en iPhone/Android reales.
+
+- [x] **Icono de la app.** Android, iOS y web usan el logo de Flutter. Icono adaptativo en Android (fondo, primer plano y monocromo para iconos temáticos de Android 13+), todos los tamaños de iOS (1024 px sin canal alfa) y favicon e iconos web. *Hecho (5545986); falta comprobarlo en Android y en un iPhone real.*
+- [x] **Pantalla de arranque (splash).** Android solo pinta el fondo del sistema; en iOS `LaunchImage` es un PNG transparente (pantalla vacía). Configurar la SplashScreen de Android 12+, el `launch_background` anterior y el `LaunchScreen` de iOS con el mismo color que `LoadingScreen`, sin destello al pasar a Flutter. *Hecho (5545986); falta comprobarlo en Android y en un iPhone real.*
 - [ ] **Audio (FASES 03.4).** No hay ningún sonido; hoy los efectos son solo háptica. Música corta en bucle, efectos de cuidados, minijuegos e interfaz, con canales Music/Pet/UI y silencio persistente. Registrar origen y licencia de cada archivo.
 - [ ] **Fuente local con licencia (FASES 00.3).** Se usan fuentes del sistema, que difieren entre Android e iOS.
 - [ ] **Coherencia del arte.** El sendero del paseo sigue siendo vectorial y la peluquería tiene un tono distinto al resto de salas.

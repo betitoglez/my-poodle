@@ -14,6 +14,7 @@ import '../game/pet/appearance_catalog.dart';
 import '../game/pet/pet_painter.dart';
 import '../game/pet/pet_sprites.dart';
 import '../platform/platform_backend.dart';
+import '../store/default_store.dart';
 import '../store/simulated_store.dart';
 import '../store/store_controller.dart';
 import '../store/store_provider.dart';
@@ -49,16 +50,15 @@ class AppServices {
     final storage = backend ?? await createPlatformBackend();
     final store = SaveStore(storage, SaveCodec(balance));
     final theClock = clock ?? const SystemClock();
-    // Hasta conectar `in_app_purchase` (F07.5): tienda simulada en desarrollo
-    // y ninguna tienda en Release. Un fallo de tienda no bloquea el juego.
+    // Tienda nativa en Android/iOS; web y escritorio sin tienda.
     final provider =
-        storeProvider ?? (kReleaseMode ? NoStore() : SimulatedStore());
+        storeProvider ?? createDefaultStore(balance.fullVersionProductId);
     final purchases = StoreController(
       provider: provider,
       entitlements: EntitlementStore(
         storage,
         productId: balance.fullVersionProductId,
-        acceptSimulated: !kReleaseMode,
+        acceptSimulated: !kReleaseMode && provider is SimulatedStore,
       ),
       clock: theClock,
       simulated: provider is SimulatedStore,

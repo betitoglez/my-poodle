@@ -1,6 +1,6 @@
 # Verificación reproducible
 
-Preparar test/domain, test/data, test/ui, test/game e integration_test. IClock ofrece UTC y reloj monótono activo independiente; FakeClock avanza explícitamente. SaveStore recibe directorio temporal único y escritor con fallos inyectables. La tienda usa SimulatedStore; ninguna prueba automática depende de la tienda real. El recorrido adopción-compra utiliza dominio real.
+Preparar test/domain, test/data, test/ui, test/game e integration_test. IClock ofrece UTC y reloj monótono activo independiente; FakeClock avanza explícitamente. SaveStore recibe directorio temporal único y escritor con fallos inyectables. Las pruebas Dart usan SimulatedStore o IapClient falso; la prueba nativa local usa StoreKitTest sin cuentas ni cargos. El recorrido adopción-compra utiliza dominio real.
 
 ## Ejecutar desde la raíz Flutter
 
@@ -12,10 +12,10 @@ flutter analyze
 dart run tool/validate_content.dart
 flutter test --coverage
 flutter devices
-flutter test integration_test/app_flow_test.dart -d <device-id>
+# Para iPhone: usar los comandos con --keep-app-running de la sección final.
 ```
 
-El validador y el test de integración son archivos que se crearán en F01/F02. Sustituir device-id por dispositivo real/emulador disponible. Exigir salida correcta y casos realmente ejecutados; conservar informes y logs con fecha/revisión. Avanzar componentes con tiempo controlado; evitar pumpAndSettle sobre un bucle Flame infinito. Una prueba de widgets no acredita backup nativo ni firma. [Pruebas de integración Flutter](https://docs.flutter.dev/testing/integration-tests).
+El validador y `integration_test/device_smoke_test.dart` existen. El recorrido de integración actual cubre solo el smoke test iOS descrito abajo; no acredita toda la matriz de aceptación. Sustituir device-id por dispositivo real/emulador disponible. Exigir salida correcta y casos realmente ejecutados; conservar informes y logs con fecha/revisión. Avanzar componentes con tiempo controlado; evitar pumpAndSettle sobre un bucle Flame infinito. Una prueba de widgets no acredita backup nativo ni firma. [Pruebas de integración Flutter](https://docs.flutter.dev/testing/integration-tests).
 
 ## Casos de dominio y disco
 
@@ -62,3 +62,45 @@ El validador y el test de integración son archivos que se crearán en F01/F02. 
 - **A02** Verificar cada pieza en todas las poses/vistas, pivotes y prioridades; detectar referencias o fotogramas ausentes antes de build. Añadir una pieza nueva sin duplicar animaciones completas por combinación.
 - **A03** Ejecutar huerto con igual secuencia de entrada a 30/60 fps: misma trayectoria, frutas y premio; probar barrido con avance grande para evitar atravesar plataformas. El cambio de ropa no altera hitbox.
 - **A04** Frisbee: mismas coordenadas de campo producen igual acierto/premio en cada tamaño; guía, disco y sombra coinciden con su proyección. Pausa no consume vuelo ni intento.
+
+
+## Compras nativas F07.5
+
+- `test/store/iap_store_test.dart`: selección de proveedor móvil/web/escritorio, precio localizado y producto ausente, compra no consumible/rechazo al iniciar, pendiente→aprobada, cancelación/error del flujo, IDs SHA-256 y duplicados, completar solo cuando el plugin lo pide, consulta Android (propiedad, pendiente, ausencia, error), restauración iOS solo explícita, revocación StoreKit y fallos de guardado/confirmación con reentrega. Comprueba que el archivo no contiene IDs originales ni recibos.
+- `test/store/store_controller_test.dart`: una consulta anterior a una compra no puede revocarla; un evento de otro producto no modifica el flujo.
+- `test/ui/app_flow_test.dart`: una compra externa durante Frisbee no abre rutas, conserva la actividad y no cambia las monedas.
+- `ios/RunnerTests/RunnerTests.swift`: compra y reembolso locales hasta el estado persistido en Flutter. El archivo StoreKit forma parte solo de los recursos de RunnerTests. No acredita la interacción con la hoja nativa ni las compras reales.
+
+Comandos Dart: `flutter analyze`, `dart run tool/validate_content.dart`, `flutter test`. Compilar web e iOS secuencialmente. Para la prueba nativa crear un simulador limpio con el runtime iOS disponible (ver `xcrun simctl list runtimes`) y ejecutar:
+
+```sh
+xcodebuild test -workspace ios/Runner.xcworkspace -scheme Runner \
+  -configuration Debug -destination 'platform=iOS Simulator,id=<simulador-dedicado>' \
+  -parallel-testing-enabled NO -resultBundlePath /tmp/MyPoodle-StoreKit.xcresult \
+  CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES
+```
+
+Guardar el `.xcresult` y consultar ESTADO para saber qué casos llegaron a ejecutarse. En esta máquina la prueba nativa falla con Code=3/notEntitled en iOS 26.5; no declararla pasada ni saltarla como éxito. Ver el [reporte de Apple](https://developer.apple.com/forums/thread/826971) y repetir en un runtime compatible o desde Xcode. Pendiente de acreditar en la hoja nativa: comprar, cancelar, aprobación/rechazo familiar, restaurar tras reinstalar y funcionamiento sin red. Las pruebas del adaptador con cliente falso no sustituyen esa aceptación.
+
+
+## Recorrido físico iOS
+
+`integration_test/device_smoke_test.dart` con el driver `test_driver/integration_test.dart` usa las pantallas y dominio reales, sprites y almacenamiento nativo. Solo inyecta un subdirectorio `MyPoodle/qa/QA_RUN` dentro del directorio privado devuelto por el canal Swift; no toca la partida normal ni la borra. La tienda es IapStore real; no envía compra ni restauración. La entrada de texto del harness está registrada explícitamente para Profile; el teclado iOS real queda fuera de esta prueba.
+
+Dos invocaciones independientes con el mismo QA_RUN acreditan persistencia entre procesos. En la primera usar un ID nuevo, sin espacios ni barras. No reutilizarlo para una nueva partida ni desinstalar la app entre fases. `--keep-app-running` es obligatorio: Flutter drive desinstala la app por defecto al terminar y elimina los datos, incluidos los de la partida normal. No ejecutar el comando sin esta opción sobre una instalación personal. Desde la raíz, sustituyendo `<device-id>` por el iPhone conectado:
+
+```sh
+flutter drive --profile --keep-app-running -d <device-id>   --driver=test_driver/integration_test.dart   --target=integration_test/device_smoke_test.dart   --dart-define=QA_RUN=iphone_qa_unico
+
+flutter drive --profile --keep-app-running -d <device-id>   --driver=test_driver/integration_test.dart   --target=integration_test/device_smoke_test.dart   --dart-define=QA_RUN=iphone_qa_unico --dart-define=QA_REOPEN=true
+```
+
+Guardar `build/integration_response_data.json` tras cada fase: la siguiente lo reemplaza. `bootToScreenMs` mide desde la creación de MyPoodleApp hasta encontrar Adopción/Casa; `bootToSceneMs`, hasta que la primera escena Flame declara isLoaded (sala cargada). No incluyen el arranque nativo del proceso, no garantizan todas las capas finales del caniche, y no equivalen a una medición de arranque frío con Instruments.
+
+Al terminar reinstalar la entrada normal para dejar fuera el harness:
+
+```sh
+flutter run --profile --no-resident -d <device-id>
+```
+
+Mantener el iPhone desbloqueado al instalar/lanzar. Nunca interpretar el tiempo de compilación, instalación, espera de desbloqueo o conexión del depurador como tiempo de carga del juego. El modo Profile se usa para aproximar el rendimiento; las pruebas de teclado, segundo plano real, modo avión, transferencia de datos, tienda sandbox y medición de 60 s por escena siguen siendo comprobaciones distintas.

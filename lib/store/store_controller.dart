@@ -40,6 +40,7 @@ class StoreController extends ChangeNotifier {
   Future<void> _tail = Future.value();
   bool _disposed = false;
   int _queries = 0;
+  int _eventRevision = 0;
 
   bool get inDemo => _demo != null;
 
@@ -85,12 +86,15 @@ class StoreController extends ChangeNotifier {
   /// Consulta de propiedad sin interacción. Solo una respuesta positiva de la
   /// tienda revoca; `unknown` conserva la caché.
   Future<void> checkOwnership() async {
+    final revision = _eventRevision;
     StoreOwnership o;
     try {
       o = await provider.queryOwnership(productId);
     } catch (_) {
       o = StoreOwnership.unknown;
     }
+    // Una consulta anterior a un evento no puede revocar una compra nueva.
+    if (revision != _eventRevision) return;
     final now = clock.nowUtcSeconds();
     _queries++;
     if (o == StoreOwnership.owned && !_entitlement.full) {
@@ -172,7 +176,11 @@ class StoreController extends ChangeNotifier {
     _notify();
   }
 
-  void _onEvent(StoreEvent ev) => unawaited(_apply(ev, complete: true));
+  void _onEvent(StoreEvent ev) {
+    if (ev.productId != null && ev.productId != productId) return;
+    _eventRevision++;
+    unawaited(_apply(ev, complete: true));
+  }
 
   Future<void> _apply(StoreEvent ev, {required bool complete}) {
     final r = _tail.then((_) => _applyNow(ev, complete: complete));
@@ -224,7 +232,7 @@ class StoreController extends ChangeNotifier {
       try {
         await provider.complete(ev.eventId);
       } catch (e) {
-        debugPrint('Transacción no cerrada: $e');
+        debugPrint('Transacción no cerrada; se reintentará al reentregar.');
       }
     }
   }
