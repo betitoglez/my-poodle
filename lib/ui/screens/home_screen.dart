@@ -51,7 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Un único caniche que refleja el aspecto y la salud confirmados.
     _game!.setLook(c.look);
     _game!.reducedMotion = c.reducedMotion;
-    _game!.pet.fx = PetFx(sick: c.pet.isSick);
+    _game!.pet.fx = PetFx(sick: c.pet.isSick)
+        .withHygiene(c.pet.needPoints(Need.hygiene));
   }
 
   void _turn(PetView v) {
@@ -61,12 +62,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Lleva a la actividad que resuelve cada estado: el veterinario y la cama
   /// tienen pantalla propia; el resto, la de su medida.
+  void _openCare(CareKind kind, Widget screen) {
+    final c = AppScope.read(context);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    final blocked = c.careBlocked(kind);
+    if (blocked != null) {
+      messenger.showSnackBar(SnackBar(content: Text(blocked)));
+      return;
+    }
+    pushScreen(context, screen);
+  }
+
   void _attend(PetCondition cond) {
     switch (cond) {
       case PetCondition.sick:
-        pushScreen(context, const VetScreen());
+        _openCare(CareKind.vet, const VetScreen());
       case PetCondition.tired:
-        pushScreen(context, const SleepScreen());
+        _openCare(CareKind.sleep, const SleepScreen());
       case PetCondition.hungry || PetCondition.dirty || PetCondition.sad:
         _actNeed(cond.need!);
     }
@@ -75,13 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _actNeed(Need need) {
     switch (need) {
       case Need.satiety:
-        pushScreen(context, const FeedScreen());
+        _openCare(CareKind.feed, const FeedScreen());
       case Need.hygiene:
-        pushScreen(context, const BathScreen());
+        _openCare(CareKind.bath, const BathScreen());
       case Need.mood:
         ShellScope.maybeOf(context)?.go(ShellTab.games);
       case Need.energy:
-        _setResting(!_game!.resting);
+        _openCare(CareKind.sleep, const SleepScreen());
     }
   }
 
@@ -233,6 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           for (final n in Need.values)
                             NeedMeter(
                               need: n,
+                              onTap: () => _actNeed(n),
                               label: Texts.needLabels[n]!,
                               value: pet.needPoints(n),
                               highlight: urgent == null ? n == lowest : false,
@@ -240,7 +254,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(height: AppSpace.s),
-                      HealthMeter(points: pet.healthPoints, sick: pet.isSick),
+                      HealthMeter(
+                        points: pet.healthPoints,
+                        sick: pet.isSick,
+                        onTap: () => _attend(PetCondition.sick),
+                      ),
                       if (urgent == null && lowest != Need.energy) ...[
                         SizedBox(height: l.compact ? AppSpace.xs : AppSpace.s),
                         Align(

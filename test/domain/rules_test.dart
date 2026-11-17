@@ -225,7 +225,7 @@ void main() {
       expect(() => rules.fruitCoins(13), throwsA(isA<RuleException>()));
       expect(() => rules.frisbeeCoins(-1), throwsA(isA<RuleException>()));
     });
-    test('juego terminado: +8 ánimo, −6 energía, récord', () {
+    test('juego terminado: +8 ánimo, −20 energía y −10 saciedad, récord', () {
       final r = rules.finishGame(adopt(), GameId.frisbee, 3, 'g', t0);
       expect(
         [
@@ -233,7 +233,7 @@ void main() {
           r.after.needPoints(Need.mood),
           r.after.needPoints(Need.energy),
         ],
-        [12, 83, 74],
+        [12, 83, 60],
       );
       expect(r.newBest, isTrue);
       expect(r.after.bestFrisbee, 3);

@@ -33,12 +33,12 @@ abstract final class GameCatalog {
     id: GameId.fruit,
     title: 'Huerto saltarín',
     thumbnail: 'assets/images/cards/orchard.jpg',
-    tagline: 'Salta los bancales y recoge manzanas.',
-    objective: 'Llega a la meta recogiendo hasta 12 manzanas.',
+    tagline: 'Salta los bancales y recoge frutas.',
+    objective: 'Llega a la meta recogiendo hasta 12 frutas.',
     gesture: 'Toca la pantalla o el botón Saltar para saltar.',
     limitLabel: '30 segundos',
-    scoreLabel: 'manzanas',
-    rewardLabel: '2 monedas + 1 por manzana',
+    scoreLabel: 'frutas',
+    rewardLabel: '2 monedas + 1 por fruta',
   );
 
   static const frisbee = GameDefinition(
@@ -48,7 +48,7 @@ abstract final class GameCatalog {
     tagline: 'Lanza el disco hacia el aro.',
     objective: 'Que tu caniche atrape el disco dentro del aro.',
     gesture: 'Arrastra hacia arriba y suelta. También puedes usar el lanzamiento asistido.',
-    limitLabel: '3 lanzamientos',
+    limitLabel: '5 lanzamientos',
     scoreLabel: 'capturas',
     rewardLabel: '3 monedas + 3 por captura',
   );

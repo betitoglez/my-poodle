@@ -8,6 +8,7 @@ import '../data/storage_backend.dart';
 import '../domain/appearance.dart';
 import '../domain/balance.dart';
 import '../domain/entitlements.dart';
+import '../domain/food.dart';
 import '../domain/needs_clock.dart';
 import '../domain/pet_name.dart';
 import '../domain/pet_state.dart';
@@ -245,22 +246,68 @@ class AppController extends ChangeNotifier {
     return r;
   }
 
-  String beginActivity(String activityId) => sessions.begin(activityId);
+  String? careBlocked(CareKind kind, {Food food = Food.basic}) =>
+      rules.careBlocked(
+        pet,
+        kind,
+        clock.nowUtcSeconds(),
+        food: food,
+        fullVersion: fullVersion,
+      );
+  String? get gameBlocked => rules.gameBlocked(pet, clock.nowUtcSeconds());
+
+  String beginActivity(String activityId) {
+    final kind = CareKind.values.where((k) => k.name == activityId).firstOrNull;
+    if (kind == null || careBlocked(kind) != null || saving || hasPending) {
+      return '';
+    }
+    return sessions.begin(activityId);
+  }
 
   /// Abre la sesión de un minijuego; un juego de la versión completa sin
   /// derecho se rechaza (`requiresFull`) y no crea sesión.
-  String? beginGame(GameId game) =>
-      canPlay(game) ? sessions.begin(game.name) : null;
+  Future<String?> beginGame(GameId game) => _serial(() async {
+    if (!canPlay(game) || gameBlocked != null || hasPending || saving) {
+      return null;
+    }
+    final id = sessions.begin(game.name);
+    final candidate = rules.startGame(
+      _confirmed!,
+      'start-$id',
+      clock.nowUtcSeconds(),
+    );
+    saving = true;
+    notifyListeners();
+    try {
+      await _store.write(candidate);
+      _confirmed = candidate;
+      return id;
+    } catch (_) {
+      sessions.cancel(id);
+      return null;
+    } finally {
+      saving = false;
+      notifyListeners();
+    }
+  });
 
   void cancelActivity(String sessionId) => sessions.cancel(sessionId);
 
   Future<ActionResult<Receipt>> finishCare(
     String sessionId,
-    CareKind kind,
-  ) async {
+    CareKind kind, {
+    Food food = Food.basic,
+  }) async {
     final previous = sessions.receiptOf<Receipt>(sessionId);
     if (previous != null) return Done(previous);
-    if (!sessions.isOpen(sessionId) || _confirmed == null) {
+    if (!sessions.isOpen(sessionId) ||
+        _confirmed == null ||
+        saving ||
+        hasPending) {
+      return const Ignored();
+    }
+    if (sessions.activityOf(sessionId) != kind.name ||
+        careBlocked(kind, food: food) != null) {
       return const Ignored();
     }
     final receipt = rules.finishCare(
@@ -268,6 +315,8 @@ class AppController extends ChangeNotifier {
       kind,
       sessionId,
       clock.nowUtcSeconds(),
+      food: food,
+      fullVersion: fullVersion,
     );
     return _commit(
       receipt.after,
@@ -283,9 +332,13 @@ class AppController extends ChangeNotifier {
   ) async {
     final previous = sessions.receiptOf<Receipt>(sessionId);
     if (previous != null) return Done(previous);
-    if (!sessions.isOpen(sessionId) || _confirmed == null) {
+    if (!sessions.isOpen(sessionId) ||
+        _confirmed == null ||
+        saving ||
+        hasPending) {
       return const Ignored();
     }
+    if (sessions.activityOf(sessionId) != game.name) return const Ignored();
     final Receipt receipt;
     try {
       receipt = rules.finishGame(

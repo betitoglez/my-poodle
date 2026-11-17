@@ -55,7 +55,7 @@ void main() {
       isTrue,
     );
     // Los cuidados no consultan la versión.
-    var p = adopt();
+    var p = adopt().copyWith(coins: 30);
     for (final k in CareKind.values) {
       p = rules.finishCare(p, k, 'care-${k.name}', t0).after;
     }

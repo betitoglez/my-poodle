@@ -146,7 +146,9 @@ class NeedMeter extends StatelessWidget {
     required this.label,
     required this.value,
     this.highlight = false,
+    this.onTap,
   });
+  final VoidCallback? onTap;
   final Need need;
   final String label;
   final int value;
@@ -156,53 +158,58 @@ class NeedMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final low = value < 30;
     return Semantics(
+      button: onTap != null,
+      onTap: onTap,
       label: '$label: $value de 100${low ? ', bajo' : ''}',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(AppRadii.s),
-          border: Border.all(
-            color: highlight ? need.color : const Color(0x22000000),
-            width: highlight ? 2 : 1,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(AppRadii.s),
+            border: Border.all(
+              color: highlight ? need.color : const Color(0x22000000),
+              width: highlight ? 2 : 1,
+            ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Icon(need.icon, size: 18, color: need.color),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: AppText.small.copyWith(color: AppColors.ink),
-                    overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(need.icon, size: 18, color: need.color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: AppText.small.copyWith(color: AppColors.ink),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                if (low)
-                  const Icon(
-                    Icons.priority_high_rounded,
-                    size: 16,
-                    color: AppColors.coral,
-                  ),
-                Text('$value', style: AppText.number.copyWith(fontSize: 15)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              child: LinearProgressIndicator(
-                value: value / 100,
-                minHeight: 8,
-                color: need.color,
-                backgroundColor: need.color.withValues(alpha: 0.18),
+                  if (low)
+                    const Icon(
+                      Icons.priority_high_rounded,
+                      size: 16,
+                      color: AppColors.coral,
+                    ),
+                  Text('$value', style: AppText.number.copyWith(fontSize: 15)),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                child: LinearProgressIndicator(
+                  value: value / 100,
+                  minHeight: 8,
+                  color: need.color,
+                  backgroundColor: need.color.withValues(alpha: 0.18),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -351,7 +358,13 @@ class DemoBadge extends StatelessWidget {
 /// Medidor de salud: sano 100, malito 35. No es una necesidad más: solo el
 /// veterinario lo recupera.
 class HealthMeter extends StatelessWidget {
-  const HealthMeter({super.key, required this.points, required this.sick});
+  const HealthMeter({
+    super.key,
+    required this.points,
+    required this.sick,
+    this.onTap,
+  });
+  final VoidCallback? onTap;
   final int points;
   final bool sick;
 
@@ -359,45 +372,53 @@ class HealthMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = sick ? AppColors.coral : AppColors.leaf;
     return Semantics(
+      button: onTap != null,
+      onTap: onTap,
       label: 'Salud: ${sick ? 'malito' : 'sano'}, $points de 100',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(AppRadii.s),
-          border: Border.all(
-            color: sick ? AppColors.coral : const Color(0x22000000),
-            width: sick ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              sick ? Icons.sick_rounded : Icons.favorite_rounded,
-              size: 18,
-              color: color,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(AppRadii.s),
+            border: Border.all(
+              color: sick ? AppColors.coral : const Color(0x22000000),
+              width: sick ? 2 : 1,
             ),
-            const SizedBox(width: 6),
-            Text('Salud', style: AppText.small.copyWith(color: AppColors.ink)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadii.pill),
-                child: LinearProgressIndicator(
-                  value: points / 100,
-                  minHeight: 8,
-                  color: color,
-                  backgroundColor: color.withValues(alpha: 0.18),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                sick ? Icons.sick_rounded : Icons.favorite_rounded,
+                size: 18,
+                color: color,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Salud',
+                style: AppText.small.copyWith(color: AppColors.ink),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                  child: LinearProgressIndicator(
+                    value: points / 100,
+                    minHeight: 8,
+                    color: color,
+                    backgroundColor: color.withValues(alpha: 0.18),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              sick ? 'Malito' : 'Sano',
-              style: AppText.number.copyWith(fontSize: 14, color: color),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Text(
+                sick ? 'Malito' : 'Sano',
+                style: AppText.number.copyWith(fontSize: 14, color: color),
+              ),
+            ],
+          ),
         ),
       ),
     );

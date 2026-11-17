@@ -11,6 +11,7 @@ class SceneView extends StatefulWidget {
     required this.game,
     this.onTap,
     this.onPress,
+    this.onRelease,
     this.onDragUpdate,
     this.onDragEnd,
     this.onDragCancel,
@@ -23,6 +24,7 @@ class SceneView extends StatefulWidget {
 
   /// Inmediato al tocar (p. ej. saltar), sin esperar a soltar.
   final void Function(Offset p)? onPress;
+  final VoidCallback? onRelease;
   final void Function(Offset start, Offset p, Offset delta)? onDragUpdate;
   final void Function(Offset start, Offset end)? onDragEnd;
   final VoidCallback? onDragCancel;
@@ -77,11 +79,13 @@ class _SceneViewState extends State<SceneView> {
           } else {
             widget.onTap?.call(e.localPosition);
           }
+          widget.onRelease?.call();
           _reset();
         },
         onPointerCancel: (e) {
           if (e.pointer != _pointer) return;
           widget.onDragCancel?.call();
+          widget.onRelease?.call();
           _reset();
         },
         child: Stack(

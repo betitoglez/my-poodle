@@ -1,6 +1,7 @@
 import 'appearance.dart';
 import 'balance.dart';
 import 'entitlements.dart';
+import 'food.dart';
 import 'needs_clock.dart';
 import 'pet_state.dart';
 
@@ -66,14 +67,98 @@ class Rules {
     return out;
   }
 
-  /// Cuidado completado: aplica el efecto del catálogo, sin monedas.
-  Receipt finishCare(PetState s, CareKind kind, String opId, int nowUtc) {
+  static const activityWindow = 300;
+
+  String? careBlocked(
+    PetState s,
+    CareKind kind,
+    int nowUtc, {
+    Food food = Food.basic,
+    bool fullVersion = false,
+  }) {
+    if (s.need100(Need.energy) == 0 && kind != CareKind.sleep) {
+      return 'Necesita dormir: su energía está a cero.';
+    }
+    final last = s.careCompletedUtc[kind.name];
+    if (last != null && nowUtc - last < activityWindow) {
+      final wait = activityWindow - (nowUtc - last);
+      return 'Podrás repetir este cuidado en ${wait ~/ 60} min ${wait % 60} s.';
+    }
+    if (kind == CareKind.feed && food.tier == Tier.full && !fullVersion) {
+      return 'Esta comida necesita la versión completa.';
+    }
+    final cost = kind == CareKind.vet
+        ? 30
+        : kind == CareKind.feed
+        ? food.cost
+        : 0;
+    if (s.coins < cost) return 'Necesitas $cost monedas (tienes ${s.coins}).';
+    return null;
+  }
+
+  String? gameBlocked(PetState s, int nowUtc) {
+    if (s.need100(Need.energy) == 0) {
+      return 'Necesita dormir: su energía está a cero.';
+    }
+    final recent = s.gameStartedUtc
+        .where((t) => nowUtc - t < activityWindow)
+        .toList();
+    if (recent.length >= 3) {
+      recent.sort();
+      final wait = activityWindow - (nowUtc - recent.first);
+      return 'Ya has jugado 3 veces. Vuelve en ${wait ~/ 60} min ${wait % 60} s.';
+    }
+    return null;
+  }
+
+  PetState startGame(PetState s, String opId, int nowUtc) {
+    final before = clock.advance(s, nowUtc);
+    final blocked = gameBlocked(before, nowUtc);
+    if (blocked != null) throw RuleException(blocked);
+    return _commit(
+      before.copyWith(
+        gameStartedUtc: [
+          ...before.gameStartedUtc.where((t) => nowUtc - t < activityWindow),
+          nowUtc,
+        ],
+      ),
+      opId,
+    );
+  }
+
+  /// Efecto, coste y plazo se confirman juntos, sin dobles cobros.
+  Receipt finishCare(
+    PetState s,
+    CareKind kind,
+    String opId,
+    int nowUtc, {
+    Food food = Food.basic,
+    bool fullVersion = false,
+  }) {
     final rule = balance.care[kind.name];
     if (rule == null) throw RuleException('Cuidado desconocido: ${kind.name}');
     final before = clock.advance(s, nowUtc);
+    final blocked = careBlocked(
+      before,
+      kind,
+      nowUtc,
+      food: food,
+      fullVersion: fullVersion,
+    );
+    if (blocked != null) throw RuleException(blocked);
+    final cost = kind == CareKind.vet
+        ? 30
+        : kind == CareKind.feed
+        ? food.cost
+        : 0;
     final after = _commit(
       before.copyWith(
-        needs100: _applyDelta(before, rule.delta),
+        coins: before.coins - cost,
+        careCompletedUtc: {...before.careCompletedUtc, kind.name: nowUtc},
+        needs100: _applyDelta(
+          before,
+          kind == CareKind.feed ? food.delta : rule.delta,
+        ),
         cured: rule.cures,
       ),
       opId,

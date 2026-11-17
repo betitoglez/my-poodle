@@ -61,6 +61,23 @@ void main() {
     expect(s.time, 30);
   });
 
+  test(
+    'caer descuenta exactamente cinco segundos adicionales una sola vez',
+    () {
+      final s = OrchardSim();
+      while (s.falls == 0) {
+        final before = s.time;
+        s.advance(OrchardSim.dt);
+        if (s.falls == 1) {
+          expect(s.time - before, closeTo(5 + OrchardSim.dt, 1e-6));
+        }
+      }
+      final time = s.time;
+      s.advance(OrchardSim.dt);
+      expect(s.time - time, closeTo(OrchardSim.dt, 1e-6));
+    },
+  );
+
   test('una manzana recogida no vuelve a sumar tras caer', () {
     final s = OrchardSim();
     while (s.falls == 0) {

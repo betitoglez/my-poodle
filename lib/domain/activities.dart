@@ -36,53 +36,62 @@ class FeedActivity extends StepActivity {
   void chewDone() => _chewing = false;
 }
 
-enum BathPhase { wet, soap, rinse, done }
+enum BathPhase { wet, soap, rinse, dry, done }
 
-enum BathZone { back, paws, chest }
+enum BathZone { back, paws, chest, head }
 
-/// Baño: mojar, enjabonar tres zonas distintas y aclarar.
+/// Cinco segundos de ducha y aclarado; frotar todo el cuerpo y secar.
 class BathActivity extends StepActivity {
   BathPhase _phase = BathPhase.wet;
   final Map<BathZone, double> _foam = {for (final z in BathZone.values) z: 0};
-
+  double _seconds = 0;
   BathPhase get phase => _phase;
+  double get toolProgress => (_seconds / 5).clamp(0, 1);
   double foam(BathZone z) => _foam[z]!;
   bool zoneDone(BathZone z) => _foam[z]! >= 1;
   int get zonesDone => BathZone.values.where(zoneDone).length;
-
   @override
   int get done => switch (_phase) {
     BathPhase.wet => 0,
     BathPhase.soap => 1 + zonesDone,
-    BathPhase.rinse => 4,
-    BathPhase.done => 5,
+    BathPhase.rinse => 5,
+    BathPhase.dry => 6,
+    BathPhase.done => 7,
   };
   @override
-  int get total => 5;
+  int get total => 7;
   @override
   bool get completed => _phase == BathPhase.done;
-
-  bool wet() {
-    if (_phase != BathPhase.wet) return false;
-    _phase = BathPhase.soap;
+  bool _hold(BathPhase from, BathPhase to, double seconds) {
+    if (_phase != from || !seconds.isFinite || seconds <= 0) return false;
+    _seconds = (_seconds + seconds).clamp(0, 5);
+    if (_seconds >= 5 - 1e-6) {
+      _phase = to;
+      _seconds = 0;
+      if (from == BathPhase.rinse) {
+        for (final z in BathZone.values) {
+          _foam[z] = 0;
+        }
+      }
+    }
     return true;
   }
 
-  /// Toque (amount 1) o pasada de esponja (fracción). Repetir una zona ya
-  /// enjabonada no cuenta otra vez.
-  bool soap(BathZone z, [double amount = 1]) {
-    if (_phase != BathPhase.soap || zoneDone(z)) return false;
+  bool wet([double seconds = 0.1]) =>
+      _hold(BathPhase.wet, BathPhase.soap, seconds);
+  bool rinse([double seconds = 0.1]) =>
+      _hold(BathPhase.rinse, BathPhase.dry, seconds);
+  bool dry([double seconds = 0.1]) =>
+      _hold(BathPhase.dry, BathPhase.done, seconds);
+  bool soap(BathZone z, [double amount = 0.15]) {
+    if (_phase != BathPhase.soap ||
+        zoneDone(z) ||
+        !amount.isFinite ||
+        amount <= 0) {
+      return false;
+    }
     _foam[z] = (_foam[z]! + amount).clamp(0, 1).toDouble();
     if (zonesDone == BathZone.values.length) _phase = BathPhase.rinse;
-    return true;
-  }
-
-  bool rinse() {
-    if (_phase != BathPhase.rinse) return false;
-    _phase = BathPhase.done;
-    for (final z in BathZone.values) {
-      _foam[z] = 0;
-    }
     return true;
   }
 }
@@ -126,21 +135,33 @@ class WalkActivity extends StepActivity {
 enum Strand { forelock, ears, back }
 
 /// Peluquería: tres mechones; un mechón resuelto no vuelve a contar.
-class GroomActivity extends StepActivity {
-  final Map<Strand, double> _brushed = {for (final s in Strand.values) s: 0};
+enum GroomTool { comb, scissors, dryer }
 
-  double brushed(Strand s) => _brushed[s]!;
-  bool strandDone(Strand s) => _brushed[s]! >= 1;
+class GroomActivity extends StepActivity {
+  GroomTool _tool = GroomTool.comb;
+  final Map<GroomTool, Map<Strand, double>> _progress = {
+    for (final t in GroomTool.values) t: {for (final s in Strand.values) s: 0},
+  };
+  GroomTool get tool => _tool;
+  double brushed(Strand s) => _progress[_tool]![s]!;
+  bool strandDone(Strand s) => brushed(s) >= 1;
   @override
-  int get done => Strand.values.where(strandDone).length;
+  int get done => _progress.values.fold(
+    0,
+    (n, m) => n + m.values.where((v) => v >= 1).length,
+  );
   @override
-  int get total => 3;
+  int get total => 9;
   @override
   bool get completed => done == total;
-
-  bool brush(Strand s, [double amount = 0.5]) {
-    if (strandDone(s)) return false;
-    _brushed[s] = (_brushed[s]! + amount).clamp(0, 1).toDouble();
+  bool brush(Strand s, [double amount = 0.15]) {
+    if (completed || strandDone(s) || !amount.isFinite || amount <= 0) {
+      return false;
+    }
+    _progress[_tool]![s] = (brushed(s) + amount).clamp(0, 1);
+    if (Strand.values.every(strandDone) && _tool != GroomTool.dryer) {
+      _tool = GroomTool.values[_tool.index + 1];
+    }
     return true;
   }
 }

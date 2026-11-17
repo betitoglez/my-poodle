@@ -24,12 +24,32 @@
   "eat": {
    "anchor": "feet",
    "unitFrom": "front",
-   "view": "none"
+   "view": "none",
+   "landmarks": {
+    "mouth": [
+     -0.015,
+     -0.16
+    ]
+   }
   },
   "sleep": {
    "anchor": "bottom",
    "unitFrom": "front",
-   "view": "none"
+   "view": "none",
+   "landmarks": {
+    "mouth": [
+     0,
+     -0.12
+    ],
+    "headTop": [
+     0,
+     -0.5
+    ],
+    "chest": [
+     0,
+     -0.4
+    ]
+   }
   },
   "run_a": {
    "anchor": "bottom",

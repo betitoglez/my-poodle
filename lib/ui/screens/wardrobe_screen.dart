@@ -121,7 +121,8 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
         petScale: 0.7,
         floorY: 0.76,
       );
-      _game!.pet.fx = PetFx(sick: c.pet.isSick);
+      _game!.pet.fx = PetFx(sick: c.pet.isSick)
+          .withHygiene(c.pet.needPoints(Need.hygiene));
       _shell = ShellScope.maybeOf(context);
       if (!widget.standalone) _shell?.leaveGuard = _confirmLeave;
     }

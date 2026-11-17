@@ -28,6 +28,7 @@ class PetComponent extends PositionComponent {
   double petSize;
   bool reducedMotion;
   PetFx fx = PetFx.none;
+  int? hygiene;
   double airborne = 0;
   bool facingLeft = false;
 
@@ -144,7 +145,7 @@ class PetComponent extends PositionComponent {
       size: petSize,
       reducedMotion: reducedMotion,
       airborne: airborne,
-      fx: fx,
+      fx: hygiene == null ? fx : fx.withHygiene(hygiene!),
     );
     if (facingLeft) canvas.restore();
   }

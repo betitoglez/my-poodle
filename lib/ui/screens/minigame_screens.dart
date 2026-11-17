@@ -6,6 +6,7 @@ import '../../app/feedback.dart';
 import '../../app/texts.dart';
 import '../../domain/games/frisbee_sim.dart';
 import '../../domain/rules.dart';
+import '../../domain/balance.dart';
 import '../../game/frisbee_game.dart';
 import '../../game/game_registry.dart';
 import '../../game/orchard_game.dart';
@@ -28,17 +29,30 @@ mixin _GameSession<W extends StatefulWidget> on State<W> {
   /// Un juego de la versión completa sin derecho no crea sesión: vuelve atrás
   /// y abre «Pide ayuda a un adulto» (la tarjeta ya lo evita; esto es la
   /// segunda comprobación de las reglas).
-  void beginSession() {
-    final s = AppScope.read(context).beginGame(gameId);
+  Future<bool> beginSession() async {
+    final c = AppScope.read(context);
+    final s = await c.beginGame(gameId);
+    if (!mounted) return false;
     session = s ?? '';
     if (s == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         final nav = Navigator.of(context);
         nav.pop();
-        showAskAdult(nav.context);
+        if (!c.canPlay(gameId)) {
+          showAskAdult(nav.context);
+        } else {
+          ScaffoldMessenger.of(nav.context).showSnackBar(
+            SnackBar(
+              content: Text(
+                c.gameBlocked ?? 'No se pudo guardar el inicio de la partida.',
+              ),
+            ),
+          );
+        }
       });
     }
+    return s != null;
   }
 
   Future<void> complete(int score) async {
@@ -81,8 +95,14 @@ class _OrchardScreenState extends State<OrchardScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_game != null) return;
-    beginSession();
+    if (_starting) return;
+    _starting = true;
+    _start();
+  }
+
+  bool _starting = false;
+  Future<void> _start() async {
+    if (!await beginSession() || !mounted) return;
     final c = AppScope.read(context);
     final fx = AppScope.feedbackOf(context);
     _game = OrchardGame(
@@ -99,10 +119,15 @@ class _OrchardScreenState extends State<OrchardScreen>
         _ => Sfx.jump,
       }),
     );
+    _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_game == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final sim = _game!.sim;
     final def = GameCatalog.fruit;
     return ActivityFrame(
@@ -122,7 +147,7 @@ class _OrchardScreenState extends State<OrchardScreen>
       hud: GameHud(
         items: [
           (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
-          (Icons.apple_rounded, 'Manzanas', '${sim.score} / 12'),
+          (Icons.apple_rounded, 'Frutas', '${sim.score} / 12'),
         ],
       ),
       controls: Row(
@@ -130,7 +155,7 @@ class _OrchardScreenState extends State<OrchardScreen>
           Expanded(
             child: Text(
               sim.respawning
-                  ? '¡Arriba! Seguimos desde el último bancal.'
+                  ? 'Caída: −5 s. Seguimos desde el último bancal.'
                   : def.gesture,
               style: AppText.body.copyWith(fontWeight: FontWeight.w700),
             ),
@@ -178,8 +203,14 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_game != null) return;
-    beginSession();
+    if (_starting) return;
+    _starting = true;
+    _start();
+  }
+
+  bool _starting = false;
+  Future<void> _start() async {
+    if (!await beginSession() || !mounted) return;
     final c = AppScope.read(context);
     final fx = AppScope.feedbackOf(context);
     final rule = c.balance.frisbee;
@@ -209,6 +240,8 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
         }
       },
     );
+    _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
+    setState(() {});
   }
 
   FieldPoint? _aim(Offset start, Offset p) {
@@ -221,6 +254,9 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_game == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final sim = _game!.sim;
     final def = GameCatalog.frisbee;
     final status = switch (sim.phase) {
@@ -268,7 +304,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
           (
             Icons.album_rounded,
             'Lanzamiento',
-            '${(sim.attempts + (sim.finished ? 0 : 1)).clamp(1, 3)} / 3',
+            '${(sim.attempts + (sim.finished ? 0 : 1)).clamp(1, sim.targets.length)} / ${sim.targets.length}',
           ),
           (Icons.check_circle_rounded, 'Aciertos', '${sim.catches}'),
         ],

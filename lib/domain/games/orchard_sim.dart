@@ -240,6 +240,8 @@ class OrchardSim {
       _respawnLeft = respawnPause;
       _bufferedJump = -1;
       falls++;
+      time +=
+          5; // Penalización única por caída, además del tiempo de recuperación.
     }
   }
 

@@ -237,6 +237,9 @@ def main():
             k: [round((v[0] - ax) / unit, 3), round((v[1] - ay) / unit, 3)] for k, v in lm.items() if v
         }
 
+        # Referencias medidas para poses donde la silueta no define las facciones.
+        meta['poses'][pose]['landmarks'].update(pinfo.get('landmarks', {}))
+
         for (kind, lid), im in layers.items():
             im = im.crop(box).resize(size, Image.LANCZOS)
             name = f"{pose}__{lid.replace('.', '_').replace('|', '__')}.webp"

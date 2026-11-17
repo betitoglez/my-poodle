@@ -107,8 +107,8 @@ void main() {
     }
     // Un artículo sin pose de salto obliga a usar el perfil…
     final glasses = base.withSlot(Slot.eyes, 'eyes.sun');
-    expect(painter.resolve('jump', glasses)?.pose, 'side');
-    expect(painter.resolve('run_a', glasses)?.pose, 'side');
+    expect(painter.resolve('jump', glasses)?.pose, 'jump');
+    expect(painter.resolve('run_a', glasses)?.pose, 'run_a');
     // …pero al comer o dormir simplemente no se dibuja.
     final eat = painter.resolve('eat', glasses)!;
     expect([eat.pose, eat.items], ['eat', isEmpty]);
@@ -117,7 +117,7 @@ void main() {
     final teddy = base.withSlot(Slot.hair, 'hair.teddy');
     expect(painter.resolve('jump', teddy)?.pose, 'side');
     expect(painter.resolve('sleep', teddy)?.pose, 'sleep');
-    expect(painter.resolve('eat', teddy)?.pose, 'front');
+    expect(painter.resolve('eat', teddy)?.pose, 'eat');
     // Las gafas no se ven desde atrás; el sombrero sí.
     final back = painter.resolve(
       'back',

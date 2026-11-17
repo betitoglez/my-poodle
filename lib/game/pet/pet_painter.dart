@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
 import 'pet_sprites.dart';
+import 'pet_accessories.dart';
 
 /// Reacciones y bucles compartidos por todas las capas (reloj común).
 enum PetAnim {
@@ -58,12 +59,20 @@ enum PetView {
 class PetFx {
   const PetFx({
     this.wet = false,
+    this.hygiene = 100,
     this.foam = const [0, 0, 0],
     this.messy = const [0, 0, 0],
     this.sick = false,
   });
 
   final bool wet;
+  final int hygiene;
+
+  /// 65 limpio; 64..52, 51..39, 38..26, 25..13, 12..0.
+  int get dirtStage =>
+      hygiene >= 65 ? 0 : ((64 - hygiene.clamp(0, 64)) ~/ 13 + 1).clamp(1, 5);
+  PetFx withHygiene(int value) =>
+      PetFx(wet: wet, foam: foam, messy: messy, sick: sick, hygiene: value);
 
   /// Malito: tono apagado y temblor.
   final bool sick;
@@ -78,7 +87,7 @@ class PetFx {
 
   /// Mismos efectos con otro estado de salud.
   PetFx withSick(bool value) =>
-      PetFx(wet: wet, foam: foam, messy: messy, sick: value);
+      PetFx(wet: wet, foam: foam, messy: messy, sick: value, hygiene: hygiene);
 }
 
 enum _Eyes { open, blink, happy, closed }
@@ -177,6 +186,7 @@ class PetPainter extends ChangeNotifier {
       }
     }
     _fx(s);
+    _dirt(s, _vectorLandmarks[vectorPose] ?? const {});
     canvas.restore();
   }
 
@@ -266,14 +276,21 @@ class PetPainter extends ChangeNotifier {
       ids.neck,
       ids.eyes,
       ids.head,
-    ].where(sp.knowsItem).toList();
+    ].where((id) => !id.endsWith('.none')).toList();
     for (final cand in _poseChains[desired] ?? [desired]) {
-      if (!sp.hasPose(cand) || !sp.hasHair(ids.hair, cand)) continue;
-      final missing = equipped.where((i) => !sp.supportsItem(i, cand));
-      if (missing.isNotEmpty && !_dropItemsIn.contains(cand)) continue;
+      if (!sp.hasPose(cand) ||
+          (!sp.hasHair(ids.hair, cand) &&
+              !(cand == 'eat' && sp.hasHair('hair.natural', 'eat')))) {
+        continue;
+      }
+
       return (
         pose: cand,
-        items: equipped.where((i) => sp.itemVisible(i, cand)).toList(),
+        items: _dropItemsIn.contains(cand)
+            ? const []
+            : equipped
+                  .where((id) => cand != 'back' || !id.startsWith('eyes.'))
+                  .toList(),
       );
     }
     return null;
@@ -301,7 +318,25 @@ class PetPainter extends ChangeNotifier {
       final r = resolve(p, ids);
       if (r != null) names.add(r.pose);
     }
-    await sp.preload(hair: ids.hair, items: ids.ids, poseNames: names);
+    await sp.preload(hair: ids.hair, poseNames: names);
+    final coat = catalog.resolve(ids).coat;
+    final palette = [
+      coat.shade.toARGB32(),
+      coat.base.toARGB32(),
+      coat.light.toARGB32(),
+    ];
+    for (final p in names) {
+      for (final layer in [
+        sp.hairLayer(ids.hair, p),
+        sp.stateLayer('messy', ids.hair, p),
+        sp.expressionLayer('blink', p),
+        sp.expressionLayer('happy', p),
+        if (p == 'eat' && !sp.hasHair(ids.hair, p))
+          sp.hairLayer(ids.hair, 'front'),
+      ]) {
+        if (layer != null) await sp.prepareCoat(layer, ids.coat, palette);
+      }
+    }
   }
 
   /// Punto del cuerpo en unidades (origen en los pies) para colocar efectos,
@@ -358,7 +393,17 @@ class PetPainter extends ChangeNotifier {
     final r = resolve(desired, ids);
     if (r == null) return false;
     final poseName = r.pose;
-    final base = sp.hairLayer(ids.hair, poseName);
+    final coat = s.look.coat;
+    final palette = [
+      coat.shade.toARGB32(),
+      coat.base.toARGB32(),
+      coat.light.toARGB32(),
+    ];
+    final base = sp.coatedLayer(
+      sp.hairLayer(ids.hair, poseName),
+      ids.coat,
+      palette,
+    );
     final meta = sp.poses[poseName];
     if (base == null || meta == null) return false;
 
@@ -412,20 +457,74 @@ class PetPainter extends ChangeNotifier {
     c.scale(1, squash);
 
     final coatPaint = Paint()..filterQuality = FilterQuality.medium;
-    var matrix = sp.coatMatrix(ids.coat);
+    List<double>? matrix;
     if (s.fx.sick) matrix = PetSprites.chain(matrix, _sickMatrix);
     if (s.fx.wet) matrix = PetSprites.chain(matrix, _darken(0.82));
     if (matrix != null) coatPaint.colorFilter = ColorFilter.matrix(matrix);
-    c.drawImageRect(
-      base.image,
-      fullSrc(base.image),
-      rectOf(base.box),
-      coatPaint,
-    );
+    final articulate =
+        poseName == 'side' &&
+        (s.anim == PetAnim.run || s.anim == PetAnim.trot) &&
+        s.m > 0.5;
+    if (articulate) {
+      final dst = rectOf(base.box);
+      // El torso se conserva; las patas giran desde sus caderas/hombros.
+      c.save();
+      c.clipRect(Rect.fromLTRB(dst.left, dst.top, dst.right, -0.29));
+      c.drawImageRect(base.image, fullSrc(base.image), dst, coatPaint);
+      c.restore();
+      for (var leg = 0; leg < 2; leg++) {
+        final left = leg == 0 ? dst.left : 0.04;
+        final right = leg == 0 ? 0.04 : dst.right;
+        final pivot = Offset(leg == 0 ? -0.22 : 0.22, -0.32);
+        final angle = math.sin(s.t * 2 * math.pi * 3.8 + leg * math.pi) * 0.42;
+        c.save();
+        c.translate(pivot.dx, pivot.dy);
+        c.rotate(angle);
+        c.translate(-pivot.dx, -pivot.dy);
+        c.clipRect(Rect.fromLTRB(left, -0.33, right, dst.bottom));
+        c.drawImageRect(base.image, fullSrc(base.image), dst, coatPaint);
+        c.restore();
+      }
+    } else {
+      c.drawImageRect(
+        base.image,
+        fullSrc(base.image),
+        rectOf(base.box),
+        coatPaint,
+      );
+    }
+
+    // Los cortes sin pose de comida reutilizan el cuerpo inclinado y
+    // conservan su cabeza y orejas; la boca sigue el anclaje del cuenco.
+    if (poseName == 'eat' && !sp.hasHair(ids.hair, 'eat')) {
+      final head = sp.coatedLayer(
+        sp.hairLayer(ids.hair, 'front'),
+        ids.coat,
+        palette,
+      );
+      final front = sp.poses['front'];
+      if (head != null && front != null) {
+        final dst = Rect.fromLTWH(
+          -front.anchor.dx * k,
+          -front.anchor.dy * k,
+          front.size.width * k,
+          front.size.height * k,
+        );
+        c.save();
+        c.translate(0, 0.5);
+        c.clipRect(Rect.fromLTRB(dst.left, dst.top, dst.right, -0.53));
+        c.drawImageRect(head.image, fullSrc(head.image), dst, coatPaint);
+        c.restore();
+      }
+    }
 
     // Despeinado: la variante se ve solo alrededor de cada mechón pendiente
     // y se desvanece al cepillar.
-    final messy = sp.stateLayer('messy', ids.hair, poseName);
+    final messy = sp.coatedLayer(
+      sp.stateLayer('messy', ids.hair, poseName),
+      ids.coat,
+      palette,
+    );
     if (messy != null && s.fx.messy.any((m) => m > 0.01)) {
       final spots = <(Offset, double)>[];
       const names = [
@@ -477,7 +576,13 @@ class PetPainter extends ChangeNotifier {
         _Eyes.happy => 'happy',
         _ => s.tongue ? 'happy' : null,
       };
-      final img = expr == null ? null : sp.expressionLayer(expr, poseName);
+      final img = expr == null
+          ? null
+          : sp.coatedLayer(
+              sp.expressionLayer(expr, poseName),
+              ids.coat,
+              palette,
+            );
       if (img != null) {
         c.drawImageRect(
           img.image,
@@ -487,24 +592,57 @@ class PetPainter extends ChangeNotifier {
         );
       }
     }
-    // Artículos en orden de capa; los que no se ven en esta pose no están.
-    for (final id in r.items) {
-      final layer = sp.itemLayer(id, poseName);
-      if (layer == null) continue;
-      final paint = Paint()..filterQuality = FilterQuality.medium;
-      final m = sp.itemMatrix(id);
-      if (m != null) paint.colorFilter = ColorFilter.matrix(m);
-      c.drawImageRect(
-        layer.image,
-        fullSrc(layer.image),
-        rectOf(layer.box),
-        paint,
-      );
-    }
+    PetAccessories.paint(c, catalog, ids, poseName, meta.landmarks, s.t);
+    _dirt(s, meta.landmarks);
     c.restore();
     _foamAtLandmarks(s, meta.landmarks);
     _sickMarks(s, meta.landmarks);
     return true;
+  }
+
+  void _dirt(_Ctx s, Map<String, Offset> lm) {
+    final stage = s.fx.dirtStage;
+    if (stage == 0) return;
+    final centers = [
+      lm['chest'],
+      lm['paws'],
+      lm['flankLeft'],
+      lm['flankRight'],
+      lm['earLeft'],
+      lm['earRight'],
+    ].whereType<Offset>().toList();
+    if (centers.isEmpty) centers.add(const Offset(0, -0.4));
+    final mud = Paint()
+      ..color = Color.fromRGBO(100, 73, 46, 0.12 + stage * 0.075);
+    final frizz = Paint()
+      ..color = s.look.coat.shade
+      ..strokeWidth = 0.004
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < stage * 5; i++) {
+      final p =
+          centers[i % centers.length] +
+          Offset((_rand(i * 17) - 0.5) * 0.09, (_rand(i * 23) - 0.5) * 0.08);
+      s.c.drawOval(
+        Rect.fromCenter(
+          center: p,
+          width: 0.018 + _rand(i) * stage * 0.014,
+          height: 0.015 + stage * 0.006,
+        ),
+        mud,
+      );
+      s.c.drawPath(
+        Path()
+          ..moveTo(p.dx, p.dy)
+          ..quadraticBezierTo(
+            p.dx + 0.015,
+            p.dy - 0.03,
+            p.dx + 0.025,
+            p.dy - 0.012 - stage * 0.009,
+          ),
+        frizz,
+      );
+    }
   }
 
   /// Gotas de sudor y un hilo de nubecilla sobre la cabeza cuando está malito.
@@ -560,8 +698,9 @@ class PetPainter extends ChangeNotifier {
       [lm['flankLeft'], lm['flankRight']],
       [lm['paws']],
       [lm['chest']],
+      [lm['headTop']],
     ];
-    for (var z = 0; z < 3; z++) {
+    for (var z = 0; z < math.min(zones.length, s.fx.foam.length); z++) {
       final f = s.fx.foam[z];
       if (f <= 0) continue;
       for (final p in zones[z].whereType<Offset>()) {

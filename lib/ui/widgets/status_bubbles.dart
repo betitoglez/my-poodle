@@ -142,11 +142,13 @@ class _Bubble extends StatelessWidget {
       ),
     );
     return Semantics(
-      button: on,
-      label: on ? '$name: encendido, toca para atender' : '$name: apagado',
+      button: true,
+      label: on
+          ? '$name: encendido, toca para atender'
+          : '$name: apagado, toca para atender',
       excludeSemantics: true,
       child: InkResponse(
-        onTap: on ? onTap : null,
+        onTap: onTap,
         radius: 26,
         child: SizedBox(
           width: AppSizes.touch - 4,

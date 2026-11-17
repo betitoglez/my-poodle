@@ -179,6 +179,7 @@ void main() {
       await adopt(t, 'Miel');
       await tapText(t, 'Cuidados');
       await tapText(t, 'Comer');
+      await tapText(t, 'Pienso diario · Gratis');
       // Salir tras dos bocados: no aplica la mejora.
       await tapText(t, 'Dar un bocado');
       await frames(t, seconds: 1.5);
@@ -190,6 +191,7 @@ void main() {
       expect(saved(backend).needPoints(Need.satiety), 65);
       // Completar: 65 → 85.
       await tapText(t, 'Comer');
+      await tapText(t, 'Pienso diario · Gratis');
       for (var i = 0; i < 3; i++) {
         await tapText(t, 'Dar un bocado');
         // Toque durante la masticación: no cuenta.
@@ -208,7 +210,7 @@ void main() {
   );
 
   testWidgets(
-    '3 a 7 · frisbee 12 monedas, pañuelo, quitar/poner, vista previa cancelada',
+    '3 a 7 · frisbee 18 monedas, pañuelo, quitar/poner, vista previa cancelada',
     (t) async {
       final backend = MemoryBackend();
       await boot(t, backend);
@@ -217,17 +219,17 @@ void main() {
       await t.ensureVisible(find.text('Frisbee en el prado'));
       await idle(t);
       await tapText(t, 'Frisbee en el prado');
-      expect(find.text('Duración: 3 lanzamientos.'), findsOneWidget);
+      expect(find.text('Duración: 5 lanzamientos.'), findsOneWidget);
       await tapText(t, 'Jugar');
-      for (var i = 0; i < 3; i++) {
+      for (var i = 0; i < 5; i++) {
         await tapText(t, 'Lanzar al aro');
         // Segundo toque en vuelo: no lanza otra vez.
         await t.tap(find.text('Lanzar al aro').first, warnIfMissed: false);
         await frames(t, seconds: 2.8);
       }
       await idle(t);
-      expect(find.text('+12 monedas'), findsOneWidget);
-      expect(saved(backend).coins, 12);
+      expect(find.text('+18 monedas'), findsOneWidget);
+      expect(saved(backend).coins, 18);
       await tapText(t, 'Casa');
       await tapText(t, 'Armario');
       await tapText(t, 'Accesorios');
@@ -236,7 +238,7 @@ void main() {
       await tapText(t, 'Comprar y usar · 10');
       expect(find.text('Saldo restante'), findsOneWidget);
       await tapText(t, 'Confirmar');
-      expect(saved(backend).coins, 2);
+      expect(saved(backend).coins, 8);
       expect(saved(backend).appearance.neck, 'neck.coral');
       await tapText(t, 'Quitar');
       expect(saved(backend).appearance.neck, 'neck.none');
@@ -244,17 +246,17 @@ void main() {
       await tapText(t, 'Usar');
       expect(
         [saved(backend).coins, saved(backend).appearance.neck],
-        [2, 'neck.coral'],
+        [8, 'neck.coral'],
       );
       // Vista previa de plata (24) sin saldo: descartar conserva el aspecto.
       await tapText(t, 'Colores');
       await tapText(t, 'Gris plata');
-      expect(find.text('Faltan 22 · Jugar'), findsOneWidget);
+      expect(find.text('Faltan 16 · Jugar'), findsOneWidget);
       await tapText(t, 'Casa');
       expect(find.text('¿Te quedas con este aspecto?'), findsOneWidget);
       await tapText(t, 'Descartar');
       expect(saved(backend).appearance.coat, 'coat.apricot');
-      expect(saved(backend).coins, 2);
+      expect(saved(backend).coins, 8);
       expect(find.text('En casa'.toUpperCase()), findsOneWidget);
     },
   );
@@ -290,7 +292,7 @@ void main() {
     expect(find.text('Seguir jugando'), findsOneWidget);
     await tapText(t, 'Salir');
     expect(saved(backend).coins, 0);
-    expect(saved(backend).revision, 1);
+    expect(saved(backend).revision, 2);
   });
 
   testWidgets('huerto completo concede 2 + manzanas una sola vez', (t) async {

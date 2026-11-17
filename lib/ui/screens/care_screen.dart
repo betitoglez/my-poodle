@@ -31,7 +31,7 @@ class CareScreen extends StatelessWidget {
     _CareCard(
       CareKind.bath,
       'assets/images/cards/bath.jpg',
-      'Mojar, enjabonar y aclarar',
+      'Ducha, esponja, aclarado y secador',
       () => const BathScreen(),
     ),
     _CareCard(
@@ -43,7 +43,7 @@ class CareScreen extends StatelessWidget {
     _CareCard(
       CareKind.groom,
       'assets/images/cards/salon.jpg',
-      'Cepillar tres mechones',
+      'Peine, tijeras y secador',
       () => const GroomScreen(),
     ),
     _CareCard(
@@ -55,7 +55,7 @@ class CareScreen extends StatelessWidget {
     _CareCard(
       CareKind.vet,
       'assets/images/rooms/vet.jpg',
-      'Revisión y pastilla',
+      'Revisión y pastilla · 30 monedas',
       () => const VetScreen(),
     ),
   ];
@@ -106,7 +106,16 @@ class CareScreen extends StatelessWidget {
                       : main.icon,
                   footerColor: cures ? AppColors.coral : main.color,
                   badge: sick ? '¡Malito!' : null,
-                  onTap: () => pushScreen(context, card.build()),
+                  onTap: () {
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.hideCurrentSnackBar();
+                    final blocked = c.careBlocked(card.kind);
+                    if (blocked != null) {
+                      messenger.showSnackBar(SnackBar(content: Text(blocked)));
+                      return;
+                    }
+                    pushScreen(context, card.build());
+                  },
                 );
               },
             ),
