@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
+import 'pet_neck.dart';
 
 /// Piezas limpias y escalables: nunca contienen píxeles del caniche fuente.
 /// Todas las variantes comparten construcción y anclajes de cada fotograma.
@@ -228,85 +229,101 @@ abstract final class PetAccessories {
         }
       }
     }
-    if (ids.collar != 'collar.none') {
-      final r = Rect.fromCenter(
-        center: neck,
-        width: front || back ? 0.23 : 0.14,
-        height: 0.033,
-      );
-      rounded(r, 0.012, const Color(0xFF447E81));
-      if (ids.collar.contains('pearls')) {
-        for (var i = 0; i < 8; i++) {
-          final p = Offset(
-            r.left + r.width * i / 7,
-            neck.dy + math.sin(i / 7 * math.pi) * 0.02,
-          );
+    if (ids.collar != 'collar.none' || ids.neck != 'neck.none') {
+      final atRest = pose == 'eat' || pose == 'sleep';
+      final fit = atRest
+          ? PetNeck(neck - const Offset(0.10, 0), neck + const Offset(0.10, 0))
+          : PetNeck.forPose(pose, ids.hair);
+      c.save();
+      if (!front && !back && !atRest) {
+        // La oreja se interpone entre el cuello y el jugador de perfil.
+        c.clipPath(
+          Path()
+            ..fillType = PathFillType.evenOdd
+            ..addRect(const Rect.fromLTRB(-2, -2, 2, 2))
+            ..addPath(PetNeck.earMask(pose, top), Offset.zero),
+        );
+      }
+      final pendant = fit.at(front || back ? 0.5 : 0.84);
+      if (ids.collar != 'collar.none') {
+        shape(fit.band(0.035), const Color(0xFF447E81));
+        if (ids.collar.contains('pearls')) {
+          for (var i = 0; i < 9; i++) {
+            final p = fit.at((i + 0.5) / 9);
+            c.drawCircle(
+              p,
+              0.013,
+              Paint()
+                ..shader = Gradient.radial(
+                  p - const Offset(0.004, 0.004),
+                  0.018,
+                  [const Color(0xFFFFFFF4), const Color(0xFFC8B8B8)],
+                ),
+            );
+          }
+        } else if (!back) {
+          final center = pendant + const Offset(0, 0.036);
           c.drawCircle(
-            p,
-            0.014,
+            center,
+            0.023,
             Paint()
               ..shader = Gradient.radial(
-                p - const Offset(0.004, 0.004),
-                0.018,
-                [const Color(0xFFFFFFF4), const Color(0xFFC8B8B8)],
+                center - const Offset(0.006, 0.006),
+                0.028,
+                [const Color(0xFFFFE2A0), const Color(0xFFB17E37)],
               ),
           );
+          if (ids.collar.contains('bell')) {
+            line(
+              center + const Offset(-0.012, 0.006),
+              center + const Offset(0.012, 0.006),
+              const Color(0xFF795B36),
+              0.004,
+            );
+          }
         }
-      } else if (!back) {
-        final center = neck + const Offset(0, 0.035);
-        c.drawCircle(
-          center,
-          0.024,
-          Paint()
-            ..shader = Gradient.radial(
-              center - const Offset(0.006, 0.006),
-              0.03,
-              [const Color(0xFFFFE2A0), const Color(0xFFB17E37)],
-            ),
-        );
-        if (ids.collar.contains('bell')) {
-          line(
-            center + const Offset(-0.012, 0.006),
-            center + const Offset(0.012, 0.006),
-            const Color(0xFF795B36),
-            0.004,
+      }
+      if (ids.neck != 'neck.none' && !(skipPilot && ids.neck == 'neck.coral')) {
+        final isBow = ids.neck.contains('bowtie');
+        final fill = isBow
+            ? const Color(0xFF445B84)
+            : ids.neck.contains('knit')
+            ? const Color(0xFF8B769E)
+            : const Color(0xFFD76F72);
+        shape(fit.band(isBow ? 0.028 : 0.048), fill);
+        if (isBow) {
+          if (!back) bow(pendant, fill, front ? 0.075 : 0.057);
+        } else if (!back) {
+          final left = fit.at(front ? 0.10 : 0.30);
+          final right = fit.at(front ? 0.90 : 0.93);
+          final tip = pendant + Offset(front ? 0.014 : -0.018, 0.133);
+          shape(
+            Path()
+              ..moveTo(left.dx, left.dy)
+              ..quadraticBezierTo(
+                fit.at(0.55).dx,
+                fit.at(0.55).dy + 0.047,
+                right.dx,
+                right.dy,
+              )
+              ..quadraticBezierTo(
+                right.dx - 0.025,
+                right.dy + 0.078,
+                tip.dx,
+                tip.dy,
+              )
+              ..quadraticBezierTo(
+                left.dx + 0.033,
+                left.dy + 0.080,
+                left.dx,
+                left.dy,
+              )
+              ..close(),
+            fill,
           );
         }
       }
-    }
-    if (ids.neck != 'neck.none' && !(skipPilot && ids.neck == 'neck.coral')) {
-      final fill = ids.neck.contains('knit')
-          ? const Color(0xFF8B769E)
-          : const Color(0xFFD76F72);
-      if (ids.neck.contains('bowtie')) {
-        bow(neck, const Color(0xFF445B84), 0.085);
-      } else {
-        rounded(
-          Rect.fromCenter(
-            center: neck,
-            width: front || back ? 0.27 : 0.16,
-            height: 0.047,
-          ),
-          0.017,
-          fill,
-        );
-        shape(
-          Path()
-            ..moveTo(neck.dx - 0.10, neck.dy)
-            ..lineTo(neck.dx + 0.10, neck.dy)
-            ..lineTo(neck.dx + 0.015, neck.dy + 0.14)
-            ..close(),
-          fill,
-        );
-        for (var i = 0; i < 4; i++) {
-          line(
-            neck + Offset(-0.065 + i * 0.03, 0.015),
-            neck + Offset(-0.035 + i * 0.018, 0.08),
-            const Color(0x66FFE8D8),
-            0.003,
-          );
-        }
-      }
+      c.restore();
     }
     if (ids.eyes != 'eyes.none' && !back) {
       final fill = ids.eyes.contains('sun')

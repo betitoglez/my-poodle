@@ -10,6 +10,8 @@ Alcance autorizado e implementado: gorro de lana, familia jersey y pañuelo cora
 
 Segunda revisión del piloto: cuello, puños y bajo del jersey dejan pasar el pelaje del perro mediante contornos curvos. De perfil y en carrera, la manga gira con la pata y su abertura comparte la deformación de la tela. Se regeneraron las capturas del jersey, el pañuelo y el conjunto. La suite completa pasó con 147 pruebas y el análisis estático quedó limpio.
 
+Tercera revisión del piloto. Los bordes del cuello se ajustan por pose para el pañuelo coral, el jersey, la pajarita, el pañuelo de punto y los tres collares. Se añaden tres sprites de espalda y capturas de los accesorios de cuello y el conjunto. La suite completa pasó con 148 pruebas, el análisis quedó limpio y se validaron los recursos. Revisión visual en el Mac.
+
 ## Sesión 2026-11-17 · Cuidados interactivos y revisión visual
 
 Trabajo aislado en `feat/interactive-care`, partiendo de `fb4a500`, para respetar los cambios sin commit del clon original. Se configura el ID común `com.betitoglez.mypoodle` en Android/iOS. **Build de distribución pendiente de actualización de main y rebase por indicación del propietario.** No se ha probado esta revisión en dispositivo.

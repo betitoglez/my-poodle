@@ -65,10 +65,13 @@ const assets = [
   'assets/images/rooms/vet.jpg',
   'assets/images/materials/beanie-front-v1.png',
   'assets/images/materials/beanie-side-v1.png',
+  'assets/images/materials/beanie-back-v1.png',
   'assets/images/materials/sweater-front-v1.png',
   'assets/images/materials/sweater-side-v1.png',
+  'assets/images/materials/sweater-back-v1.png',
   'assets/images/materials/bandana-front-v1.png',
   'assets/images/materials/bandana-side-v1.png',
+  'assets/images/materials/bandana-back-v1.png',
 ];
 
 void main() {

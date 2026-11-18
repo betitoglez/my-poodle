@@ -24,6 +24,7 @@ const views = [
   (PetPose.side, PetAnim.run, 0.0, 'Carrera · recogida'),
   (PetPose.side, PetAnim.run, 1 / 9, 'Carrera · extensión'),
   (PetPose.side, PetAnim.run, 2 / 9, 'Carrera · vuelo'),
+  (PetPose.back, PetAnim.idle, 1.0, 'Espalda'),
 ];
 const articles = [
   (Slot.head, 'head.beanie', 'Gorro de lana', 'beanie'),
@@ -69,7 +70,7 @@ Future<ui.Image> dog(
     pose: pose,
     anim: anim,
     t: time,
-    size: pose == PetPose.front ? 238 : 223,
+    size: pose == PetPose.side ? 223 : 238,
   );
   final pic = rec.endRecording();
   final img = await pic.toImage(width.round(), height.round());
@@ -95,129 +96,171 @@ Future<void> export(
   picture.dispose();
 }
 
-void main() {
-  testWidgets(
-    'piloto integrado: 3 prendas × 3 pelajes × frente, perfil y 3 fotogramas',
-    (t) async {
-      final b = loadBalance();
-      final catalog = AppearanceCatalog.fromJson(
-        jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
+Future<void> captureNeckAccessories(PetPainter painter, Appearance base) async {
+  const items = [
+    (Slot.neck, 'neck.coral', 'Pañuelo coral'),
+    (Slot.neck, 'neck.knit', 'Pañuelo de punto'),
+    (Slot.neck, 'neck.bowtie', 'Pajarita'),
+    (Slot.collar, 'collar.tag', 'Collar con chapa'),
+    (Slot.collar, 'collar.bell', 'Collar con cascabel'),
+    (Slot.collar, 'collar.pearls', 'Collar de perlas'),
+  ];
+  final rec = ui.PictureRecorder();
+  final canvas = ui.Canvas(rec);
+  canvas.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
+  label(canvas, 'Accesorios del cuello', const ui.Offset(24, 20), 25);
+  final previews = <ui.Image>[];
+  for (final (row, (slot, id, name)) in items.indexed) {
+    final appearance = base
+        .withSlot(Slot.coat, 'coat.white')
+        .withSlot(slot, id);
+    for (final (column, view) in [views[0], views[1], views.last].indexed) {
+      final image = await dog(painter, appearance, view.$1, view.$2, view.$3);
+      previews.add(image);
+      const panelWidth = 280.0, panelHeight = 206.0;
+      final at = ui.Offset(column * panelWidth, row * panelHeight + 70);
+      canvas.drawImageRect(
+        image,
+        const ui.Rect.fromLTWH(0, 41, 280, 178),
+        ui.Rect.fromLTWH(at.dx, at.dy, panelWidth, 178),
+        ui.Paint(),
       );
-      final painter = PetPainter(catalog)
-        ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
-      await t.runAsync(() async {
-        final font = File('/System/Library/Fonts/Supplemental/Arial.ttf');
-        if (font.existsSync()) {
-          await (FontLoader('Review')..addFont(
-                Future.value(ByteData.sublistView(font.readAsBytesSync())),
-              ))
-              .load();
-        }
-        for (final (slot, id, title, filename) in articles) {
-          final rec = ui.PictureRecorder();
-          final c = ui.Canvas(rec);
-          c.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
-          label(c, '$title · piloto integrado', const ui.Offset(24, 18), 25);
-          label(
-            c,
-            'Captura del pintor real del juego · tejido, volumen, sombra y pelaje por delante',
-            const ui.Offset(24, 54),
-            14,
-          );
-          final bitmaps = <ui.Image>[];
-          for (final (row, coat) in coats.indexed) {
-            for (final (col, view) in views.indexed) {
-              final a = b.initialAppearance
-                  .withSlot(Slot.coat, coat.$1)
-                  .withSlot(slot, id);
-              final image = await dog(painter, a, view.$1, view.$2, view.$3);
-              bitmaps.add(image);
-              final at = ui.Offset(col * 280, row * 355 + 105);
-              c.drawImage(image, at, ui.Paint());
-              label(
-                c,
-                '${coat.$2} · ${view.$4}',
-                at + const ui.Offset(14, 321),
-                13,
-              );
-            }
-          }
-          await export(rec, 1400, 1170, filename);
-          for (final image in bitmaps) {
-            image.dispose();
-          }
-        }
-        // Antes y después: mismo perro, color, cámara y reloj de animación.
+      label(canvas, '$name · ${view.$4}', at + const ui.Offset(18, 183), 14);
+    }
+  }
+  await export(rec, 840, 1310, 'neck-fit');
+  for (final image in previews) {
+    image.dispose();
+  }
+}
+
+void main() {
+  testWidgets('piloto integrado en tres pelajes y todas las vistas', (t) async {
+    final b = loadBalance();
+    final catalog = AppearanceCatalog.fromJson(
+      jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
+    );
+    final painter = PetPainter(catalog)
+      ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
+    await t.runAsync(() async {
+      final font = File('/System/Library/Fonts/Supplemental/Arial.ttf');
+      if (font.existsSync()) {
+        await (FontLoader('Review')..addFont(
+              Future.value(ByteData.sublistView(font.readAsBytesSync())),
+            ))
+            .load();
+      }
+      for (final (slot, id, title, filename) in articles) {
         final rec = ui.PictureRecorder();
         final c = ui.Canvas(rec);
         c.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
-        label(c, 'Integración · antes y después', const ui.Offset(24, 20), 25);
-        label(c, 'Anterior', const ui.Offset(90, 65), 18);
-        label(c, 'Piloto integrado', const ui.Offset(370, 65), 18);
+        label(c, '$title · piloto integrado', const ui.Offset(24, 18), 25);
+        label(
+          c,
+          'Captura del pintor real del juego · tejido, volumen, sombra y pelaje por delante',
+          const ui.Offset(24, 54),
+          14,
+        );
         final bitmaps = <ui.Image>[];
-        for (final (row, article) in articles.indexed) {
-          for (var col = 0; col < 2; col++) {
+        for (final (row, coat) in coats.indexed) {
+          for (final (col, view) in views.indexed) {
             final a = b.initialAppearance
-                .withSlot(Slot.coat, 'coat.white')
-                .withSlot(article.$1, article.$2);
-            final image = await dog(
-              painter,
-              a,
-              PetPose.front,
-              PetAnim.idle,
-              1,
-              integrated: col == 1,
-            );
+                .withSlot(Slot.coat, coat.$1)
+                .withSlot(slot, id);
+            final image = await dog(painter, a, view.$1, view.$2, view.$3);
             bitmaps.add(image);
-            final at = ui.Offset(col * 300 + 10, row * 355 + 95);
+            final at = ui.Offset(col * 280, row * 355 + 105);
             c.drawImage(image, at, ui.Paint());
-            label(c, article.$3, at + const ui.Offset(22, 321), 14);
+            label(
+              c,
+              '${coat.$2} · ${view.$4}',
+              at + const ui.Offset(14, 321),
+              13,
+            );
           }
         }
-        await export(rec, 620, 1170, 'before-after');
+        await export(rec, views.length * 280, 1170, filename);
         for (final image in bitmaps) {
           image.dispose();
         }
-        // Las tres piezas juntas: prueba de orden de capas en una combinación real.
-        final comboRec = ui.PictureRecorder();
-        final combo = ui.Canvas(comboRec);
-        combo.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
-        label(combo, 'Gorro + jersey + pañuelo', const ui.Offset(24, 20), 25);
-        final combinations = <ui.Image>[];
-        for (final (col, coat) in coats.indexed) {
-          for (var row = 0; row < 2; row++) {
-            final a = b.initialAppearance
-                .withSlot(Slot.coat, coat.$1)
-                .withSlot(Slot.head, 'head.beanie')
-                .withSlot(Slot.outfit, 'outfit.sweater_red')
-                .withSlot(Slot.neck, 'neck.coral');
-            final image = await dog(
-              painter,
-              a,
-              row == 0 ? PetPose.front : PetPose.side,
-              row == 0 ? PetAnim.idle : PetAnim.run,
-              row == 0 ? 1 : 0.0,
-            );
-            combinations.add(image);
-            final at = ui.Offset(col * 300 + 10, row * 355 + 70);
-            combo.drawImage(image, at, ui.Paint());
-            label(combo, coat.$2, at + const ui.Offset(22, 321), 15);
-          }
+      }
+      // Antes y después: mismo perro, color, cámara y reloj de animación.
+      final rec = ui.PictureRecorder();
+      final c = ui.Canvas(rec);
+      c.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
+      label(c, 'Integración · antes y después', const ui.Offset(24, 20), 25);
+      label(c, 'Anterior', const ui.Offset(90, 65), 18);
+      label(c, 'Piloto integrado', const ui.Offset(370, 65), 18);
+      final bitmaps = <ui.Image>[];
+      for (final (row, article) in articles.indexed) {
+        for (var col = 0; col < 2; col++) {
+          final a = b.initialAppearance
+              .withSlot(Slot.coat, 'coat.white')
+              .withSlot(article.$1, article.$2);
+          final image = await dog(
+            painter,
+            a,
+            PetPose.front,
+            PetAnim.idle,
+            1,
+            integrated: col == 1,
+          );
+          bitmaps.add(image);
+          final at = ui.Offset(col * 300 + 10, row * 355 + 95);
+          c.drawImage(image, at, ui.Paint());
+          label(c, article.$3, at + const ui.Offset(22, 321), 14);
         }
-        await export(comboRec, 920, 790, 'combination');
-        for (final image in combinations) {
-          image.dispose();
+      }
+      await export(rec, 620, 1170, 'before-after');
+      for (final image in bitmaps) {
+        image.dispose();
+      }
+      // Las tres piezas juntas: prueba de orden de capas en una combinación real.
+      final comboRec = ui.PictureRecorder();
+      final combo = ui.Canvas(comboRec);
+      combo.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
+      label(combo, 'Gorro + jersey + pañuelo', const ui.Offset(24, 20), 25);
+      final combinations = <ui.Image>[];
+      for (final (col, coat) in coats.indexed) {
+        for (final (row, view) in [
+          views[0],
+          views[1],
+          views.last,
+          views[2],
+        ].indexed) {
+          final a = b.initialAppearance
+              .withSlot(Slot.coat, coat.$1)
+              .withSlot(Slot.head, 'head.beanie')
+              .withSlot(Slot.outfit, 'outfit.sweater_red')
+              .withSlot(Slot.neck, 'neck.coral');
+          final image = await dog(painter, a, view.$1, view.$2, view.$3);
+          combinations.add(image);
+          final at = ui.Offset(col * 300 + 10, row * 355 + 70);
+          combo.drawImage(image, at, ui.Paint());
+          label(
+            combo,
+            '${coat.$2} · ${view.$4}',
+            at + const ui.Offset(22, 321),
+            15,
+          );
         }
-        painter.integratedPilot = true;
-        expect(
-          painter.integratedAccessories.readyFor(
-            b.initialAppearance.withSlot(Slot.head, 'head.beanie'),
-          ),
-          isTrue,
-        );
-      });
-    },
-  );
+      }
+      await export(comboRec, 920, 1500, 'combination');
+      for (final image in combinations) {
+        image.dispose();
+      }
+      if (Platform.environment['POODLE_REVIEW'] == '1') {
+        await captureNeckAccessories(painter, b.initialAppearance);
+      }
+      painter.integratedPilot = true;
+      expect(
+        painter.integratedAccessories.readyFor(
+          b.initialAppearance.withSlot(Slot.head, 'head.beanie'),
+        ),
+        isTrue,
+      );
+    });
+  });
 
   testWidgets('un artículo fuera del piloto conserva exactamente su render', (
     t,
@@ -361,6 +404,49 @@ void main() {
         }
         jersey.dispose();
         fur.dispose();
+      }
+    });
+  });
+
+  testWidgets('el pañuelo cubre ambos lados del cuello también de espaldas', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final catalog = AppearanceCatalog.fromJson(
+      jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
+    );
+    final painter = PetPainter(catalog)
+      ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
+    await t.runAsync(() async {
+      final dressed = balance.initialAppearance
+          .withSlot(Slot.coat, 'coat.white')
+          .withSlot(Slot.neck, 'neck.coral');
+      // Puntos sobre la tela cerca de ambas orillas, sobre pelaje blanco.
+      final edges = [
+        (views[0], const [ui.Offset(-0.142, -0.603), ui.Offset(0.073, -0.596)]),
+        (views[1], const [ui.Offset(0.161, -0.626), ui.Offset(0.395, -0.604)]),
+        (
+          views.last,
+          const [ui.Offset(-0.130, -0.597), ui.Offset(0.068, -0.601)],
+        ),
+      ];
+      for (final (view, points) in edges) {
+        final (pose, animation, time, caption) = view;
+        final image = await dog(painter, dressed, pose, animation, time);
+        final rgba = (await image.toByteData())!.buffer.asUint8List();
+        final size = pose == PetPose.side ? 223 : 238;
+        for (final point in points) {
+          final x = (140 + point.dx * size).round();
+          final y = (298 + point.dy * size).round();
+          final i = (y * 280 + x) * 4;
+          expect(
+            rgba[i] - rgba[i + 1],
+            greaterThan(45),
+            reason: '$caption $point',
+          );
+          expect(rgba[i + 3], greaterThan(225), reason: '$caption $point');
+        }
+        image.dispose();
       }
     });
   });
