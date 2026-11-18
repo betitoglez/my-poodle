@@ -92,6 +92,11 @@ class IntegratedAccessories {
   // del puño conserva su posición al cambiar de fotograma.
   Offset _placed(Rect dst, String pose, double u, double v) {
     final p = Offset(dst.left + u * dst.width, dst.top + v * dst.height);
+    if (pose == 'back') {
+      // Ensancha los dos puños inferiores hacia sus patas correspondientes.
+      final lower = _ease((v - 0.54) / 0.37);
+      return p + Offset(((u - 0.5) * 0.053 + 0.010) * lower, 0);
+    }
     final (cuff, angle) = switch (pose) {
       'side' => (const Offset(0.222, -0.185), -0.10),
       'run_a' => (const Offset(0.285, -0.152), -0.76),
@@ -112,7 +117,29 @@ class IntegratedAccessories {
     final x = (1 - ((u - 0.583).abs() - 0.15) / 0.19).clamp(0.0, 1.0);
     final y = ((v - 0.5) / 0.43).clamp(0.0, 1.0);
     final weight = x * y * y * (3 - 2 * y);
-    return Offset.lerp(p, target, weight)!;
+    final sleeve = Offset.lerp(p, target, weight)!;
+    // Extiende el peto hasta el contorno del pecho y abraza la cadera. La
+    // deformación no arrastra el puño, que sigue el eje de su pata.
+    final (chest, hip, hemDrop) = switch (pose) {
+      'side' => (0.110, 0.143, 0.086),
+      'run_a' => (0.065, 0.038, 0.045),
+      'run_b' => (0.080, 0.063, 0.055),
+      _ => (0.084, 0.054, 0.058),
+    };
+    final chestWeight =
+        _ease((u - 0.57) / 0.32) *
+        (0.55 + _ease((v - 0.11) / 0.30) * 0.45) *
+        (1 - _ease((v - 0.58) / 0.25));
+    final hindQuarter = 1 - _ease((u - 0.12) / 0.33);
+    final hipWeight = hindQuarter * _ease((v - 0.06) / 0.34);
+    final hemWeight = hindQuarter * _ease((v - 0.26) / 0.36);
+    return sleeve +
+        Offset(chest * chestWeight - hip * hipWeight, hemDrop * hemWeight);
+  }
+
+  double _ease(double value) {
+    final t = value.clamp(0.0, 1.0);
+    return t * t * (3 - 2 * t);
   }
 
   void _draw(
@@ -257,7 +284,7 @@ class IntegratedAccessories {
         center - 0.206,
         neck.left.dy - 0.030,
         center + 0.213,
-        -0.263,
+        -0.197,
       ),
       'run_a' => const Rect.fromLTRB(-0.355, -0.515, 0.305, -0.115),
       'run_b' => const Rect.fromLTRB(-0.335, -0.615, 0.31, -0.15),
@@ -278,45 +305,7 @@ class IntegratedAccessories {
     _draw(c, name, rect, deformation: pose, colorFilter: filter);
     _openSweater(c, rect, pose, base, petRect, coatPaint);
     if (pose == 'back') {
-      // La cola está por delante de la espalda del jersey. Conserva el
-      // pelaje del corte visible, con su borde medido sobre el sprite.
-      final halfWidth = ids.hair == 'hair.teddy' ? 0.078 : 0.097;
-      final tail = Offset(petRect.center.dx - 0.014, -0.555);
-      final outline = Path()
-        ..moveTo(tail.dx - halfWidth, tail.dy)
-        ..cubicTo(
-          tail.dx - halfWidth,
-          tail.dy - 0.063,
-          tail.dx - 0.047,
-          tail.dy - 0.096,
-          tail.dx,
-          tail.dy - 0.096,
-        )
-        ..cubicTo(
-          tail.dx + 0.059,
-          tail.dy - 0.106,
-          tail.dx + halfWidth,
-          tail.dy - 0.056,
-          tail.dx + halfWidth,
-          tail.dy + 0.007,
-        )
-        ..cubicTo(
-          tail.dx + halfWidth,
-          tail.dy + 0.058,
-          tail.dx + 0.057,
-          tail.dy + 0.092,
-          tail.dx + 0.005,
-          tail.dy + 0.093,
-        )
-        ..cubicTo(
-          tail.dx - 0.068,
-          tail.dy + 0.099,
-          tail.dx - halfWidth,
-          tail.dy + 0.05,
-          tail.dx - halfWidth,
-          tail.dy,
-        )
-        ..close();
+      final outline = _tailOutline(ids, petRect);
       c.drawPath(
         outline.shift(const Offset(0.003, 0.007)),
         Paint()
@@ -327,6 +316,46 @@ class IntegratedAccessories {
     } else if (pose != 'front') {
       _fur(c, PetNeck.earMask(pose, lm['headTop']!), base, petRect, coatPaint);
     }
+  }
+
+  Path _tailOutline(Appearance ids, Rect petRect) {
+    final halfWidth = ids.hair == 'hair.teddy' ? 0.078 : 0.097;
+    final tail = Offset(petRect.center.dx - 0.014, -0.555);
+    return Path()
+      ..moveTo(tail.dx - halfWidth, tail.dy)
+      ..cubicTo(
+        tail.dx - halfWidth,
+        tail.dy - 0.063,
+        tail.dx - 0.047,
+        tail.dy - 0.096,
+        tail.dx,
+        tail.dy - 0.096,
+      )
+      ..cubicTo(
+        tail.dx + 0.059,
+        tail.dy - 0.106,
+        tail.dx + halfWidth,
+        tail.dy - 0.056,
+        tail.dx + halfWidth,
+        tail.dy + 0.007,
+      )
+      ..cubicTo(
+        tail.dx + halfWidth,
+        tail.dy + 0.058,
+        tail.dx + 0.057,
+        tail.dy + 0.092,
+        tail.dx + 0.005,
+        tail.dy + 0.093,
+      )
+      ..cubicTo(
+        tail.dx - 0.068,
+        tail.dy + 0.099,
+        tail.dx - halfWidth,
+        tail.dy + 0.05,
+        tail.dx - halfWidth,
+        tail.dy,
+      )
+      ..close();
   }
 
   final Map<(Rect, String), Path> _openingCache = {};
@@ -375,8 +404,8 @@ class IntegratedAccessories {
           uv.close();
         }
       } else {
-        // Cuello, boca de la manga y bajo. La tela exterior sigue visible
-        // alrededor de cada unión en vez de cubrir la pata completa.
+        // Solo se descubre la garganta por encima del cuello, y la pata
+        // al salir de su puño. La cadera y el pecho quedan vestidos.
         uv.moveTo(0.557, -0.04);
         uv.cubicTo(0.526, 0.061, 0.60, 0.117, 0.717, 0.169);
         uv.cubicTo(0.810, 0.215, 0.919, 0.229, 0.966, 0.146);
@@ -385,10 +414,6 @@ class IntegratedAccessories {
         uv.moveTo(0.458, 1.04);
         uv.cubicTo(0.438, 0.985, 0.481, 0.943, 0.552, 0.938);
         uv.cubicTo(0.671, 0.925, 0.732, 0.946, 0.731, 1.04);
-        uv.close();
-        uv.moveTo(-0.04, 0.066);
-        uv.cubicTo(0.071, 0.104, 0.082, 0.256, 0.061, 0.37);
-        uv.quadraticBezierTo(0.028, 0.57, -0.03, 0.65);
         uv.close();
       }
       return _mapPath(uv, rect, pose);
@@ -430,18 +455,16 @@ class IntegratedAccessories {
   ) {
     if (!bandana(ids) || !supportsPose(pose) || !readyFor(ids)) return;
     final neck = PetNeck.forPose(pose, ids.hair);
+    if (pose == 'back') {
+      _paintNapeBand(c, neck, base, petRect, coatPaint, ids);
+      return;
+    }
     final (name, uvLeft, uvRight, height) = switch (pose) {
       'front' => (
         'bandana-front',
         const Offset(0.062, 0.083),
         const Offset(0.675, 0.079),
         0.245,
-      ),
-      'back' => (
-        'bandana-back',
-        const Offset(0.050, 0.155),
-        const Offset(0.980, 0.155),
-        0.095,
       ),
       _ => (
         'bandana-side',
@@ -464,9 +487,51 @@ class IntegratedAccessories {
     );
     _shadow(c, name, rect, '', base, petRect, shear: shear);
     _draw(c, name, rect, shear: shear);
-    if (pose != 'front' && pose != 'back') {
+    if (pose != 'front') {
       _fur(c, PetNeck.earMask(pose, lm['headTop']!), base, petRect, coatPaint);
     }
+  }
+
+  void _paintNapeBand(
+    Canvas c,
+    PetNeck neck,
+    SpriteLayer base,
+    Rect petRect,
+    Paint coatPaint,
+    Appearance ids,
+  ) {
+    // Desde atrás solo asoma un borde de tela bajo las orejas. Se toma
+    // una franja limpia de la misma ilustración, al lado del nudo.
+    final cloth = _images['bandana-back']!;
+    final src = cloth.source;
+    final cotton = Rect.fromLTRB(
+      src.left + src.width * 0.51,
+      src.top + src.height * 0.43,
+      src.left + src.width * 0.82,
+      src.top + src.height * 0.59,
+    );
+    final napeLift = const Offset(0, 0.064);
+    final nape = PetNeck(
+      neck.at(0.12, drape: 0) - napeLift,
+      neck.at(0.88, drape: 0) - napeLift,
+    );
+    final hem = nape.band(0.018, drape: 0.009);
+    c.drawPath(
+      hem.shift(const Offset(0, 0.003)),
+      Paint()
+        ..color = const Color(0x77432F2A)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.004),
+    );
+    c.save();
+    c.clipPath(hem);
+    c.drawImageRect(
+      cloth.image,
+      cotton,
+      hem.getBounds(),
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    c.restore();
+    _fur(c, _tailOutline(ids, petRect), base, petRect, coatPaint);
   }
 
   void paintBeanie(

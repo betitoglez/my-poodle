@@ -53,8 +53,8 @@ class PetNeck {
   Offset at(double t, {double drape = 0.030}) =>
       Offset.lerp(left, right, t)! + Offset(0, math.sin(t * math.pi) * drape);
 
-  Path band(double height) {
-    final mid = at(0.5);
+  Path band(double height, {double drape = 0.030}) {
+    final mid = at(0.5, drape: drape);
     final middle = (left + right) / 2;
     final curve = mid.dy + (mid.dy - middle.dy);
     return Path()

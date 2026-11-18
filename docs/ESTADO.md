@@ -12,6 +12,8 @@ Segunda revisión del piloto: cuello, puños y bajo del jersey dejan pasar el pe
 
 Tercera revisión del piloto. Los bordes del cuello se ajustan por pose para el pañuelo coral, el jersey, la pajarita, el pañuelo de punto y los tres collares. Se añaden tres sprites de espalda y capturas de los accesorios de cuello y el conjunto. La suite completa pasó con 148 pruebas, el análisis quedó limpio y se validaron los recursos. Revisión visual en el Mac.
 
+Cuarta revisión del piloto. El jersey cubre el pecho y la cadera de perfil y se ajusta a ambas patas traseras de espaldas. Solo asoma una franja del pañuelo en la nuca y la cola queda a la vista. Se actualizaron las capturas del juego y las pruebas de cobertura.
+
 ## Sesión 2026-11-17 · Cuidados interactivos y revisión visual
 
 Trabajo aislado en `feat/interactive-care`, partiendo de `fb4a500`, para respetar los cambios sin commit del clon original. Se configura el ID común `com.betitoglez.mypoodle` en Android/iOS. **Build de distribución pendiente de actualización de main y rebase por indicación del propietario.** No se ha probado esta revisión en dispositivo.

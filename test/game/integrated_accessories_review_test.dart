@@ -347,9 +347,7 @@ void main() {
     });
   });
 
-  testWidgets('el pelaje cruza el cuello, los puños y el bajo del jersey', (
-    t,
-  ) async {
+  testWidgets('el pelaje sale por el cuello y los puños del jersey', (t) async {
     final balance = loadBalance();
     final catalog = AppearanceCatalog.fromJson(
       jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
@@ -368,14 +366,7 @@ void main() {
             ui.Offset(0.097, -0.214),
           ],
         ),
-        (
-          views[1],
-          const [
-            ui.Offset(0.242, -0.596),
-            ui.Offset(0.224, -0.193),
-            ui.Offset(-0.193, -0.520),
-          ],
-        ),
+        (views[1], const [ui.Offset(0.31, -0.685), ui.Offset(0.224, -0.193)]),
         (views[2], const [ui.Offset(0.220, -0.556)]),
       ];
       for (final (view, points) in openings) {
@@ -408,7 +399,7 @@ void main() {
     });
   });
 
-  testWidgets('el pañuelo cubre ambos lados del cuello también de espaldas', (
+  testWidgets('el jersey cubre el pecho y cierra sobre ambas patas traseras', (
     t,
   ) async {
     final balance = loadBalance();
@@ -420,15 +411,61 @@ void main() {
     await t.runAsync(() async {
       final dressed = balance.initialAppearance
           .withSlot(Slot.coat, 'coat.white')
-          .withSlot(Slot.neck, 'neck.coral');
-      // Puntos sobre la tela cerca de ambas orillas, sobre pelaje blanco.
+          .withSlot(Slot.outfit, 'outfit.sweater_red');
+      final coverage = [
+        (
+          views[1],
+          const [
+            ui.Offset(0.394, -0.57),
+            ui.Offset(0.386, -0.49),
+            ui.Offset(-0.278, -0.334),
+          ],
+        ),
+        (views[2], const [ui.Offset(0.31, -0.48), ui.Offset(-0.35, -0.4)]),
+        (views[3], const [ui.Offset(0.29, -0.397), ui.Offset(-0.338, -0.333)]),
+        (views[4], const [ui.Offset(0.322, -0.487), ui.Offset(-0.32, -0.42)]),
+        (
+          views.last,
+          const [ui.Offset(-0.10, -0.217), ui.Offset(0.086, -0.217)],
+        ),
+      ];
+      for (final (view, points) in coverage) {
+        final (pose, animation, time, caption) = view;
+        final image = await dog(painter, dressed, pose, animation, time);
+        final rgba = (await image.toByteData())!.buffer.asUint8List();
+        final size = pose == PetPose.side ? 223 : 238;
+        for (final point in points) {
+          final x = (140 + point.dx * size).round();
+          final y = (298 + point.dy * size).round();
+          final i = (y * 280 + x) * 4;
+          expect(
+            rgba[i] - rgba[i + 1],
+            greaterThan(45),
+            reason: '$caption $point',
+          );
+          expect(rgba[i + 3], greaterThan(225), reason: '$caption $point');
+        }
+        image.dispose();
+      }
+    });
+  });
+
+  testWidgets('el pañuelo rodea el cuello y deja visible la cola de espaldas', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final catalog = AppearanceCatalog.fromJson(
+      jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
+    );
+    final painter = PetPainter(catalog)
+      ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
+    await t.runAsync(() async {
+      final base = balance.initialAppearance.withSlot(Slot.coat, 'coat.white');
+      final dressed = base.withSlot(Slot.neck, 'neck.coral');
       final edges = [
         (views[0], const [ui.Offset(-0.142, -0.603), ui.Offset(0.073, -0.596)]),
         (views[1], const [ui.Offset(0.161, -0.626), ui.Offset(0.395, -0.604)]),
-        (
-          views.last,
-          const [ui.Offset(-0.130, -0.597), ui.Offset(0.068, -0.601)],
-        ),
+        (views.last, const [ui.Offset(-0.03, -0.675)]),
       ];
       for (final (view, points) in edges) {
         final (pose, animation, time, caption) = view;
@@ -448,6 +485,37 @@ void main() {
         }
         image.dispose();
       }
+      final jersey = base.withSlot(Slot.outfit, 'outfit.sweater_red');
+      final back = await dog(painter, jersey, PetPose.back, PetAnim.idle, 1);
+      final dressedBack = await dog(
+        painter,
+        dressed.withSlot(Slot.outfit, 'outfit.sweater_red'),
+        PetPose.back,
+        PetAnim.idle,
+        1,
+      );
+      final bareTail = (await back.toByteData())!.buffer.asUint8List();
+      final withBandana = (await dressedBack.toByteData())!.buffer
+          .asUint8List();
+      for (final point in const [
+        ui.Offset(-0.034, -0.55),
+        ui.Offset(-0.08, -0.597),
+        ui.Offset(0.04, -0.59),
+      ]) {
+        final x = (140 + point.dx * 238).round();
+        final y = (298 + point.dy * 238).round();
+        final i = (y * 280 + x) * 4;
+        expect(bareTail[i + 3], greaterThan(225), reason: 'Cola $point');
+        for (var channel = 0; channel < 4; channel++) {
+          expect(
+            (bareTail[i + channel] - withBandana[i + channel]).abs(),
+            lessThanOrEqualTo(2),
+            reason: 'Cola $point',
+          );
+        }
+      }
+      back.dispose();
+      dressedBack.dispose();
     });
   });
 }
