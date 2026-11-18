@@ -13,8 +13,9 @@ abstract final class PetAccessories {
     Appearance ids,
     String pose,
     Map<String, Offset> lm,
-    double time,
-  ) {
+    double time, {
+    bool skipPilot = false,
+  }) {
     final front = pose == 'front';
     final back = pose == 'back';
     final top = lm['headTop'] ?? const Offset(0, -0.94);
@@ -93,7 +94,8 @@ abstract final class PetAccessories {
       );
     }
 
-    if (ids.outfit != 'outfit.none') {
+    if (ids.outfit != 'outfit.none' &&
+        !(skipPilot && ids.outfit.startsWith('outfit.sweater_'))) {
       final fill = color(ids.outfit, const Color(0xFF377F79));
       final side = !front && !back;
       final width = side ? 0.42 : 0.31;
@@ -272,7 +274,7 @@ abstract final class PetAccessories {
         }
       }
     }
-    if (ids.neck != 'neck.none') {
+    if (ids.neck != 'neck.none' && !(skipPilot && ids.neck == 'neck.coral')) {
       final fill = ids.neck.contains('knit')
           ? const Color(0xFF8B769E)
           : const Color(0xFFD76F72);
@@ -363,7 +365,7 @@ abstract final class PetAccessories {
         );
       }
     }
-    if (ids.head == 'head.beanie') {
+    if (ids.head == 'head.beanie' && !skipPilot) {
       final center = top + const Offset(0, -0.004);
       final r = Rect.fromCenter(
         center: center,

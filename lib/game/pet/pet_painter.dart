@@ -7,6 +7,7 @@ import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
 import 'pet_sprites.dart';
 import 'pet_accessories.dart';
+import 'integrated_accessories.dart';
 
 /// Reacciones y bucles compartidos por todas las capas (reloj común).
 enum PetAnim {
@@ -99,6 +100,10 @@ enum _Eyes { open, blink, happy, closed }
 class PetPainter extends ChangeNotifier {
   PetPainter(this.catalog);
   final AppearanceCatalog catalog;
+  final IntegratedAccessories integratedAccessories = IntegratedAccessories();
+
+  /// Comparativa visual reproducible de los tres artículos del piloto.
+  bool integratedPilot = true;
 
   PetSprites? _sprites;
 
@@ -318,6 +323,7 @@ class PetPainter extends ChangeNotifier {
       final r = resolve(p, ids);
       if (r != null) names.add(r.pose);
     }
+    if (integratedPilot) await integratedAccessories.warm(ids);
     await sp.preload(hair: ids.hair, poseNames: names);
     final coat = catalog.resolve(ids).coat;
     final palette = [
@@ -592,7 +598,51 @@ class PetPainter extends ChangeNotifier {
         );
       }
     }
-    PetAccessories.paint(c, catalog, ids, poseName, meta.landmarks, s.t);
+    final pilot =
+        integratedPilot &&
+        IntegratedAccessories.supportsPose(poseName) &&
+        integratedAccessories.readyFor(ids);
+    if (pilot) {
+      integratedAccessories.paintSweater(
+        c,
+        catalog,
+        ids,
+        poseName,
+        meta.landmarks,
+        base,
+        rectOf(base.box),
+        coatPaint,
+      );
+    }
+    PetAccessories.paint(
+      c,
+      catalog,
+      ids,
+      poseName,
+      meta.landmarks,
+      s.t,
+      skipPilot: pilot,
+    );
+    if (pilot) {
+      integratedAccessories.paintBandana(
+        c,
+        ids,
+        poseName,
+        meta.landmarks,
+        base,
+        rectOf(base.box),
+        coatPaint,
+      );
+      integratedAccessories.paintBeanie(
+        c,
+        ids,
+        poseName,
+        meta.landmarks,
+        base,
+        rectOf(base.box),
+        coatPaint,
+      );
+    }
     _dirt(s, meta.landmarks);
     c.restore();
     _foamAtLandmarks(s, meta.landmarks);
