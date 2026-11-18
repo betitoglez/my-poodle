@@ -8,6 +8,8 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 Alcance autorizado e implementado: gorro de lana, familia jersey y pañuelo coral. Seis recursos ilustrados locales, ajuste por pose mediante malla, oclusión del pelaje original y sombras recortadas al cuerpo. El resto del catálogo conserva su representación anterior. Capturas de frente, perfil y carrera sobre albaricoque, blanco y negro en [la revisión del piloto](reviews/integrated-pilot/README.md). Se descartó una primera prueba de texturas planas: no resolvía el volumen del jersey. Análisis limpio y 36 pruebas relevantes correctas, incluyendo facciones y regresión de artículos ajenos al piloto. Revisado visualmente en este Mac; valoración del propietario y dispositivo pendientes. Sin build de distribución; cambios sin commit del clon original respetados.
 
+Segunda revisión del piloto: cuello, puños y bajo del jersey dejan pasar el pelaje del perro mediante contornos curvos. De perfil y en carrera, la manga gira con la pata y su abertura comparte la deformación de la tela. Se regeneraron las capturas del jersey, el pañuelo y el conjunto. La suite completa pasó con 147 pruebas y el análisis estático quedó limpio.
+
 ## Sesión 2026-11-17 · Cuidados interactivos y revisión visual
 
 Trabajo aislado en `feat/interactive-care`, partiendo de `fb4a500`, para respetar los cambios sin commit del clon original. Se configura el ID común `com.betitoglez.mypoodle` en Android/iOS. **Build de distribución pendiente de actualización de main y rebase por indicación del propietario.** No se ha probado esta revisión en dispositivo.

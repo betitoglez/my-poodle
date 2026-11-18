@@ -22,9 +22,12 @@ Son renders del pintor real del juego, que se utiliza también en Casa, Armario 
 
 Código: `lib/game/pet/integrated_accessories.dart`, composición en `pet_painter.dart` y exclusión de las tres representaciones anteriores en `pet_accessories.dart`.
 
+En la segunda revisión, los contornos del cuello, los puños y el bajo dejan ver el pelaje que sale por cada abertura. La abertura de la manga comparte la deformación y la orientación de la tela en cada fotograma. El pañuelo conserva la curva de su borde frontal. Las láminas del jersey, el pañuelo y el conjunto muestran este ajuste.
+
 ## Validación
 
-- `flutter analyze --no-pub`: sin incidencias.
+- `flutter analyze --no-pub` sin incidencias.
+- `flutter test --no-pub` con **147 pruebas correctas** tras el ajuste de los contornos. Incluye comprobar que el pelaje del caniche blanco se ve en el cuello y ambos puños de frente, y en el cuello, el puño y el bajo de perfil.
 - `flutter test --no-pub test/game/pet_sprites_test.dart test/game/integrated_accessories_review_test.dart test/ui/features_test.dart test/ui/app_flow_test.dart`: **36 pruebas correctas**.
 - El piloto produce las 45 combinaciones individuales (3 prendas × 3 pelajes × 5 vistas/fotogramas), la comparativa y seis combinaciones de las tres prendas juntas.
 - Comprobación visual local de las cinco láminas. La prueba de facciones comprueba ojos y hocico con margen de dos niveles de canal para redondeo del raster/alfa.

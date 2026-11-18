@@ -87,6 +87,33 @@ class IntegratedAccessories {
     }();
   }
 
+  // Las máscaras y el tejido se deforman con la misma función. Así el hueco
+  // del puño conserva su posición al cambiar de fotograma.
+  Offset _placed(Rect dst, String pose, double u, double v) {
+    final p = Offset(dst.left + u * dst.width, dst.top + v * dst.height);
+    final (cuff, angle) = switch (pose) {
+      'side' => (const Offset(0.222, -0.185), -0.10),
+      'run_a' => (const Offset(0.285, -0.152), -0.76),
+      'run_b' => (const Offset(0.221, -0.203), -0.55),
+      'jump' => (const Offset(0.285, -0.256), -0.77),
+      _ => (null, 0.0),
+    };
+    if (cuff == null) return p;
+
+    // Centro del puño en el PNG de perfil y dirección de la pata en el sprite.
+    final center = Offset(
+      dst.left + dst.width * 0.583,
+      dst.top + dst.height * 0.973,
+    );
+    final d = p - center;
+    final cs = math.cos(angle), sn = math.sin(angle);
+    final target = cuff + Offset(d.dx * cs - d.dy * sn, d.dx * sn + d.dy * cs);
+    final x = (1 - ((u - 0.583).abs() - 0.15) / 0.19).clamp(0.0, 1.0);
+    final y = ((v - 0.5) / 0.43).clamp(0.0, 1.0);
+    final weight = x * y * y * (3 - 2 * y);
+    return Offset.lerp(p, target, weight)!;
+  }
+
   void _draw(
     Canvas c,
     String name,
@@ -106,22 +133,7 @@ class IntegratedAccessories {
         final v = row / n;
         for (var col = 0; col <= n; col++) {
           final u = col / n;
-          var dx = dst.left + u * dst.width, dy = dst.top + v * dst.height;
-          // Solo el extremo de la manga cambia de dirección: la trama y
-          // las sombras del torso conservan continuidad en cada fotograma.
-          final sleeve =
-              ((u - 0.25) / 0.35).clamp(0.0, 1.0) *
-              ((v - 0.50) / 0.50).clamp(0.0, 1.0);
-          if (deformation == 'run_a') {
-            dx += sleeve * 0.17;
-            dy -= sleeve * 0.070;
-          }
-          if (deformation == 'run_b' || deformation == 'jump') {
-            dx += sleeve * 0.070;
-            dy -= sleeve * 0.055;
-          }
-          if (deformation == 'side') dx += sleeve * 0.055;
-          positions.add(Offset(dx, dy));
+          positions.add(_placed(dst, deformation, u, v));
           uv.add(
             Offset(
               cloth.source.left + u * cloth.source.width,
@@ -210,28 +222,6 @@ class IntegratedAccessories {
     c.restore();
   }
 
-  /// Borde con rizos de la propia imagen. Cada color conserva su pelaje:
-  /// no se añaden mechones albaricoque a un caniche blanco o negro.
-  Path _fringe(Offset a, Offset b, {double depth = 0.04, bool below = true}) {
-    final delta = b - a;
-    final normal = Offset(-delta.dy, delta.dx) / delta.distance;
-    final p = Path()..moveTo(a.dx, a.dy);
-    for (var i = 0; i < 20; i++) {
-      final x = a + delta * (i / 20), y = a + delta * ((i + 1) / 20);
-      final lift = normal * (0.003 + math.sin(i * 9.1) * 0.004);
-      p.quadraticBezierTo(
-        (x.dx + y.dx) / 2 + lift.dx,
-        (x.dy + y.dy) / 2 + lift.dy,
-        y.dx,
-        y.dy,
-      );
-    }
-    final n = normal * (below ? depth : -depth);
-    p.lineTo(b.dx + n.dx, b.dy + n.dy);
-    p.lineTo(a.dx + n.dx, a.dy + n.dy);
-    return p..close();
-  }
-
   Path _ear(String pose, Offset head) {
     final offset = switch (pose) {
       'run_a' => const Offset(-0.11, 0.11),
@@ -284,64 +274,96 @@ class IntegratedAccessories {
         : null;
     _shadow(c, name, rect, pose, base, petRect);
     _draw(c, name, rect, deformation: pose, colorFilter: filter);
-    if (front) {
-      _fur(
-        c,
-        _fringe(
-          Offset(center - 0.13, -0.606),
-          Offset(center + 0.13, -0.606),
-          depth: 0.095,
-          below: false,
-        ),
-        base,
-        petRect,
-        coatPaint,
-      );
-      for (final side in [-1.0, 1.0]) {
-        final x = center + side * 0.104;
-        _fur(
-          c,
-          _fringe(Offset(x - 0.06, -0.203), Offset(x + 0.06, -0.203)),
-          base,
-          petRect,
-          coatPaint,
-        );
-      }
-    } else {
-      final head = lm['headTop']!;
-      // La oreja y la garganta se sitúan delante del cuello del jersey.
-      _fur(c, _ear(pose, head), base, petRect, coatPaint);
-      final cuff = switch (pose) {
-        'run_a' => (const Offset(0.20, -0.205), const Offset(0.30, -0.16)),
-        'run_b' ||
-        'jump' => (const Offset(0.105, -0.235), const Offset(0.205, -0.235)),
-        _ => (
-          Offset(neck.dx - 0.12, neck.dy + 0.37),
-          Offset(neck.dx + 0.01, neck.dy + 0.37),
-        ),
-      };
-      _fur(
-        c,
-        _fringe(cuff.$1, cuff.$2, depth: 0.045),
-        base,
-        petRect,
-        coatPaint,
-      );
-      final chin = lm['mouth']!;
-      _fur(
-        c,
-        Path()..addOval(
-          Rect.fromCenter(
-            center: chin + const Offset(-0.06, 0.025),
-            width: 0.18,
-            height: 0.075,
-          ),
-        ),
-        base,
-        petRect,
-        coatPaint,
-      );
+    _openSweater(c, rect, pose, base, petRect, coatPaint);
+    if (!front) {
+      _fur(c, _ear(pose, lm['headTop']!), base, petRect, coatPaint);
     }
+  }
+
+  final Map<(Rect, String), Path> _openingCache = {};
+
+  void _openSweater(
+    Canvas c,
+    Rect rect,
+    String pose,
+    SpriteLayer base,
+    Rect petRect,
+    Paint coatPaint,
+  ) {
+    final openings = _openingCache.putIfAbsent((rect, pose), () {
+      final uv = Path();
+      if (pose == 'front') {
+        // La nuca oculta la pared trasera. Queda la curva de punto delantera.
+        uv.moveTo(0.217, -0.04);
+        uv.cubicTo(0.195, 0.052, 0.264, 0.105, 0.370, 0.118);
+        uv.cubicTo(0.505, 0.145, 0.695, 0.124, 0.77, 0.072);
+        uv.quadraticBezierTo(0.805, 0.035, 0.796, -0.04);
+        uv.close();
+        // El pelo entra en ambos puños hasta el borde enrollado.
+        for (final (left, right) in [(0.080, 0.441), (0.589, 0.960)]) {
+          final w = right - left;
+          uv.moveTo(left, 1.04);
+          uv.cubicTo(
+            left - 0.012,
+            0.970,
+            left + w * 0.12,
+            0.945,
+            left + w * 0.45,
+            0.940,
+          );
+          uv.cubicTo(
+            right - w * 0.12,
+            0.930,
+            right + 0.014,
+            0.961,
+            right,
+            1.04,
+          );
+          uv.close();
+        }
+      } else {
+        // Cuello, boca de la manga y bajo. La tela exterior sigue visible
+        // alrededor de cada unión en vez de cubrir la pata completa.
+        uv.moveTo(0.557, -0.04);
+        uv.cubicTo(0.526, 0.061, 0.60, 0.117, 0.717, 0.169);
+        uv.cubicTo(0.810, 0.215, 0.919, 0.229, 0.966, 0.146);
+        uv.lineTo(1.03, -0.04);
+        uv.close();
+        uv.moveTo(0.458, 1.04);
+        uv.cubicTo(0.438, 0.985, 0.481, 0.943, 0.552, 0.938);
+        uv.cubicTo(0.671, 0.925, 0.732, 0.946, 0.731, 1.04);
+        uv.close();
+        uv.moveTo(-0.04, 0.066);
+        uv.cubicTo(0.071, 0.104, 0.082, 0.256, 0.061, 0.37);
+        uv.quadraticBezierTo(0.028, 0.57, -0.03, 0.65);
+        uv.close();
+      }
+      return _mapPath(uv, rect, pose);
+    });
+    _fur(c, openings, base, petRect, coatPaint);
+  }
+
+  Path _mapPath(Path uv, Rect rect, String pose) {
+    final mapped = Path();
+    for (final contour in uv.computeMetrics(forceClosed: true)) {
+      // Muescas muy pequeñas rompen el borde de corte del pelaje. La malla
+      // comparte la transformación en cada muestra de este contorno.
+      for (var i = 0; i < 80; i++) {
+        final tangent = contour.getTangentForOffset(contour.length * i / 80)!;
+        final p =
+            tangent.position +
+            Offset(-tangent.vector.dy, tangent.vector.dx) *
+                (0.003 + math.sin(i * 2.6) * 0.006);
+        final pos = _placed(rect, pose, p.dx, p.dy);
+        if (i == 0) {
+          mapped.moveTo(pos.dx, pos.dy);
+        } else {
+          mapped.lineTo(pos.dx, pos.dy);
+        }
+      }
+      mapped.close();
+    }
+    return mapped;
   }
 
   void paintBandana(
@@ -369,22 +391,8 @@ class IntegratedAccessories {
     if (pose == 'back') return; // El triángulo queda al otro lado del cuello.
     _shadow(c, name, rect, '', base, petRect);
     _draw(c, name, rect);
-    if (front) {
-      _fur(
-        c,
-        _fringe(
-          Offset(center - 0.13, -0.590),
-          Offset(center + 0.11, -0.590),
-          depth: 0.08,
-          below: false,
-        ),
-        base,
-        petRect,
-        coatPaint,
-      );
-    } else {
-      final head = lm['headTop']!;
-      _fur(c, _ear(pose, head), base, petRect, coatPaint);
+    if (!front) {
+      _fur(c, _ear(pose, lm['headTop']!), base, petRect, coatPaint);
     }
   }
 

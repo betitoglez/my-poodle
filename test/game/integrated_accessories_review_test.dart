@@ -303,4 +303,65 @@ void main() {
       }
     });
   });
+
+  testWidgets('el pelaje cruza el cuello, los puños y el bajo del jersey', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final catalog = AppearanceCatalog.fromJson(
+      jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
+    );
+    final painter = PetPainter(catalog)
+      ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
+    await t.runAsync(() async {
+      final base = balance.initialAppearance.withSlot(Slot.coat, 'coat.white');
+      final dressed = base.withSlot(Slot.outfit, 'outfit.sweater_red');
+      final openings = [
+        (
+          views[0],
+          const [
+            ui.Offset(-0.021, -0.601),
+            ui.Offset(-0.105, -0.218),
+            ui.Offset(0.097, -0.214),
+          ],
+        ),
+        (
+          views[1],
+          const [
+            ui.Offset(0.242, -0.596),
+            ui.Offset(0.224, -0.193),
+            ui.Offset(-0.193, -0.520),
+          ],
+        ),
+        (views[2], const [ui.Offset(0.220, -0.556)]),
+      ];
+      for (final (view, points) in openings) {
+        final (pose, animation, time, caption) = view;
+        final fur = await dog(painter, base, pose, animation, time);
+        final jersey = await dog(painter, dressed, pose, animation, time);
+        final bareSample = (await fur.toByteData())!.buffer.asUint8List();
+        final dressedSample = (await jersey.toByteData())!.buffer.asUint8List();
+        final size = pose == PetPose.front ? 238 : 223;
+        for (final point in points) {
+          final x = (140 + point.dx * size).round();
+          final y = (298 + point.dy * size).round();
+          final i = (y * 280 + x) * 4;
+          expect(
+            bareSample[i + 3],
+            greaterThan(225),
+            reason: '$caption $point',
+          );
+          for (var channel = 0; channel < 3; channel++) {
+            expect(
+              (bareSample[i + channel] - dressedSample[i + channel]).abs(),
+              lessThanOrEqualTo(12),
+              reason: '$caption $point',
+            );
+          }
+        }
+        jersey.dispose();
+        fur.dispose();
+      }
+    });
+  });
 }
