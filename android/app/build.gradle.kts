@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.mypoodle.my_poodle"
+    namespace = "com.betitoglez.mypoodle"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "dev.mypoodle.my_poodle"
+        applicationId = "com.betitoglez.mypoodle"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24 // Flutter 3.50 e in_app_purchase 3.3.1
