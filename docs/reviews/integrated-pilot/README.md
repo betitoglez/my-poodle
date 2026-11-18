@@ -8,6 +8,7 @@ El piloto integra el gorro de lana, la familia jersey y el pañuelo coral. La re
 - [Gorro de lana](beanie.png): tres pelajes × frente, perfil, espalda y tres fotogramas de carrera.
 - [Jersey](sweater.png) muestra el pecho cubierto de perfil, los dos puños de atrás y el ajuste en carrera.
 - [Pañuelo](bandana.png) muestra la caída sobre el pecho y la franja que asoma en la nuca.
+- [Pañuelo con jersey](bandana-sweater.png) muestra las dos prendas en los tres pelajes y las seis vistas.
 - [Los tres artículos juntos](combination.png): orden de capas sobre los tres pelajes, de frente, de perfil, de espaldas y en carrera.
 - [Accesorios del cuello](neck-fit.png) muestra pañuelo coral y de punto, pajarita y collares con chapa, cascabel y perlas en tres vistas.
 
@@ -27,14 +28,14 @@ En la segunda revisión, los contornos del cuello, los puños y el bajo dejan ve
 
 El pañuelo ajusta sus dos extremos al contorno compartido del cuello en cada pose. El jersey, los collares, la pajarita y el pañuelo de punto usan la misma referencia. La oreja tapa parte de la vuelta en perfil y carrera.
 
-La malla lateral del jersey se extiende hasta el pecho y abraza la cadera. De espaldas, el bajo se ajusta alrededor de ambas patas traseras.
+La malla del jersey baja el cuello y cubre el pecho en recogida y extensión. De perfil, los puños traseros siguen el eje de cada pata. Por detrás, una pieza de punto cierra la unión entre las dos perneras.
 
 ## Validación
 
 - `flutter analyze --no-pub` sin incidencias.
 - `flutter test --no-pub` con **149 pruebas correctas**. Incluye el ajuste del jersey en el pecho y las patas traseras, la posición del pañuelo respecto a la cola y el giro del caniche en Casa.
-- El piloto produce 54 capturas individuales, 12 del conjunto y 18 primeros planos de los accesorios de cuello.
-- Comprobación visual local de las seis láminas. La prueba de facciones comprueba ojos y hocico con margen de dos niveles de canal para redondeo del raster/alfa.
+- El piloto produce 54 capturas individuales, 18 del pañuelo con jersey, 12 del conjunto y 18 primeros planos de los accesorios de cuello.
+- Comprobación visual local de las láminas. La prueba de facciones comprueba ojos y hocico con margen de dos niveles de canal por el redondeo de la imagen.
 
 Regenerar capturas:
 

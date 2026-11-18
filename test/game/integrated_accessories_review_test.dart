@@ -150,7 +150,10 @@ void main() {
             ))
             .load();
       }
-      for (final (slot, id, title, filename) in articles) {
+      for (final (slot, id, title, filename) in [
+        ...articles,
+        (Slot.neck, 'neck.coral', 'Pañuelo + jersey', 'bandana-sweater'),
+      ]) {
         final rec = ui.PictureRecorder();
         final c = ui.Canvas(rec);
         c.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
@@ -164,9 +167,12 @@ void main() {
         final bitmaps = <ui.Image>[];
         for (final (row, coat) in coats.indexed) {
           for (final (col, view) in views.indexed) {
-            final a = b.initialAppearance
+            var a = b.initialAppearance
                 .withSlot(Slot.coat, coat.$1)
                 .withSlot(slot, id);
+            if (filename == 'bandana-sweater') {
+              a = a.withSlot(Slot.outfit, 'outfit.sweater_red');
+            }
             final image = await dog(painter, a, view.$1, view.$2, view.$3);
             bitmaps.add(image);
             final at = ui.Offset(col * 280, row * 355 + 105);
@@ -419,14 +425,20 @@ void main() {
             ui.Offset(0.394, -0.57),
             ui.Offset(0.386, -0.49),
             ui.Offset(-0.278, -0.334),
+            ui.Offset(-0.322, -0.210),
+            ui.Offset(-0.198, -0.228),
           ],
         ),
-        (views[2], const [ui.Offset(0.31, -0.48), ui.Offset(-0.35, -0.4)]),
-        (views[3], const [ui.Offset(0.29, -0.397), ui.Offset(-0.338, -0.333)]),
+        (views[2], const [ui.Offset(0.31, -0.335), ui.Offset(-0.397, -0.22)]),
+        (views[3], const [ui.Offset(0.298, -0.286), ui.Offset(-0.423, -0.169)]),
         (views[4], const [ui.Offset(0.322, -0.487), ui.Offset(-0.32, -0.42)]),
         (
           views.last,
-          const [ui.Offset(-0.10, -0.217), ui.Offset(0.086, -0.217)],
+          const [
+            ui.Offset(-0.10, -0.217),
+            ui.Offset(-0.015, -0.235),
+            ui.Offset(0.086, -0.217),
+          ],
         ),
       ];
       for (final (view, points) in coverage) {
@@ -447,6 +459,16 @@ void main() {
         }
         image.dispose();
       }
+      final (pose, animation, time, _) = views[3];
+      final image = await dog(painter, dressed, pose, animation, time);
+      final rgba = (await image.toByteData())!.buffer.asUint8List();
+      // La mandíbula baja queda libre cuando el cuello se estira.
+      final x = (140 + 0.296 * 223).round();
+      final y = (298 - 0.423 * 223).round();
+      final i = (y * 280 + x) * 4;
+      expect(rgba[i + 3], greaterThan(225));
+      expect(rgba[i] - rgba[i + 1], lessThan(30));
+      image.dispose();
     });
   });
 

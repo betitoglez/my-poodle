@@ -133,8 +133,21 @@ class IntegratedAccessories {
     final hindQuarter = 1 - _ease((u - 0.12) / 0.33);
     final hipWeight = hindQuarter * _ease((v - 0.06) / 0.34);
     final hemWeight = hindQuarter * _ease((v - 0.26) / 0.36);
+    final (collarDrop, chestDrop) = switch (pose) {
+      'run_a' => (0.087, 0.065),
+      'run_b' => (0.068, 0.053),
+      _ => (0.0, 0.0),
+    };
+    final collar = _ease((u - 0.43) / 0.12) * (1 - (v / 0.43).clamp(0.0, 1.0));
+    final bib =
+        _ease((u - 0.71) / 0.18) *
+        _ease((v - 0.30) / 0.25) *
+        (1 - _ease((v - 0.70) / 0.24));
     return sleeve +
-        Offset(chest * chestWeight - hip * hipWeight, hemDrop * hemWeight);
+        Offset(
+          chest * chestWeight - hip * hipWeight - collarDrop * 0.20 * collar,
+          hemDrop * hemWeight + collarDrop * collar + chestDrop * bib,
+        );
   }
 
   double _ease(double value) {
@@ -165,9 +178,13 @@ class IntegratedAccessories {
           positions.add(
             _placed(dst, deformation, u, v) + Offset(0, u * dst.width * shear),
           );
+          // La cara interior del bajo lateral queda doblada bajo la cadera.
+          final sampleU = name == 'sweater-side'
+              ? u + 0.067 * (1 - _ease(u / 0.27)) * _ease((v - 0.12) / 0.24)
+              : u;
           uv.add(
             Offset(
-              cloth.source.left + u * cloth.source.width,
+              cloth.source.left + sampleU * cloth.source.width,
               cloth.source.top + v * cloth.source.height,
             ),
           );
@@ -302,6 +319,11 @@ class IntegratedAccessories {
         ? ColorFilter.matrix(PetSprites.hueMatrix(42, light: 1.1))
         : null;
     _shadow(c, name, rect, pose, base, petRect);
+    if (pose == 'back') {
+      _paintBackSeam(c, rect, filter);
+    } else if (pose != 'front') {
+      _paintHindSleeves(c, pose, filter);
+    }
     _draw(c, name, rect, deformation: pose, colorFilter: filter);
     _openSweater(c, rect, pose, base, petRect, coatPaint);
     if (pose == 'back') {
@@ -316,6 +338,135 @@ class IntegratedAccessories {
     } else if (pose != 'front') {
       _fur(c, PetNeck.earMask(pose, lm['headTop']!), base, petRect, coatPaint);
     }
+  }
+
+  void _paintBackSeam(Canvas c, Rect rect, ColorFilter? filter) {
+    // El tejido interior une las dos perneras por encima de los puños.
+    final hem = rect.bottom - 0.021;
+    final x = rect.center.dx + 0.010;
+    final seam = Path()
+      ..moveTo(x - 0.069, hem - 0.087)
+      ..lineTo(x + 0.073, hem - 0.087)
+      ..lineTo(x + 0.053, hem + 0.015)
+      ..quadraticBezierTo(x, hem - 0.012, x - 0.055, hem + 0.015)
+      ..close();
+    _rearKnit(
+      c,
+      seam,
+      const Rect.fromLTRB(0.37, 0.71, 0.61, 0.83),
+      filter,
+      shaded: true,
+    );
+  }
+
+  void _paintHindSleeves(Canvas c, String pose, ColorFilter? filter) {
+    // Ejes desde la cadera hasta cada puño, siguiendo las dos patas del sprite.
+    final (farTop, farCuff, nearTop, nearCuff) = switch (pose) {
+      'run_a' => (
+        const Offset(-0.252, -0.285),
+        const Offset(-0.332, -0.145),
+        const Offset(-0.314, -0.260),
+        const Offset(-0.451, -0.137),
+      ),
+      'run_b' => (
+        const Offset(-0.236, -0.364),
+        const Offset(-0.289, -0.219),
+        const Offset(-0.324, -0.365),
+        const Offset(-0.418, -0.192),
+      ),
+      'jump' => (
+        const Offset(-0.234, -0.374),
+        const Offset(-0.325, -0.205),
+        const Offset(-0.335, -0.372),
+        const Offset(-0.424, -0.192),
+      ),
+      _ => (
+        const Offset(-0.181, -0.370),
+        const Offset(-0.204, -0.207),
+        const Offset(-0.270, -0.369),
+        const Offset(-0.330, -0.183),
+      ),
+    };
+    for (final (top, cuff, far) in [
+      (farTop, farCuff, true),
+      (nearTop, nearCuff, false),
+    ]) {
+      final axis = cuff - top;
+      final length = axis.distance;
+      final upper = far ? 0.064 : 0.075;
+      final lower = far ? 0.043 : 0.056;
+      final leg = Path()
+        ..moveTo(-upper, 0)
+        ..quadraticBezierTo(0, -0.020, upper, 0)
+        ..cubicTo(
+          upper,
+          length * 0.40,
+          lower,
+          length * 0.70,
+          lower,
+          length - 0.012,
+        )
+        ..quadraticBezierTo(0, length + 0.012, -lower, length - 0.008)
+        ..cubicTo(
+          -lower - 0.004,
+          length * 0.71,
+          -upper,
+          length * 0.34,
+          -upper,
+          0,
+        )
+        ..close();
+      c.save();
+      c.translate(top.dx, top.dy);
+      c.rotate(math.atan2(-axis.dx, axis.dy));
+      _rearKnit(
+        c,
+        leg,
+        const Rect.fromLTRB(0.60, 0.73, 0.89, 0.985),
+        filter,
+        shaded: far,
+      );
+      c.restore();
+    }
+  }
+
+  void _rearKnit(
+    Canvas c,
+    Path shape,
+    Rect uv,
+    ColorFilter? filter, {
+    required bool shaded,
+  }) {
+    final cloth = _images['sweater-back']!;
+    final src = cloth.source;
+    final bounds = shape.getBounds();
+    c.save();
+    c.clipPath(shape);
+    if (shaded) {
+      c.saveLayer(
+        bounds,
+        Paint()
+          ..colorFilter = const ColorFilter.mode(
+            Color(0xFFC7B7B2),
+            BlendMode.modulate,
+          ),
+      );
+    }
+    c.drawImageRect(
+      cloth.image,
+      Rect.fromLTRB(
+        src.left + src.width * uv.left,
+        src.top + src.height * uv.top,
+        src.left + src.width * uv.right,
+        src.top + src.height * uv.bottom,
+      ),
+      bounds,
+      Paint()
+        ..filterQuality = FilterQuality.medium
+        ..colorFilter = filter,
+    );
+    if (shaded) c.restore();
+    c.restore();
   }
 
   Path _tailOutline(Appearance ids, Rect petRect) {
