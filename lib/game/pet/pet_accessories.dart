@@ -5,6 +5,7 @@ import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
 import 'integrated_accessories.dart';
 import 'pet_neck.dart';
+import 'pet_collars.dart';
 
 /// Piezas limpias y escalables: nunca contienen píxeles del caniche fuente.
 /// Todas las variantes comparten construcción y anclajes de cada fotograma.
@@ -234,16 +235,9 @@ abstract final class PetAccessories {
     }
     if (ids.collar != 'collar.none' || ids.neck != 'neck.none') {
       final atRest = pose == 'eat' || pose == 'sleep';
-      var fit = atRest
+      final fit = atRest
           ? PetNeck(neck - const Offset(0.10, 0), neck + const Offset(0.10, 0))
           : PetNeck.forPose(pose, ids.hair);
-      if (back && skipPilot) {
-        const lift = Offset(0, 0.043);
-        fit = PetNeck(
-          fit.at(0.08, drape: 0) - lift,
-          fit.at(0.92, drape: 0) - lift,
-        );
-      }
       c.save();
       if (!front && !back && !atRest) {
         // La oreja se interpone entre el cuello y el jugador de perfil.
@@ -255,7 +249,9 @@ abstract final class PetAccessories {
         );
       }
       final pendant = fit.at(front || back ? 0.5 : 0.84);
-      if (ids.collar != 'collar.none') {
+      if (skipPilot) {
+        PetCollars.paint(c, ids.collar, pose, ids.hair);
+      } else if (ids.collar != 'collar.none') {
         final pearls = ids.collar.contains('pearls');
         shape(
           fit.band(back ? 0.016 : 0.026),
@@ -297,7 +293,7 @@ abstract final class PetAccessories {
           }
         }
       }
-      if (ids.neck != 'neck.none' && !(skipPilot && ids.neck == 'neck.coral')) {
+      if (ids.neck != 'neck.none' && !skipPilot) {
         final isBow = ids.neck.contains('bowtie');
         final fill = isBow
             ? const Color(0xFF334679)
@@ -342,20 +338,6 @@ abstract final class PetAccessories {
             )
             ..close();
           shape(fabric, fill);
-          if (ids.neck == 'neck.knit' && skipPilot) {
-            c.save();
-            c.clipPath(fabric);
-            for (var y = left.dy + 0.025; y < tip.dy; y += 0.012) {
-              final turn = (y - left.dy) * 0.22;
-              line(
-                Offset(left.dx - 0.01, y),
-                Offset(right.dx + 0.01, y + turn),
-                const Color(0x5374E0BC),
-                0.004,
-              );
-            }
-            c.restore();
-          }
         }
       }
       c.restore();

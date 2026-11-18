@@ -29,6 +29,11 @@ class IntegratedAccessories {
       ids.outfit.startsWith('outfit.sweater_');
   static bool beanie(Appearance ids) => ids.head == 'head.beanie';
   static bool bandana(Appearance ids) => ids.neck == 'neck.coral';
+  static String? neckMaterial(String id) => switch (id) {
+    'neck.bowtie' => 'bowtie',
+    'neck.knit' => 'knit',
+    _ => null,
+  };
   static String? tailoredFamily(String outfit) => switch (outfit) {
     'outfit.teal' ||
     'outfit.overalls_red' ||
@@ -54,6 +59,8 @@ class IntegratedAccessories {
       for (final view in ['front', 'side', 'back']) '$family-$view',
     if (beanie(ids)) ...['beanie-front', 'beanie-side', 'beanie-back'],
     if (bandana(ids)) ...['bandana-front', 'bandana-side', 'bandana-back'],
+    if (neckMaterial(ids.neck) case final family?)
+      for (final view in ['front', 'side', 'back']) '$family-$view',
   };
   bool readyFor(Appearance ids) => _required(ids).every(_images.containsKey);
   Future<void> warm(Appearance ids) => Future.wait(_required(ids).map(_load));
@@ -64,7 +71,13 @@ class IntegratedAccessories {
       try {
         final source = name.split('-').first;
         final extension =
-            const {'overalls', 'raincoat', 'dress'}.contains(source)
+            const {
+              'overalls',
+              'raincoat',
+              'dress',
+              'knit',
+              'bowtie',
+            }.contains(source)
             ? 'webp'
             : 'png';
         final bytes = await rootBundle.load(
@@ -114,6 +127,11 @@ class IntegratedAccessories {
   Offset _placed(Rect dst, String pose, double u, double v) {
     final p = Offset(dst.left + u * dst.width, dst.top + v * dst.height);
     if (pose.startsWith('cloth/')) {
+      if (pose.endsWith('/front') || pose.endsWith('/back')) {
+        final cuffs = _ease((v - 0.56) / 0.37);
+        final shift = pose.startsWith('cloth/dress/') ? 0.0 : 0.028;
+        return p + Offset(shift * cuffs * (1 - u), 0);
+      }
       final movement = pose.endsWith('/run_a')
           ? Offset(0.040 * u * v, 0.066 * u * (1 - v))
           : pose.endsWith('/run_b') || pose.endsWith('/jump')
@@ -397,8 +415,8 @@ class IntegratedAccessories {
     final (width, top, bottom) = switch ((family, view)) {
       ('overalls', 'front') => (0.400, -0.705, -0.213),
       ('overalls', 'back') => (0.425, -0.690, -0.198),
-      ('raincoat', 'front') => (0.442, -0.671, -0.258),
-      ('raincoat', 'back') => (0.475, -0.676, -0.273),
+      ('raincoat', 'front') => (0.424, -0.671, -0.229),
+      ('raincoat', 'back') => (0.455, -0.676, -0.257),
       ('dress', 'front') => (0.445, -0.652, -0.268),
       _ => (0.502, -0.660, -0.223),
     };
@@ -415,6 +433,9 @@ class IntegratedAccessories {
       } else if (view == 'side') {
         _paintHindSleeves(c, pose, filter, family: family);
       }
+    }
+    if (family == 'raincoat') {
+      _raincoatLining(c, view, pose, neck, filter);
     }
     _draw(c, name, rect, deformation: deformation, colorFilter: filter);
     final openings = _openingCache.putIfAbsent((rect, '$family/$pose'), () {
@@ -435,27 +456,53 @@ class IntegratedAccessories {
           -0.035,
         );
         uv.close();
+        if (family != 'dress') {
+          _cuffOpening(uv, family == 'raincoat' ? 0.24 : 0.19, 0.103);
+          _cuffOpening(uv, 0.81, 0.111);
+        }
         if (family == 'raincoat') {
-          for (final x in [0.21, 0.80]) {
-            uv.addOval(
-              Rect.fromCenter(
-                center: Offset(x, 0.997),
-                width: 0.24,
-                height: 0.14,
-              ),
-            );
-          }
           uv.moveTo(0.37, 1.04);
-          uv.cubicTo(0.34, 0.72, 0.66, 0.72, 0.65, 1.04);
+          uv.cubicTo(0.34, 0.86, 0.66, 0.86, 0.65, 1.04);
           uv.close();
+        }
+        if (family == 'dress') {
+          // Frente: las patas delanteras pasan por delante de la falda.
+          _dressForeleg(uv, 0.27, 0.26, 0.18);
+          _dressForeleg(uv, 0.81, 0.83, 0.19);
         }
       } else if (view == 'side' && family == 'dress') {
         uv.moveTo(0.79, -0.10);
         uv.cubicTo(0.77, 0.002, 0.91, 0.21, 1.02, 0.24);
         uv.lineTo(1.02, -0.10);
         uv.close();
+      } else if (view == 'back' && family != 'dress') {
+        _cuffOpening(uv, 0.24, 0.112);
+        _cuffOpening(uv, 0.79, 0.110);
       }
-      return _mapPath(uv, rect, deformation);
+      final openings = _mapPath(uv, rect, deformation);
+      if (view == 'side' && family == 'overalls') {
+        // La abertura continúa hasta el borde inferior del peto.
+        openings.moveTo(rect.right - 0.226, rect.top + 0.184);
+        openings.cubicTo(
+          rect.right - 0.280,
+          rect.top + 0.207,
+          rect.right - 0.201,
+          rect.top + 0.299,
+          rect.right - 0.205,
+          rect.bottom,
+        );
+        openings.lineTo(rect.right - 0.078, rect.bottom);
+        openings.cubicTo(
+          rect.right - 0.120,
+          rect.top + 0.294,
+          rect.right - 0.128,
+          rect.top + 0.206,
+          rect.right - 0.226,
+          rect.top + 0.184,
+        );
+        openings.close();
+      }
+      return openings;
     });
     _fur(c, openings, base, petRect, coatPaint);
     if (view == 'back') {
@@ -474,6 +521,100 @@ class IntegratedAccessories {
         base,
         petRect,
         coatPaint,
+      );
+    }
+  }
+
+  void _cuffOpening(Path path, double u, double radius) {
+    path.moveTo(u - radius, 1.05);
+    path.cubicTo(u - radius, 0.97, u - radius * 0.44, 0.928, u, 0.933);
+    path.cubicTo(u + radius * 0.55, 0.915, u + radius, 0.971, u + radius, 1.05);
+    path.close();
+  }
+
+  void _dressForeleg(Path path, double shoulder, double paw, double radius) {
+    path.moveTo(shoulder - radius * 0.53, 0.88);
+    path.quadraticBezierTo(
+      shoulder - radius * 0.42,
+      0.95,
+      paw - radius * 0.53,
+      1.08,
+    );
+    path.lineTo(paw + radius * 0.46, 1.08);
+    path.quadraticBezierTo(
+      shoulder + radius * 0.47,
+      0.94,
+      shoulder + radius * 0.32,
+      0.87,
+    );
+    path.quadraticBezierTo(shoulder, 0.77, shoulder - radius * 0.53, 0.88);
+    path.close();
+  }
+
+  void _raincoatLining(
+    Canvas c,
+    String view,
+    String pose,
+    PetNeck neck,
+    ColorFilter? filter,
+  ) {
+    if (view == 'front') return;
+    if (view == 'back') {
+      final middle = neck.at(0.5, drape: 0).dx + 0.039;
+      for (final x in [middle - 0.111, middle + 0.111]) {
+        final cuff = Path()
+          ..moveTo(x - 0.064, -0.378)
+          ..quadraticBezierTo(x, -0.404, x + 0.064, -0.378)
+          ..cubicTo(x + 0.066, -0.336, x + 0.053, -0.273, x + 0.058, -0.242)
+          ..quadraticBezierTo(x, -0.225, x - 0.057, -0.242)
+          ..quadraticBezierTo(x - 0.064, -0.310, x - 0.064, -0.378)
+          ..close();
+        _paintFabric(
+          c,
+          cuff,
+          const Rect.fromLTRB(0.43, 0.47, 0.58, 0.67),
+          filter,
+          shaded: true,
+          asset: 'raincoat-back',
+        );
+      }
+    } else {
+      final throat = neck.right;
+      final lower = pose == 'side' ? 0.358 : 0.314;
+      final lining = Path()
+        ..moveTo(throat.dx - 0.105, throat.dy + 0.018)
+        ..quadraticBezierTo(
+          throat.dx - 0.038,
+          throat.dy - 0.008,
+          throat.dx - 0.013,
+          throat.dy + 0.053,
+        )
+        ..quadraticBezierTo(
+          throat.dx - 0.021,
+          throat.dy + lower * 0.57,
+          throat.dx - 0.086,
+          throat.dy + lower,
+        )
+        ..quadraticBezierTo(
+          throat.dx - 0.145,
+          throat.dy + lower + 0.012,
+          throat.dx - 0.180,
+          throat.dy + lower - 0.029,
+        )
+        ..quadraticBezierTo(
+          throat.dx - 0.120,
+          throat.dy + 0.081,
+          throat.dx - 0.105,
+          throat.dy + 0.018,
+        )
+        ..close();
+      _paintFabric(
+        c,
+        lining,
+        const Rect.fromLTRB(0.47, 0.31, 0.58, 0.67),
+        filter,
+        shaded: false,
+        asset: 'raincoat-side',
       );
     }
   }
@@ -545,7 +686,7 @@ class IntegratedAccessories {
       ..lineTo(x + 0.053, hem + 0.015)
       ..quadraticBezierTo(x, hem - 0.012, x - 0.055, hem + 0.015)
       ..close();
-    _rearKnit(
+    _paintFabric(
       c,
       seam,
       family == 'overalls'
@@ -591,7 +732,10 @@ class IntegratedAccessories {
       ),
     };
     for (final (top, cuff, far) in [
-      (farTop, farCuff, true),
+      if (pose == 'side' && family == 'overalls')
+        (const Offset(-0.132, -0.345), const Offset(-0.139, -0.177), true)
+      else
+        (farTop, farCuff, true),
       if (family == 'sweater') (nearTop, nearCuff, false),
     ]) {
       final axis = cuff - top;
@@ -622,7 +766,7 @@ class IntegratedAccessories {
       c.save();
       c.translate(top.dx, top.dy);
       c.rotate(math.atan2(-axis.dx, axis.dy));
-      _rearKnit(
+      _paintFabric(
         c,
         leg,
         const Rect.fromLTRB(0.60, 0.73, 0.89, 0.985),
@@ -634,7 +778,7 @@ class IntegratedAccessories {
     }
   }
 
-  void _rearKnit(
+  void _paintFabric(
     Canvas c,
     Path shape,
     Rect uv,
@@ -845,6 +989,67 @@ class IntegratedAccessories {
     _draw(c, name, rect, shear: shear);
     if (pose != 'front') {
       _fur(c, PetNeck.earMask(pose, lm['headTop']!), base, petRect, coatPaint);
+    }
+  }
+
+  void paintTailoredNeck(
+    Canvas c,
+    Appearance ids,
+    String pose,
+    Offset head,
+    SpriteLayer base,
+    Rect petRect,
+    Paint coatPaint,
+  ) {
+    final family = neckMaterial(ids.neck);
+    if (family == null) return;
+    final knit = family == 'knit';
+    final front = pose == 'front';
+    final back = pose == 'back';
+    final view = front || back ? pose : 'side';
+    final fit = PetNeck.forPose(pose, ids.hair);
+    final name = '$family-$view';
+    final height = switch ((family, view)) {
+      ('knit', 'front') => 0.284,
+      ('knit', 'side') => 0.249,
+      ('knit', 'back') => 0.079,
+      ('bowtie', 'back') => 0.043,
+      ('bowtie', 'front') => 0.106,
+      _ => 0.117,
+    };
+    final left = fit.at(back ? 0.10 : 0.02, drape: 0);
+    final right = fit.at(back ? 0.90 : 0.98, drape: 0);
+    final shear = knit || front || back
+        ? 0.0
+        : (right.dy - left.dy) / (right.dx - left.dx);
+    final rise = back
+        ? 0.061
+        : front
+        ? (knit ? 0.023 : 0.004)
+        : 0.011;
+    final width = right.dx - left.dx;
+    final rect = Rect.fromLTWH(left.dx, left.dy - rise, width, height);
+    _shadow(c, name, rect, '', base, petRect, shear: shear);
+    _draw(c, name, rect, shear: shear);
+    if (knit && (front || back)) {
+      // El pelo oculta el interior de la vuelta y deja visible el borde de punto.
+      final u = front ? 0.13 : 0.07;
+      final rim = Path()
+        ..moveTo(rect.left + width * u, rect.top - 0.004)
+        ..cubicTo(
+          rect.left + width * 0.13,
+          rect.top + height * (front ? 0.15 : 0.17),
+          rect.center.dx,
+          rect.top + height * (front ? 0.31 : 0.35),
+          rect.right - width * u,
+          rect.top + height * 0.03,
+        )
+        ..lineTo(rect.right - width * u, rect.top - 0.004)
+        ..close();
+      _fur(c, rim, base, petRect, coatPaint);
+    }
+    if (!front && !back) {
+      _fur(c, PetNeck.earMask(pose, head), base, petRect, coatPaint);
     }
   }
 

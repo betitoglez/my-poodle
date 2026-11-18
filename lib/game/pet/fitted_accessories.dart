@@ -109,7 +109,7 @@ abstract final class FittedAccessories {
       ],
     };
     final opening = switch (id) {
-      'paws.rain' => -0.104,
+      'paws.rain' => -0.129,
       'paws.booties' => -0.069,
       _ => -0.037,
     };
@@ -210,7 +210,12 @@ abstract final class FittedAccessories {
     final front = pose == 'front';
     final sun = id == 'eyes.sun';
     final heart = id == 'eyes.heart';
-    final metal = heart ? const Color(0xFFB93760) : const Color(0xFFAC7D3E);
+    final frame = heart
+        ? const Color(0xFF962446)
+        : sun
+        ? const Color(0xFF4E322D)
+        : const Color(0xFF756B5C);
+    final shine = _mix(frame, const Color(0xFFFFE7B8), 0.66);
     final at = switch (pose) {
       'front' => const Offset(-0.085, -0.791),
       'run_a' => const Offset(0.306, -0.534),
@@ -219,80 +224,159 @@ abstract final class FittedAccessories {
       _ => const Offset(0.421, -0.816),
     };
     final right = at + const Offset(0.132, -0.012);
+    final lenses = [
+      _lens(at, front, sun, heart),
+      if (front) _lens(right, true, sun, heart),
+    ];
+
+    // Las bisagras y el puente acaban en el canto, detrás de las lentes.
+    c.save();
+    c.clipPath(
+      Path()
+        ..fillType = PathFillType.evenOdd
+        ..addRect(const Rect.fromLTRB(-2, -2, 2, 2))
+        ..addPath(lenses.first, Offset.zero)
+        ..addPath(front ? lenses.last : Path(), Offset.zero),
+    );
+    final leftHinge = at - const Offset(0.043, 0.013);
+    final leftTip = at - Offset(front ? 0.075 : 0.128, front ? -0.002 : 0.025);
+    _temple(c, leftHinge, leftTip, frame, shine);
     if (front) {
-      _line(c, at - const Offset(0.079, 0.004), at, metal, 0.011);
-      _line(c, right, right + const Offset(0.084, 0), metal, 0.011);
-      _stroke(
+      _temple(
         c,
-        Path()
-          ..moveTo(at.dx + 0.040, at.dy)
-          ..quadraticBezierTo(
-            at.dx + 0.066,
-            at.dy - 0.029,
-            right.dx - 0.038,
-            right.dy,
-          ),
-        metal,
-        0.010,
+        right + const Offset(0.043, -0.013),
+        right + const Offset(0.074, -0.004),
+        frame,
+        shine,
       );
+      final bridge = Path()
+        ..moveTo(at.dx + 0.045, at.dy - 0.004)
+        ..quadraticBezierTo(
+          at.dx + 0.064,
+          at.dy - 0.026,
+          right.dx - 0.044,
+          right.dy,
+        );
+      _stroke(c, bridge, frame, sun ? 0.010 : 0.007);
+      _stroke(c, bridge.shift(const Offset(0, -0.002)), shine, 0.002);
     } else {
-      _line(c, at - const Offset(0.107, 0.003), at, metal, 0.013);
-      _line(
-        c,
-        at + const Offset(0.029, 0.007),
-        at + const Offset(0.068, 0.020),
-        metal,
-        0.007,
-      );
+      final nose = at + const Offset(0.049, 0.018);
+      _line(c, at + const Offset(0.036, 0.011), nose, frame, 0.007);
     }
-    for (final p in [at, if (front) right]) {
-      final rx = front ? 0.054 : 0.043;
-      const ry = 0.049;
-      final glass = heart
-          ? (Path()
-              ..moveTo(p.dx, p.dy + ry)
-              ..cubicTo(
-                p.dx - rx * 2,
-                p.dy - ry * 0.22,
-                p.dx - rx,
-                p.dy - ry * 1.6,
-                p.dx,
-                p.dy - ry * 0.55,
-              )
-              ..cubicTo(
-                p.dx + rx,
-                p.dy - ry * 1.6,
-                p.dx + rx * 2,
-                p.dy - ry * 0.22,
-                p.dx,
-                p.dy + ry,
-              )
-              ..close())
-          : (Path()..addOval(
-              Rect.fromCenter(center: p, width: 2 * rx, height: 2 * ry),
-            ));
-      final r = glass.getBounds();
+    c.restore();
+
+    for (final lens in lenses) {
+      final r = lens.getBounds();
       c.drawPath(
-        glass,
+        lens,
         Paint()
           ..shader = Gradient.linear(
             r.topLeft,
             r.bottomRight,
             sun
-                ? [const Color(0xF2323145), const Color(0xAC53596B)]
-                : [const Color(0x4AE1F3F0), const Color(0x127CA9B6)],
+                ? [
+                    const Color(0xF3242433),
+                    const Color(0xDD515465),
+                    const Color(0xEC272631),
+                  ]
+                : [
+                    const Color(0x3986B7C7),
+                    const Color(0x07C9EAF4),
+                    const Color(0x53618B9E),
+                  ],
+            const [0, 0.48, 1],
           ),
       );
-      _stroke(c, glass, const Color(0x80433341), 0.014);
-      _stroke(c, glass, metal, 0.008);
-      _line(
+      c.save();
+      c.clipPath(lens);
+      // Reflejo suave de una superficie curva, más translúcida en el centro.
+      final glint = Path()
+        ..moveTo(r.left - 0.004, r.center.dy + 0.009)
+        ..quadraticBezierTo(
+          r.center.dx - 0.012,
+          r.top + 0.004,
+          r.right + 0.004,
+          r.top - 0.004,
+        )
+        ..lineTo(r.right + 0.004, r.top + 0.012)
+        ..quadraticBezierTo(
+          r.center.dx,
+          r.top + 0.019,
+          r.left - 0.006,
+          r.center.dy + 0.022,
+        )
+        ..close();
+      c.drawPath(
+        glint,
+        Paint()
+          ..shader = Gradient.linear(r.topLeft, r.bottomRight, [
+            const Color(0x93F7FDFF),
+            const Color(0x0BFFFFFF),
+          ]),
+      );
+      if (!sun) {
+        _stroke(c, lens, const Color(0x4079A0AA), 0.012);
+      }
+      c.restore();
+      _stroke(c, lens, frame, sun ? 0.010 : 0.007);
+      _stroke(
         c,
-        p - const Offset(0.028, 0.009),
-        p - const Offset(0.009, 0.026),
-        const Color(0xA5FFFFF7),
-        0.004,
+        lens.shift(const Offset(0, -0.001)),
+        shine.withValues(alpha: 0.72),
+        0.002,
       );
     }
+  }
+
+  static void _temple(
+    Canvas c,
+    Offset hinge,
+    Offset end,
+    Color body,
+    Color light,
+  ) {
+    final arm = Path()
+      ..moveTo(hinge.dx, hinge.dy)
+      ..quadraticBezierTo(
+        (hinge.dx + end.dx) / 2,
+        end.dy - 0.013,
+        end.dx,
+        end.dy,
+      );
+    _stroke(c, arm, body, 0.010);
+    _stroke(c, arm.shift(const Offset(0, -0.002)), light, 0.003);
+  }
+
+  static Path _lens(Offset p, bool front, bool sun, bool heart) {
+    final rx = front ? 0.053 : 0.040;
+    final ry = sun ? 0.043 : 0.048;
+    if (heart) {
+      return Path()
+        ..moveTo(p.dx, p.dy + 0.044)
+        ..cubicTo(
+          p.dx - rx * 1.78,
+          p.dy - 0.008,
+          p.dx - rx * 0.88,
+          p.dy - 0.072,
+          p.dx,
+          p.dy - 0.027,
+        )
+        ..cubicTo(
+          p.dx + rx * 0.88,
+          p.dy - 0.072,
+          p.dx + rx * 1.78,
+          p.dy - 0.008,
+          p.dx,
+          p.dy + 0.044,
+        )
+        ..close();
+    }
+    final bounds = Rect.fromCenter(center: p, width: 2 * rx, height: 2 * ry);
+    return sun
+        ? (Path()..addRRect(
+            RRect.fromRectAndRadius(bounds, const Radius.circular(0.024)),
+          ))
+        : (Path()..addOval(bounds));
   }
 
   static void _ribbon(

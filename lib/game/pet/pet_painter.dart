@@ -635,6 +635,15 @@ class PetPainter extends ChangeNotifier {
       skipPilot: pilot,
     );
     if (pilot) {
+      integratedAccessories.paintTailoredNeck(
+        c,
+        ids,
+        poseName,
+        meta.landmarks['headTop']!,
+        base,
+        rectOf(base.box),
+        coatPaint,
+      );
       integratedAccessories.paintBandana(
         c,
         ids,

@@ -72,7 +72,7 @@ final assets = [
   'assets/images/materials/bandana-front-v1.png',
   'assets/images/materials/bandana-side-v1.png',
   'assets/images/materials/bandana-back-v1.png',
-  for (final family in ['overalls', 'raincoat', 'dress'])
+  for (final family in ['overalls', 'raincoat', 'dress', 'knit', 'bowtie'])
     for (final angle in ['front', 'side', 'back'])
       'assets/images/materials/$family-$angle-v1.webp',
 ];
