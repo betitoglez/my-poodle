@@ -35,7 +35,7 @@ const slotSections = {
   Slot.collar: 'collars',
   Slot.paws: 'paws',
 };
-const assets = [
+final assets = [
   'assets/images/cards/kitchen.jpg',
   'assets/images/cards/bath.jpg',
   'assets/images/cards/walk.jpg',
@@ -72,6 +72,9 @@ const assets = [
   'assets/images/materials/bandana-front-v1.png',
   'assets/images/materials/bandana-side-v1.png',
   'assets/images/materials/bandana-back-v1.png',
+  for (final family in ['overalls', 'raincoat', 'dress'])
+    for (final angle in ['front', 'side', 'back'])
+      'assets/images/materials/$family-$angle-v1.webp',
 ];
 
 void main() {

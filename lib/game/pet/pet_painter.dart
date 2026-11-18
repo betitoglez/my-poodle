@@ -8,6 +8,7 @@ import 'appearance_catalog.dart';
 import 'pet_sprites.dart';
 import 'pet_accessories.dart';
 import 'integrated_accessories.dart';
+import 'fitted_accessories.dart';
 
 /// Reacciones y bucles compartidos por todas las capas (reloj común).
 enum PetAnim {
@@ -603,6 +604,16 @@ class PetPainter extends ChangeNotifier {
         IntegratedAccessories.supportsPose(poseName) &&
         integratedAccessories.readyFor(ids);
     if (pilot) {
+      integratedAccessories.paintTailoredOutfit(
+        c,
+        catalog,
+        ids,
+        poseName,
+        meta.landmarks,
+        base,
+        rectOf(base.box),
+        coatPaint,
+      );
       integratedAccessories.paintSweater(
         c,
         catalog,
@@ -642,6 +653,19 @@ class PetPainter extends ChangeNotifier {
         rectOf(base.box),
         coatPaint,
       );
+      FittedAccessories.paint(c, ids, poseName, meta.landmarks['headTop']!, (
+        mask,
+      ) {
+        c.save();
+        c.clipPath(mask);
+        c.drawImageRect(
+          base.image,
+          fullSrc(base.image),
+          rectOf(base.box),
+          coatPaint,
+        );
+        c.restore();
+      });
     }
     _dirt(s, meta.landmarks);
     c.restore();

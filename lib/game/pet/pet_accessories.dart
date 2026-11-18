@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
+import 'integrated_accessories.dart';
 import 'pet_neck.dart';
 
 /// Piezas limpias y escalables: nunca contienen píxeles del caniche fuente.
@@ -96,7 +97,9 @@ abstract final class PetAccessories {
     }
 
     if (ids.outfit != 'outfit.none' &&
-        !(skipPilot && ids.outfit.startsWith('outfit.sweater_'))) {
+        !(skipPilot &&
+            (IntegratedAccessories.sweater(ids) ||
+                IntegratedAccessories.tailoredFamily(ids.outfit) != null))) {
       final fill = color(ids.outfit, const Color(0xFF377F79));
       final side = !front && !back;
       final width = side ? 0.42 : 0.31;
@@ -201,7 +204,7 @@ abstract final class PetAccessories {
       }
     }
 
-    if (ids.paws != 'paws.none') {
+    if (ids.paws != 'paws.none' && !skipPilot) {
       final fill = ids.paws.contains('rain')
           ? const Color(0xFFE5B73F)
           : ids.paws.contains('sneakers')
@@ -231,9 +234,16 @@ abstract final class PetAccessories {
     }
     if (ids.collar != 'collar.none' || ids.neck != 'neck.none') {
       final atRest = pose == 'eat' || pose == 'sleep';
-      final fit = atRest
+      var fit = atRest
           ? PetNeck(neck - const Offset(0.10, 0), neck + const Offset(0.10, 0))
           : PetNeck.forPose(pose, ids.hair);
+      if (back && skipPilot) {
+        const lift = Offset(0, 0.043);
+        fit = PetNeck(
+          fit.at(0.08, drape: 0) - lift,
+          fit.at(0.92, drape: 0) - lift,
+        );
+      }
       c.save();
       if (!front && !back && !atRest) {
         // La oreja se interpone entre el cuello y el jugador de perfil.
@@ -246,13 +256,17 @@ abstract final class PetAccessories {
       }
       final pendant = fit.at(front || back ? 0.5 : 0.84);
       if (ids.collar != 'collar.none') {
-        shape(fit.band(0.035), const Color(0xFF447E81));
-        if (ids.collar.contains('pearls')) {
+        final pearls = ids.collar.contains('pearls');
+        shape(
+          fit.band(back ? 0.016 : 0.026),
+          pearls ? const Color(0xFFA49391) : const Color(0xFF447E81),
+        );
+        if (pearls) {
           for (var i = 0; i < 9; i++) {
             final p = fit.at((i + 0.5) / 9);
             c.drawCircle(
               p,
-              0.013,
+              back ? 0.008 : 0.013,
               Paint()
                 ..shader = Gradient.radial(
                   p - const Offset(0.004, 0.004),
@@ -286,46 +300,67 @@ abstract final class PetAccessories {
       if (ids.neck != 'neck.none' && !(skipPilot && ids.neck == 'neck.coral')) {
         final isBow = ids.neck.contains('bowtie');
         final fill = isBow
-            ? const Color(0xFF445B84)
+            ? const Color(0xFF334679)
             : ids.neck.contains('knit')
-            ? const Color(0xFF8B769E)
+            ? const Color(0xFF73B49B)
             : const Color(0xFFD76F72);
-        shape(fit.band(isBow ? 0.028 : 0.048), fill);
+        shape(
+          fit.band(
+            back
+                ? 0.016
+                : isBow
+                ? 0.028
+                : 0.048,
+          ),
+          fill,
+        );
         if (isBow) {
           if (!back) bow(pendant, fill, front ? 0.075 : 0.057);
         } else if (!back) {
           final left = fit.at(front ? 0.10 : 0.30);
           final right = fit.at(front ? 0.90 : 0.93);
           final tip = pendant + Offset(front ? 0.014 : -0.018, 0.133);
-          shape(
-            Path()
-              ..moveTo(left.dx, left.dy)
-              ..quadraticBezierTo(
-                fit.at(0.55).dx,
-                fit.at(0.55).dy + 0.047,
-                right.dx,
-                right.dy,
-              )
-              ..quadraticBezierTo(
-                right.dx - 0.025,
-                right.dy + 0.078,
-                tip.dx,
-                tip.dy,
-              )
-              ..quadraticBezierTo(
-                left.dx + 0.033,
-                left.dy + 0.080,
-                left.dx,
-                left.dy,
-              )
-              ..close(),
-            fill,
-          );
+          final fabric = Path()
+            ..moveTo(left.dx, left.dy)
+            ..quadraticBezierTo(
+              fit.at(0.55).dx,
+              fit.at(0.55).dy + 0.047,
+              right.dx,
+              right.dy,
+            )
+            ..quadraticBezierTo(
+              right.dx - 0.025,
+              right.dy + 0.078,
+              tip.dx,
+              tip.dy,
+            )
+            ..quadraticBezierTo(
+              left.dx + 0.033,
+              left.dy + 0.080,
+              left.dx,
+              left.dy,
+            )
+            ..close();
+          shape(fabric, fill);
+          if (ids.neck == 'neck.knit' && skipPilot) {
+            c.save();
+            c.clipPath(fabric);
+            for (var y = left.dy + 0.025; y < tip.dy; y += 0.012) {
+              final turn = (y - left.dy) * 0.22;
+              line(
+                Offset(left.dx - 0.01, y),
+                Offset(right.dx + 0.01, y + turn),
+                const Color(0x5374E0BC),
+                0.004,
+              );
+            }
+            c.restore();
+          }
         }
       }
       c.restore();
     }
-    if (ids.eyes != 'eyes.none' && !back) {
+    if (ids.eyes != 'eyes.none' && !back && !skipPilot) {
       final fill = ids.eyes.contains('sun')
           ? const Color(0xDB292C43)
           : const Color(0x226CA6B5);
@@ -441,9 +476,9 @@ abstract final class PetAccessories {
                 : const Color(0xFFD9AF5C),
         );
       }
-    } else if (ids.head == 'head.bow') {
+    } else if (ids.head == 'head.bow' && !skipPilot) {
       bow(top + const Offset(0.07, 0.035), const Color(0xFFE297B0), 0.09);
-    } else if (ids.head == 'head.crown') {
+    } else if (ids.head == 'head.crown' && !skipPilot) {
       final center = top - const Offset(0, 0.035);
       shape(
         Path()

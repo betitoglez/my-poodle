@@ -21,7 +21,7 @@ class _Cloth {
   );
 }
 
-/// Piloto acotado: prendas ilustradas completas, sin píxeles del perro.
+/// Prendas ilustradas completas con aperturas ajustadas a cada pose.
 /// La malla sigue torso y mangas; sombras y pelaje se componen por separado.
 class IntegratedAccessories {
   static const assetDirectory = 'assets/images/materials/';
@@ -29,6 +29,18 @@ class IntegratedAccessories {
       ids.outfit.startsWith('outfit.sweater_');
   static bool beanie(Appearance ids) => ids.head == 'head.beanie';
   static bool bandana(Appearance ids) => ids.neck == 'neck.coral';
+  static String? tailoredFamily(String outfit) => switch (outfit) {
+    'outfit.teal' ||
+    'outfit.overalls_red' ||
+    'outfit.overalls_yellow' => 'overalls',
+    'outfit.raincoat_yellow' ||
+    'outfit.raincoat_blue' ||
+    'outfit.raincoat_pink' => 'raincoat',
+    'outfit.dress_pink' ||
+    'outfit.dress_lilac' ||
+    'outfit.dress_turquoise' => 'dress',
+    _ => null,
+  };
   static bool supportsPose(String pose) =>
       const {'front', 'side', 'back', 'run_a', 'run_b', 'jump'}.contains(pose);
 
@@ -38,6 +50,8 @@ class IntegratedAccessories {
 
   Set<String> _required(Appearance ids) => {
     if (sweater(ids)) ...['sweater-front', 'sweater-side', 'sweater-back'],
+    if (tailoredFamily(ids.outfit) case final family?)
+      for (final view in ['front', 'side', 'back']) '$family-$view',
     if (beanie(ids)) ...['beanie-front', 'beanie-side', 'beanie-back'],
     if (bandana(ids)) ...['bandana-front', 'bandana-side', 'bandana-back'],
   };
@@ -48,7 +62,14 @@ class IntegratedAccessories {
     if (_images.containsKey(name)) return Future.value();
     return _loading[name] ??= () async {
       try {
-        final bytes = await rootBundle.load('$assetDirectory$name-v1.png');
+        final source = name.split('-').first;
+        final extension =
+            const {'overalls', 'raincoat', 'dress'}.contains(source)
+            ? 'webp'
+            : 'png';
+        final bytes = await rootBundle.load(
+          '$assetDirectory$name-v1.$extension',
+        );
         // Se limita la memoria decodificada, compartida entre poses y colores.
         final codec = await instantiateImageCodec(
           bytes.buffer.asUint8List(),
@@ -92,6 +113,24 @@ class IntegratedAccessories {
   // del puño conserva su posición al cambiar de fotograma.
   Offset _placed(Rect dst, String pose, double u, double v) {
     final p = Offset(dst.left + u * dst.width, dst.top + v * dst.height);
+    if (pose.startsWith('cloth/')) {
+      final movement = pose.endsWith('/run_a')
+          ? Offset(0.040 * u * v, 0.066 * u * (1 - v))
+          : pose.endsWith('/run_b') || pose.endsWith('/jump')
+          ? Offset(-0.016 * v, 0.024 * u * (1 - v))
+          : Offset.zero;
+      if (!pose.startsWith('cloth/raincoat/') ||
+          pose.endsWith('/front') ||
+          pose.endsWith('/back')) {
+        return p + movement;
+      }
+      // La manga cercana gira hacia el eje de la pata bajo el pecho.
+      final sleeve =
+          _ease((u - 0.38) / 0.15) *
+          (1 - _ease((u - 0.61) / 0.35)) *
+          _ease((v - 0.40) / 0.47);
+      return p + movement + Offset(0.178 * sleeve, 0.022 * sleeve);
+    }
     if (pose == 'back') {
       // Ensancha los dos puños inferiores hacia sus patas correspondientes.
       final lower = _ease((v - 0.54) / 0.37);
@@ -340,26 +379,190 @@ class IntegratedAccessories {
     }
   }
 
-  void _paintBackSeam(Canvas c, Rect rect, ColorFilter? filter) {
+  void paintTailoredOutfit(
+    Canvas c,
+    AppearanceCatalog catalog,
+    Appearance ids,
+    String pose,
+    Map<String, Offset> landmarks,
+    SpriteLayer base,
+    Rect petRect,
+    Paint coatPaint,
+  ) {
+    final family = tailoredFamily(ids.outfit);
+    if (family == null) return;
+    final view = pose == 'front' || pose == 'back' ? pose : 'side';
+    final neck = PetNeck.forPose(pose, ids.hair);
+    final center = neck.at(0.5, drape: 0).dx + 0.006;
+    final (width, top, bottom) = switch ((family, view)) {
+      ('overalls', 'front') => (0.400, -0.705, -0.213),
+      ('overalls', 'back') => (0.425, -0.690, -0.198),
+      ('raincoat', 'front') => (0.442, -0.671, -0.258),
+      ('raincoat', 'back') => (0.475, -0.676, -0.273),
+      ('dress', 'front') => (0.445, -0.652, -0.268),
+      _ => (0.502, -0.660, -0.223),
+    };
+    final rect = view == 'side'
+        ? _sideOutfit(family, neck)
+        : Rect.fromLTRB(center - width / 2, top, center + width / 2, bottom);
+    final name = '$family-$view';
+    final deformation = 'cloth/$family/$pose';
+    final filter = _tailoredColor(catalog, ids.outfit, family);
+    _shadow(c, name, rect, deformation, base, petRect);
+    if (family == 'overalls') {
+      if (view == 'back') {
+        _paintBackSeam(c, rect, filter, family: family);
+      } else if (view == 'side') {
+        _paintHindSleeves(c, pose, filter, family: family);
+      }
+    }
+    _draw(c, name, rect, deformation: deformation, colorFilter: filter);
+    final openings = _openingCache.putIfAbsent((rect, '$family/$pose'), () {
+      final uv = Path();
+      if (view == 'front') {
+        final (left, right, curve) = switch (family) {
+          'overalls' => (0.25, 0.75, 0.25),
+          'raincoat' => (0.24, 0.76, 0.27),
+          _ => (0.35, 0.65, 0.20),
+        };
+        uv.moveTo(left, -0.035);
+        uv.cubicTo(
+          left - 0.04,
+          curve * 0.7,
+          right + 0.04,
+          curve * 0.7,
+          right,
+          -0.035,
+        );
+        uv.close();
+        if (family == 'raincoat') {
+          for (final x in [0.21, 0.80]) {
+            uv.addOval(
+              Rect.fromCenter(
+                center: Offset(x, 0.997),
+                width: 0.24,
+                height: 0.14,
+              ),
+            );
+          }
+          uv.moveTo(0.37, 1.04);
+          uv.cubicTo(0.34, 0.72, 0.66, 0.72, 0.65, 1.04);
+          uv.close();
+        }
+      } else if (view == 'side' && family == 'dress') {
+        uv.moveTo(0.79, -0.10);
+        uv.cubicTo(0.77, 0.002, 0.91, 0.21, 1.02, 0.24);
+        uv.lineTo(1.02, -0.10);
+        uv.close();
+      }
+      return _mapPath(uv, rect, deformation);
+    });
+    _fur(c, openings, base, petRect, coatPaint);
+    if (view == 'back') {
+      final tail = _tailOutline(ids, petRect);
+      c.drawPath(
+        tail.shift(const Offset(0.003, 0.006)),
+        Paint()
+          ..color = const Color(0x53432F2A)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.005),
+      );
+      _fur(c, tail, base, petRect, coatPaint);
+    } else if (view == 'side') {
+      _fur(
+        c,
+        PetNeck.earMask(pose, landmarks['headTop']!),
+        base,
+        petRect,
+        coatPaint,
+      );
+    }
+  }
+
+  Rect _sideOutfit(String family, PetNeck neck) {
+    final (left, top, right, bottom) = switch (family) {
+      'overalls' => (-0.376, -0.668, 0.402, -0.153),
+      'raincoat' => (-0.358, -0.647, 0.414, -0.222),
+      _ => (-0.402, -0.661, 0.409, -0.235),
+    };
+    final dy = neck.left.dy + 0.652;
+    final dx = neck.right.dx - 0.415;
+    return Rect.fromLTRB(
+      left + dx * 0.5,
+      top + dy,
+      right + dx,
+      bottom + dy * 0.26,
+    );
+  }
+
+  ColorFilter? _tailoredColor(
+    AppearanceCatalog catalog,
+    String id,
+    String family,
+  ) {
+    if (const {
+      'outfit.teal',
+      'outfit.raincoat_yellow',
+      'outfit.dress_pink',
+    }.contains(id)) {
+      return null;
+    }
+    final swatch = catalog.swatch(id);
+    if (swatch == null) return null;
+    final midpoint = switch (family) {
+      'overalls' => 93,
+      'raincoat' => 169,
+      _ => 160,
+    };
+    return ColorFilter.matrix([
+      for (final channel in [swatch.r, swatch.g, swatch.b]) ...[
+        0.183,
+        0.615,
+        0.062,
+        0.0,
+        channel * 255 - midpoint * 0.86,
+      ],
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]);
+  }
+
+  void _paintBackSeam(
+    Canvas c,
+    Rect rect,
+    ColorFilter? filter, {
+    String family = 'sweater',
+  }) {
     // El tejido interior une las dos perneras por encima de los puños.
     final hem = rect.bottom - 0.021;
     final x = rect.center.dx + 0.010;
+    final seamStart = hem - (family == 'overalls' ? 0.110 : 0.087);
     final seam = Path()
-      ..moveTo(x - 0.069, hem - 0.087)
-      ..lineTo(x + 0.073, hem - 0.087)
+      ..moveTo(x - 0.069, seamStart)
+      ..lineTo(x + 0.073, seamStart)
       ..lineTo(x + 0.053, hem + 0.015)
       ..quadraticBezierTo(x, hem - 0.012, x - 0.055, hem + 0.015)
       ..close();
     _rearKnit(
       c,
       seam,
-      const Rect.fromLTRB(0.37, 0.71, 0.61, 0.83),
+      family == 'overalls'
+          ? const Rect.fromLTRB(0.37, 0.59, 0.61, 0.69)
+          : const Rect.fromLTRB(0.37, 0.71, 0.61, 0.83),
       filter,
       shaded: true,
+      asset: '$family-back',
     );
   }
 
-  void _paintHindSleeves(Canvas c, String pose, ColorFilter? filter) {
+  void _paintHindSleeves(
+    Canvas c,
+    String pose,
+    ColorFilter? filter, {
+    String family = 'sweater',
+  }) {
     // Ejes desde la cadera hasta cada puño, siguiendo las dos patas del sprite.
     final (farTop, farCuff, nearTop, nearCuff) = switch (pose) {
       'run_a' => (
@@ -389,7 +592,7 @@ class IntegratedAccessories {
     };
     for (final (top, cuff, far) in [
       (farTop, farCuff, true),
-      (nearTop, nearCuff, false),
+      if (family == 'sweater') (nearTop, nearCuff, false),
     ]) {
       final axis = cuff - top;
       final length = axis.distance;
@@ -425,6 +628,7 @@ class IntegratedAccessories {
         const Rect.fromLTRB(0.60, 0.73, 0.89, 0.985),
         filter,
         shaded: far,
+        asset: '$family-back',
       );
       c.restore();
     }
@@ -436,8 +640,9 @@ class IntegratedAccessories {
     Rect uv,
     ColorFilter? filter, {
     required bool shaded,
+    required String asset,
   }) {
-    final cloth = _images['sweater-back']!;
+    final cloth = _images[asset]!;
     final src = cloth.source;
     final bounds = shape.getBounds();
     c.save();

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -82,15 +83,17 @@ Future<void> export(
   ui.PictureRecorder rec,
   int width,
   int height,
-  String filename,
-) async {
+  String filename, {
+  String directory = out,
+}) async {
   final picture = rec.endRecording();
   final bitmap = await picture.toImage(width, height);
   final png = await bitmap.toByteData(format: ui.ImageByteFormat.png);
   expect(png, isNotNull);
   if (Platform.environment['POODLE_REVIEW'] == '1') {
-    Directory(out).createSync(recursive: true);
-    File('$out/$filename.png').writeAsBytesSync(png!.buffer.asUint8List());
+    Directory(directory).createSync(recursive: true);
+    File('$directory/$filename.png')
+        .writeAsBytesSync(png!.buffer.asUint8List());
   }
   bitmap.dispose();
   picture.dispose();
@@ -130,6 +133,79 @@ Future<void> captureNeckAccessories(PetPainter painter, Appearance base) async {
   }
   await export(rec, 840, 1310, 'neck-fit');
   for (final image in previews) {
+    image.dispose();
+  }
+}
+
+Future<void> captureCompleteLooks(PetPainter painter, Appearance base) async {
+  const directory = 'docs/reviews/catalogo-integrado';
+  const looks = [
+    (
+      'Peto verde, gafas de corazón y bufanda',
+      {
+        Slot.coat: 'coat.apricot',
+        Slot.outfit: 'outfit.teal',
+        Slot.eyes: 'eyes.heart',
+        Slot.neck: 'neck.knit',
+        Slot.paws: 'paws.booties',
+      },
+    ),
+    (
+      'Impermeable y botas de lluvia',
+      {
+        Slot.coat: 'coat.white',
+        Slot.outfit: 'outfit.raincoat_yellow',
+        Slot.head: 'head.bow',
+        Slot.paws: 'paws.rain',
+      },
+    ),
+    (
+      'Vestido lila, gorro y gafas',
+      {
+        Slot.coat: 'coat.black',
+        Slot.outfit: 'outfit.dress_lilac',
+        Slot.head: 'head.beanie',
+        Slot.eyes: 'eyes.round',
+      },
+    ),
+  ];
+  final recorder = ui.PictureRecorder();
+  final c = ui.Canvas(recorder);
+  c.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
+  label(c, 'Conjuntos', const ui.Offset(20, 14), 25);
+  final camera = [views.first, views[1], views.last];
+  for (final (i, view) in camera.indexed) {
+    label(c, view.$4, ui.Offset(i * 280 + 22, 54), 16);
+  }
+  final images = <ui.Image>[];
+  for (final (row, (name, slots)) in looks.indexed) {
+    var appearance = base;
+    for (final slot in slots.entries) {
+      appearance = appearance.withSlot(slot.key, slot.value);
+    }
+    final y = 74.0 + row * 323;
+    for (final (i, (pose, anim, time, _)) in camera.indexed) {
+      final image = await dog(
+        painter,
+        appearance,
+        pose,
+        anim,
+        time,
+        height: 313,
+      );
+      images.add(image);
+      c.drawImage(image, ui.Offset(i * 280, y), ui.Paint());
+    }
+    label(c, name, ui.Offset(22, y + 298), 15);
+  }
+  await export(
+    recorder,
+    840,
+    74 + 323 * looks.length,
+    'conjuntos',
+    directory: directory,
+  );
+  for (final image in images) {
     image.dispose();
   }
 }
@@ -268,37 +344,109 @@ void main() {
     });
   });
 
-  testWidgets('un artículo fuera del piloto conserva exactamente su render', (
+  testWidgets('todo el catálogo se ajusta en las tres vistas del armario', (
     t,
   ) async {
-    final b = loadBalance();
+    final balance = loadBalance();
     final catalog = AppearanceCatalog.fromJson(
       jsonDecode(File('assets/data/appearance-v1.json').readAsStringSync()),
     );
     final painter = PetPainter(catalog)
       ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
     await t.runAsync(() async {
-      final a = b.initialAppearance
-          .withSlot(Slot.outfit, 'outfit.dress_pink')
-          .withSlot(Slot.head, 'head.crown');
-      final old = await dog(
-        painter,
-        a,
-        PetPose.front,
-        PetAnim.idle,
-        1,
-        integrated: false,
-      );
-      final next = await dog(painter, a, PetPose.front, PetAnim.idle, 1);
-      final before = await old.toByteData(), after = await next.toByteData();
-      expect(
-        after!.buffer.asUint8List(),
-        orderedEquals(before!.buffer.asUint8List()),
-      );
-      old.dispose();
-      next.dispose();
+      final base = balance.initialAppearance.withSlot(Slot.coat, 'coat.white');
+      final camera = [views.first, views[1], views.last];
+      final blank = <List<int>>[];
+      for (final (pose, anim, time, _) in camera) {
+        final image = await dog(painter, base, pose, anim, time, height: 313);
+        blank.add((await image.toByteData())!.buffer.asUint8List());
+        image.dispose();
+      }
+      final items = balance.styles.where((item) => !item.initial);
+      final sections = [
+        (
+          'Petos y jerséis',
+          'petos-y-jerseis',
+          items.where((item) {
+            final variety = catalog.varietyOf(item.id);
+            return variety == 'overalls' || variety == 'sweater';
+          }),
+        ),
+        (
+          'Impermeables y vestidos',
+          'impermeables-y-vestidos',
+          items.where((item) {
+            final variety = catalog.varietyOf(item.id);
+            return variety == 'raincoat' || variety == 'dress';
+          }),
+        ),
+        (
+          'Cabeza y gafas',
+          'cabeza-y-gafas',
+          items.where(
+            (item) => item.slot == Slot.head || item.slot == Slot.eyes,
+          ),
+        ),
+        (
+          'Cuello',
+          'cuello',
+          items.where(
+            (item) => item.slot == Slot.collar || item.slot == Slot.neck,
+          ),
+        ),
+        ('Calzado', 'calzado', items.where((item) => item.slot == Slot.paws)),
+      ];
+      for (final (title, file, entries) in sections) {
+        final recorder = ui.PictureRecorder();
+        final c = ui.Canvas(recorder);
+        c.drawColor(const ui.Color(0xFFF3EDE5), ui.BlendMode.src);
+        label(c, title, const ui.Offset(20, 14), 25);
+        for (final (i, view) in camera.indexed) {
+          label(c, view.$4, ui.Offset(i * 280 + 22, 54), 16);
+        }
+        final images = <ui.Image>[];
+        for (final (r, item) in entries.indexed) {
+          final appearance = base.withSlot(item.slot, item.id);
+          final y = 74.0 + r * 323;
+          for (final (i, (pose, anim, time, _)) in camera.indexed) {
+            final image = await dog(
+              painter,
+              appearance,
+              pose,
+              anim,
+              time,
+              height: 313,
+            );
+            final pixels = (await image.toByteData())!.buffer.asUint8List();
+            final visible = item.slot != Slot.eyes || pose != PetPose.back;
+            expect(
+              listEquals(pixels, blank[i]),
+              !visible,
+              reason: '${item.id} · ${pose.name}',
+            );
+            expect(painter.integratedAccessories.readyFor(appearance), isTrue);
+            images.add(image);
+            c.drawImage(image, ui.Offset(i * 280, y), ui.Paint());
+          }
+          label(c, catalog.labels[item.id]!, ui.Offset(22, y + 298), 15);
+        }
+        await export(
+          recorder,
+          840,
+          74 + 323 * entries.length,
+          file,
+          directory: 'docs/reviews/catalogo-integrado',
+        );
+        for (final image in images) {
+          image.dispose();
+        }
+      }
+      if (Platform.environment['POODLE_REVIEW'] == '1') {
+        await captureCompleteLooks(painter, base);
+      }
     });
   });
+
   testWidgets('el piloto conserva ojos y hocico de los tres pelajes', (
     t,
   ) async {
