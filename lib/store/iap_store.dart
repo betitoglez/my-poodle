@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 
 import '../domain/entitlements.dart';
@@ -68,7 +70,14 @@ class IapStore implements StoreProvider {
   void _receive(List<PurchaseDetails> purchases) {
     if (_disposed) return;
     for (final p in purchases) {
-      if (p.productID != productId) continue;
+      // Android emite cancelación/error sin producto cuando se cierra la hoja
+      // antes de crear una transacción. Nunca admitir éxitos sin producto.
+      final genericFailure =
+          android &&
+          p.productID.isEmpty &&
+          (p.status == PurchaseStatus.canceled ||
+              p.status == PurchaseStatus.error);
+      if (p.productID != productId && !genericFailure) continue;
       var kind = switch (p.status) {
         PurchaseStatus.pending => StoreEventKind.pending,
         PurchaseStatus.purchased => StoreEventKind.purchased,
@@ -76,6 +85,20 @@ class IapStore implements StoreProvider {
         PurchaseStatus.canceled => StoreEventKind.canceled,
         PurchaseStatus.error => StoreEventKind.error,
       };
+      // restorePurchases del plugin Android marca también las pendientes
+      // como restored: para entregar contenido manda el estado nativo.
+      if (android &&
+          p is GooglePlayPurchaseDetails &&
+          (p.status == PurchaseStatus.purchased ||
+              p.status == PurchaseStatus.restored)) {
+        final state = p.billingClientPurchase.purchaseState;
+        if (state == PurchaseStateWrapper.pending) {
+          kind = StoreEventKind.pending;
+        } else if (state != PurchaseStateWrapper.purchased) {
+          _error('invalid_android_purchase_state');
+          continue;
+        }
+      }
       // StoreKit 2 entrega también reembolsos como purchased. Solo se lee
       // el JSON de la transacción verificada que expone el plugin, en memoria.
       if (p is SK2PurchaseDetails &&
@@ -114,7 +137,14 @@ class IapStore implements StoreProvider {
             ),
           )
           .toString();
-      if (p.pendingCompletePurchase && p.status != PurchaseStatus.pending) {
+      final nativePending =
+          android &&
+          p is GooglePlayPurchaseDetails &&
+          p.billingClientPurchase.purchaseState == PurchaseStateWrapper.pending;
+      if (!genericFailure &&
+          !nativePending &&
+          p.pendingCompletePurchase &&
+          kind != StoreEventKind.pending) {
         _unfinished[eventId] = p;
       }
       _events.add(
@@ -182,8 +212,8 @@ class IapStore implements StoreProvider {
       _receive(mine);
       if (mine.any(
         (p) =>
-            p.status == PurchaseStatus.purchased ||
-            p.status == PurchaseStatus.restored,
+            p.billingClientPurchase.purchaseState ==
+            PurchaseStateWrapper.purchased,
       )) {
         return StoreOwnership.owned;
       }

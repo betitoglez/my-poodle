@@ -4,6 +4,10 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-19 · Correcciones pendientes de compras
+
+Integradas desde el clon original, sin sustituir el juego actual: Restaurar compras permanece visible al tener la versión completa, con progreso/error correcto; Android admite cancelación/error sin productID, no entrega ni confirma compras nativamente pendientes y reconcilia al reanudar una pendiente ya cancelada. Se conservan los estados de partida, los efectos y el visor 3D. Pruebas de restauración y reanudación incorporadas; análisis sin incidencias y 33 pruebas específicas correctas. La aceptación nativa iPhone sigue pendiente; estas correcciones no acreditan una compra Sandbox.
+
 ## Sesión 2026-11-19 · Revisión de Codex de la PR #4
 
 La revisión de GitHub detecta un P2: una pista podía arrancar después de pedir silencio si la preparación seguía pendiente. Se revalidan las condiciones actuales, la pista solicitada y la destrucción del servicio tras cargar y antes de reanudar. Cinco pruebas de regresión reproducen primero el fallo y pasan con la corrección: silenciar, pausa de actividad, segundo plano, cierre y cambio de pista durante la preparación. Análisis y contenido correctos; **187/187 pruebas** correctas. Corrección subida para una segunda revisión antes de fusionar.

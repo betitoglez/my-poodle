@@ -106,6 +106,17 @@ class StoreController extends ChangeNotifier {
         ),
         complete: false,
       );
+    } else if (o == StoreOwnership.notOwned && _entitlement.pending) {
+      // La tienda ya no devuelve la transacción pendiente: se ha cancelado.
+      // Un error o una consulta desconocida conserva el estado pendiente.
+      await _apply(
+        StoreEvent(
+          StoreEventKind.canceled,
+          eventId: 'query-canceled-$now-$_queries',
+          productId: productId,
+        ),
+        complete: false,
+      );
     } else if (o == StoreOwnership.notOwned && _entitlement.full) {
       await _apply(
         StoreEvent(

@@ -176,6 +176,28 @@ void main() {
     },
   );
 
+  test(
+    'pendiente desaparecida se cancela solo ante ausencia confirmada',
+    () async {
+      final c = make();
+      addTearDown(c.dispose);
+      await c.start();
+      await settle();
+      store.next = SimulatedOutcome.pending;
+      await c.buy();
+      await settle();
+      expect(c.pending, isTrue);
+      store.online = false;
+      await c.checkOwnership();
+      expect(c.pending, isTrue);
+      store.online = true;
+      await c.checkOwnership();
+      expect(c.pending, isFalse);
+      expect(c.full, isFalse);
+      expect(c.notice, StoreNotice.canceled);
+    },
+  );
+
   test('restaurar sin compras avisa; con compra desbloquea', () async {
     final c = make();
     await c.start();
