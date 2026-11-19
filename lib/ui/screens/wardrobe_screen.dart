@@ -220,7 +220,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     if (!mounted) return false;
     setState(() => _busy = false);
     if (r is Purchased) {
-      if (r.cost > 0) AppScope.feedbackOf(context).play(Sfx.coins);
+      final fx = AppScope.feedbackOf(context);
+      if (r.cost > 0) fx.play(Sfx.coins);
+      if (r.receipt.before.appearance != r.receipt.after.appearance) {
+        fx.play(Sfx.fabric, haptic: false);
+      }
       _setPreview(r.receipt.after.appearance);
       _game!.pet.react(PetAnim.celebrate, seconds: 1.6);
       return true;
@@ -366,6 +370,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
               if (live) {
                 if (await _live.petAt(point) == LivePetTap.greeted &&
                     context.mounted) {
+                  _game!.playSound(Sfx.bark);
                   await saveOrRecover(context, c.rewardGreeting);
                 }
               } else {
@@ -385,6 +390,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                       reducedMotion: c.reducedMotion,
                       wardrobe: true,
                       idle: true,
+                      onPanting: _game!.setPanting,
                       hygiene: pet.needPoints(Need.hygiene),
                       mood: pet.needPoints(Need.mood),
                       energy: pet.needPoints(Need.energy),

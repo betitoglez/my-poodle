@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:my_poodle/app/app_root.dart';
 import 'package:my_poodle/app/app_scope.dart';
+import 'package:my_poodle/app/feedback.dart';
 import 'package:my_poodle/data/save_codec.dart';
 import 'package:my_poodle/data/save_store.dart';
 import 'package:my_poodle/data/storage_backend.dart';
@@ -41,6 +42,7 @@ Future<void> boot(
   int? now,
   Clock? clock,
   StoreProvider? store,
+  EffectPlayback? effectPlayback,
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
@@ -50,6 +52,7 @@ Future<void> boot(
       backend: backend,
       clock: clock ?? FakeClock(now ?? t0),
       storeProvider: store ?? SimulatedStore(delay: Duration.zero),
+      effectPlayback: effectPlayback,
     ),
   );
   // Espera real a la carga de recursos y partida (E/S asíncrona).

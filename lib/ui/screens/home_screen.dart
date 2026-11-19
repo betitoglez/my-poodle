@@ -179,7 +179,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (!context.mounted) return;
                   setState(_game!.reactToPetTap);
                   if (tap == LivePetTap.greeted) {
+                    _game!.playSound(Sfx.bark);
                     await saveOrRecover(context, c.rewardGreeting);
+                  } else if (!live && !resting) {
+                    _game!.playSound(Sfx.bark, minGap: 2);
                   }
                   if (context.mounted) {
                     await saveOrRecover(
@@ -202,6 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           resting: resting,
                           passiveBed: true,
                           idle: true,
+                          onPanting: _game!.setPanting,
                           roaming: true,
                           hygiene: pet.needPoints(Need.hygiene),
                           mood: pet.needPoints(Need.mood),

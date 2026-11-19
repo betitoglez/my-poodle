@@ -88,6 +88,7 @@ private final class PoodleView: NSObject, FlutterPlatformView, WKNavigationDeleg
         ready: () => sendPoodle("ready"),
         rendered: () => sendPoodle("rendered"),
         failed: () => sendPoodle("failed"),
+        motionSound: event => sendPoodle("motionSound", [event]),
         bowlBounds: (...bounds) => sendPoodle("bowlBounds", bounds),
         bathTargets: json => sendPoodle("bathTargets", JSON.parse(json)),
         vetTargets: json => sendPoodle("vetTargets", JSON.parse(json)),
@@ -171,6 +172,12 @@ private final class PoodleView: NSObject, FlutterPlatformView, WKNavigationDeleg
       channel.invokeMethod("ready", arguments: nil)
     case "failed":
       fail()
+    case "motionSound":
+      if ready, let values = payload["values"] as? [Int], values.count == 1,
+        let event = values.first, (0...1).contains(event)
+      {
+        channel.invokeMethod("motionSound", arguments: event)
+      }
     default:
       guard ready, let count = coordinateCounts[method], let values = payload["values"] as? [Double],
         values.count == count, values.allSatisfy(\.isFinite)

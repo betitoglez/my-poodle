@@ -47,6 +47,7 @@ mixin _GameSession<W extends StatefulWidget> on State<W> {
         if (!c.canPlay(gameId)) {
           showAskAdult(nav.context);
         } else {
+          AppScope.feedbackOf(nav.context).play(Sfx.blocked);
           ScaffoldMessenger.of(nav.context).showSnackBar(
             SnackBar(
               content: Text(
@@ -64,13 +65,14 @@ mixin _GameSession<W extends StatefulWidget> on State<W> {
     if (finishing) return;
     finishing = true;
     final c = AppScope.read(context);
-    AppScope.feedbackOf(context).play(Sfx.coins);
     final receipt = await commitOrRecover<Receipt>(
       context,
       () => c.finishGame(session, gameId, score),
     );
     if (!mounted) return;
     if (receipt != null) {
+      final fx = AppScope.feedbackOf(context);
+      fx.play(Sfx.coins);
       replaceScreen(context, GameResultScreen(game: gameId, receipt: receipt));
     } else {
       Navigator.pop(context);
@@ -167,11 +169,7 @@ class _OrchardScreenState extends State<OrchardScreen>
       onHud: refreshAfterFrame,
       waitForStart: _render3d,
       onVisualFrame: _syncOrchard,
-      onEvent: (e) => fx.play(switch (e) {
-        'apple' => Sfx.apple,
-        'fall' => Sfx.fall,
-        _ => Sfx.jump,
-      }),
+      onEvent: (e) => fx.play(e, haptic: e != Sfx.countdown && e != Sfx.land),
     );
     _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
     _game!.pet.showSprite = !_render3d;
@@ -376,15 +374,14 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
             onHud: refreshAfterFrame,
             onVisualFrame: _syncFrisbee,
             onEvent: (e) {
+              fx.play(e, haptic: e != Sfx.countdown);
               switch (e) {
-                case 'catch':
-                  fx.play(Sfx.catchDisc);
+                case Sfx.catchDisc:
                   _missText = null;
-                case 'miss':
-                  fx.play(Sfx.miss);
+                case Sfx.miss:
                   _missText = _texts.pick(Texts.missFeedback);
                 default:
-                  fx.play(Sfx.throwDisc);
+                  break;
               }
             },
           )

@@ -105,6 +105,7 @@ class MyPoodleApp extends StatefulWidget {
     this.clock,
     this.storeProvider,
     this.loadSprites = true,
+    this.effectPlayback,
   });
   final StorageBackend? backend;
   final Clock? clock;
@@ -112,6 +113,7 @@ class MyPoodleApp extends StatefulWidget {
   /// Tienda inyectable (pruebas); por defecto según el tipo de build.
   final StoreProvider? storeProvider;
   final bool loadSprites;
+  final EffectPlayback? effectPlayback;
 
   @override
   State<MyPoodleApp> createState() => _MyPoodleAppState();
@@ -120,7 +122,7 @@ class MyPoodleApp extends StatefulWidget {
 class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
   AppServices? _services;
   Object? _error;
-  final _feedback = FeedbackService();
+  late final _feedback = FeedbackService(playback: widget.effectPlayback);
   final _shell = ShellController();
 
   @override
@@ -132,6 +134,7 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _feedback.setForeground(state == AppLifecycleState.resumed);
     if (state == AppLifecycleState.resumed) {
       _services?.controller.onResumed();
     }
@@ -149,6 +152,7 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
             loadSprites: widget.loadSprites,
           );
       _feedback.prefs = () => s.controller.prefs;
+      if (_services != s) s.controller.addListener(_feedback.sync);
       // Suscrito a la tienda antes de decidir Adopción o Casa.
       try {
         await s.controller.purchases.start();
@@ -166,6 +170,8 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _services?.controller.removeListener(_feedback.sync);
+    _feedback.dispose();
     _services?.controller.dispose();
     _services?.controller.purchases.dispose();
     super.dispose();
@@ -184,6 +190,7 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
       home = const _BootGate();
     }
     return MaterialApp(
+      navigatorObservers: [_feedback.routes],
       title: 'My Poodle',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),

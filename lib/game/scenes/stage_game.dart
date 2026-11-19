@@ -6,6 +6,7 @@ import 'package:flutter/painting.dart' show TextPainter, TextSpan, TextStyle;
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
+import '../../app/feedback.dart';
 import '../pet/appearance_catalog.dart';
 import '../pet/pet_component.dart';
 import '../pet/pet_painter.dart';
@@ -50,6 +51,49 @@ class StageGame extends FlameGame {
   final PetComponent pet;
   void Function()? onChanged;
   double time = 0;
+  FeedbackService? _sound;
+  bool _soundVisible = false;
+  bool _panting = false;
+  final _lastSound = <Sfx, double>{};
+
+  Set<Sfx> get soundLoops => _panting ? const {Sfx.pant} : const {};
+
+  void setPanting(bool value) {
+    if (_panting == value) return;
+    _panting = value;
+    syncSound();
+  }
+
+  void bindSound(FeedbackService? service, {required bool visible}) {
+    if (service != _sound) _sound?.setLoops(this, const {});
+    _sound = service;
+    _soundVisible = visible;
+    syncSound();
+  }
+
+  void syncSound() {
+    _sound?.setLoops(this, _soundVisible && !paused ? soundLoops : const {});
+  }
+
+  void playSound(Sfx effect, {double minGap = 0, bool haptic = false}) {
+    if (!_soundVisible || paused) return;
+    final last = _lastSound[effect];
+    if (last != null && time - last < minGap) return;
+    _lastSound[effect] = time;
+    _sound?.play(effect, haptic: haptic);
+  }
+
+  @override
+  void pauseEngine() {
+    super.pauseEngine();
+    syncSound();
+  }
+
+  @override
+  void resumeEngine() {
+    super.resumeEngine();
+    syncSound();
+  }
 
   bool get reducedMotion => pet.reducedMotion;
   set reducedMotion(bool v) => pet.reducedMotion = v;
@@ -146,6 +190,7 @@ class StageGame extends FlameGame {
   void update(double dt) {
     super.update(dt);
     time += dt;
+    syncSound();
   }
 
   void setLook(PetLook look) => pet.setLook(look);
@@ -229,6 +274,10 @@ class HomeGame extends StageGame {
   final bed = BedProp();
 
   @override
+  Set<Sfx> get soundLoops =>
+      resting ? const {Sfx.sleepBreath} : super.soundLoops;
+
+  @override
   Future<void> onLoad() async {
     await super.onLoad();
     // La cama llega sin bloquear la escena; mientras, cojín vectorial.
@@ -243,6 +292,7 @@ class HomeGame extends StageGame {
     pet.baseAnim = value ? PetAnim.sleep : PetAnim.idle;
     if (value) pet.setView(PetView.front);
     pet.clearReaction();
+    syncSound();
   }
 
   Rect get _bedRect => bed.rect(pet.position.toOffset(), pet.petSize);

@@ -138,6 +138,14 @@ private class PoodleView(context: Context, private val channel: MethodChannel) :
         }
 
         @JavascriptInterface
+        fun motionSound(event: Int) {
+            if (event !in 0..1) return
+            web.post {
+                if (!disposed && ready) channel.invokeMethod("motionSound", event)
+            }
+        }
+
+        @JavascriptInterface
         fun bathTargets(json: String) = sendTargets("bathTargets", json, 16)
 
         @JavascriptInterface

@@ -2,14 +2,14 @@
 
 Clips MP3 de ElevenLabs SFX v3 (`eleven_text_to_sound_v3`) generados el 19 de noviembre de 2026.
 Formato de origen MP3 a 44,1 kHz y 128 kbps. Los clips de ambiente, ducha y secador solicitados en bucle están marcados en la tabla.
-La columna «Uso» identifica el evento actual de Flutter o la interacción a la que corresponde el clip.
+La columna «Uso» identifica el evento de Flutter o la interacción a la que corresponde el clip. El ajuste «Efectos» silencia las muestras y la respuesta háptica. La reproducción usa archivos locales.
 
 | Prioridad | Efecto | Uso | Duración solicitada | Bucle |
 | ---: | --- | --- | ---: | :---: |
 | 1 | [Toque de interfaz](../../assets/audio/sfx/tap.mp3) | Sfx.tap | 0,6 s | — |
 | 2 | [Monedas](../../assets/audio/sfx/coins.mp3) | Sfx.coins | 1 s | — |
 | 3 | [Bocado](../../assets/audio/sfx/bite.mp3) | Sfx.bite | 0,8 s | — |
-| 4 | [Sorbo del caniche](../../assets/audio/sfx/lap.mp3) | Bebida, sustituye Sfx.bubble | 0,9 s | — |
+| 4 | [Sorbo del caniche](../../assets/audio/sfx/lap.mp3) | Sfx.lap, en cada sorbo | 0,9 s | — |
 | 5 | [Cuidado completado](../../assets/audio/sfx/celebrate.mp3) | Sfx.celebrate | 1,35 s | — |
 | 6 | [Fruta recogida](../../assets/audio/sfx/apple.mp3) | Sfx.apple | 0,6 s | — |
 | 7 | [Caída al agujero](../../assets/audio/sfx/fall.mp3) | Sfx.fall | 0,85 s | — |
@@ -22,8 +22,8 @@ La columna «Uso» identifica el evento actual de Flutter o la interacción a la
 | 14 | [Esponja y espuma](../../assets/audio/sfx/bubble.mp3) | Sfx.bubble | 0,95 s | — |
 | 15 | [Chapoteo](../../assets/audio/sfx/splash.mp3) | Sfx.splash | 0,7 s | — |
 | 16 | [Cepillado](../../assets/audio/sfx/brush.mp3) | Sfx.brush | 0,75 s | — |
-| 17 | [Pasos sobre hierba](../../assets/audio/sfx/step_grass.mp3) | Sfx.step, exteriores | 0,65 s | — |
-| 18 | [Pasos interiores](../../assets/audio/sfx/step_indoor.mp3) | Sfx.step, interiores | 0,65 s | — |
+| 17 | [Pasos sobre hierba](../../assets/audio/sfx/step_grass.mp3) | Grabación en reserva | 0,65 s | — |
+| 18 | [Pasos interiores](../../assets/audio/sfx/step_indoor.mp3) | Grabación en reserva | 0,65 s | — |
 | 19 | [Olfateo](../../assets/audio/sfx/sniff.mp3) | Sfx.sniff y paradas | 0,85 s | — |
 | 20 | [Secador](../../assets/audio/sfx/dryer.mp3) | Baño y peluquería | 3,5 s | Sí |
 | 21 | [Aviso de tiempo](../../assets/audio/sfx/countdown.mp3) | Huerto y Frisbee | 0,6 s | — |

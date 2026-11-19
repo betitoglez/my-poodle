@@ -83,7 +83,6 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
     if (finishing) return;
     finishing = true;
     final c = AppScope.read(context);
-    AppScope.feedbackOf(context).play(Sfx.celebrate);
     final receipt = await commitOrRecover<Receipt>(
       context,
       () => c.finishCare(
@@ -95,6 +94,11 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
     );
     if (!mounted) return;
     if (receipt != null) {
+      final fx = AppScope.feedbackOf(context);
+      fx.play(Sfx.celebrate);
+      if (receipt.after.coins < receipt.before.coins) {
+        fx.play(Sfx.coins, haptic: false);
+      }
       replaceScreen(context, CareResultScreen(kind: kind, receipt: receipt));
     } else {
       finishing = false;
@@ -211,15 +215,12 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
   @override
   StepActivity get activity => _activity;
   @override
-  FeedGame createGame(AppController c) =>
-      FeedGame(
-          painter: PetPainterScope.of(context),
-          look: c.look,
-          reducedMotion: c.reducedMotion,
-          activity: _activity,
-        )
-        ..onBite = (() => AppScope.feedbackOf(context).play(Sfx.bite))
-        ..onChewFrame = _syncFeedingPose;
+  FeedGame createGame(AppController c) => FeedGame(
+    painter: PetPainterScope.of(context),
+    look: c.look,
+    reducedMotion: c.reducedMotion,
+    activity: _activity,
+  )..onChewFrame = _syncFeedingPose;
 
   void _syncFeedingPose() {
     final feedingGame = game;
@@ -554,16 +555,13 @@ class _DrinkScreenState extends CareActivityState<DrinkScreen, FeedGame> {
   }
 
   @override
-  FeedGame createGame(AppController c) =>
-      FeedGame(
-          painter: PetPainterScope.of(context),
-          look: c.look,
-          reducedMotion: c.reducedMotion,
-          activity: _activity,
-          drinking: true,
-        )
-        ..onChewFrame = _syncWater
-        ..onBite = (() => AppScope.feedbackOf(context).play(Sfx.bubble));
+  FeedGame createGame(AppController c) => FeedGame(
+    painter: PetPainterScope.of(context),
+    look: c.look,
+    reducedMotion: c.reducedMotion,
+    activity: _activity,
+    drinking: true,
+  )..onChewFrame = _syncWater;
 
   Future<void> _fill() async {
     final selection = _selected;
@@ -725,15 +723,12 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
   @override
   StepActivity get activity => _activity;
   @override
-  BathGame createGame(AppController c) =>
-      BathGame(
-          painter: PetPainterScope.of(context),
-          look: c.look,
-          reducedMotion: c.reducedMotion,
-          activity: _activity,
-        )
-        ..onSoap = ((_) => AppScope.feedbackOf(context).play(Sfx.bubble))
-        ..onBathFrame = _syncBath;
+  BathGame createGame(AppController c) => BathGame(
+    painter: PetPainterScope.of(context),
+    look: c.look,
+    reducedMotion: c.reducedMotion,
+    activity: _activity,
+  )..onBathFrame = _syncBath;
 
   void _syncBath() {
     if (!_live.ready) {
@@ -1005,15 +1000,12 @@ class _WalkScreenState extends CareActivityState<WalkScreen, WalkGame> {
   @override
   StepActivity get activity => _activity;
   @override
-  WalkGame createGame(AppController c) =>
-      WalkGame(
-          painter: PetPainterScope.of(context),
-          look: c.look,
-          reducedMotion: c.reducedMotion,
-          activity: _activity,
-        )
-        ..onWalkFrame = _syncWalk
-        ..onSniff = (() => AppScope.feedbackOf(context).play(Sfx.sniff));
+  WalkGame createGame(AppController c) => WalkGame(
+    painter: PetPainterScope.of(context),
+    look: c.look,
+    reducedMotion: c.reducedMotion,
+    activity: _activity,
+  )..onWalkFrame = _syncWalk;
 
   void _syncWalk() {
     if (!_live.ready) {
@@ -1122,11 +1114,7 @@ class _WalkScreenState extends CareActivityState<WalkScreen, WalkGame> {
             onPressed: atStop
                 ? g.sniff
                 : stop != null
-                ? () {
-                    if (g.goTo(stop)) {
-                      AppScope.feedbackOf(context).play(Sfx.step);
-                    }
-                  }
+                ? () => g.goTo(stop)
                 : null,
           ),
         ],
@@ -1159,15 +1147,12 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
   @override
   bool get autoFinish => false;
   @override
-  GroomGame createGame(AppController c) =>
-      GroomGame(
-          painter: PetPainterScope.of(context),
-          look: c.look,
-          reducedMotion: c.reducedMotion,
-          activity: _activity,
-        )
-        ..onGroomFrame = _syncGroom
-        ..onBrushed = (_) => AppScope.feedbackOf(context).play(Sfx.brush);
+  GroomGame createGame(AppController c) => GroomGame(
+    painter: PetPainterScope.of(context),
+    look: c.look,
+    reducedMotion: c.reducedMotion,
+    activity: _activity,
+  )..onGroomFrame = _syncGroom;
 
   void _syncGroom() {
     if (!_live.ready || !mounted) {
@@ -1438,10 +1423,7 @@ class _SleepScreenState extends CareActivityState<SleepScreen, SleepGame> {
         'Toca su cama para que $name se acueste.',
         'Llevar a su cama',
         Icons.hotel_rounded,
-        () {
-          g.goToBed();
-          AppScope.feedbackOf(context).play(Sfx.step);
-        },
+        g.goToBed,
       ),
       SleepPhase.blanket => (
         g.atBed ? 'Arropa a $name con su manta.' : '$name va hacia su cama…',
@@ -1683,10 +1665,7 @@ class _VetScreenState extends CareActivityState<VetScreen, VetGame> {
             expand: true,
             onPressed: action == null || busy || finishing
                 ? null
-                : () {
-                    g.selectTool();
-                    AppScope.feedbackOf(context).play(Sfx.tap);
-                  },
+                : g.selectTool,
           ),
         ],
       ),

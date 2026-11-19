@@ -4,6 +4,7 @@ import 'dart:ui' hide TextStyle;
 import 'package:flame/components.dart';
 import 'package:flutter/animation.dart' show Curves;
 
+import '../../app/feedback.dart';
 import '../../domain/activities.dart';
 import 'care_tools.dart';
 import '../pet/appearance_catalog.dart';
@@ -93,6 +94,7 @@ class FeedGame extends StageGame {
     if (!drinking || hasWater) return;
     hasWater = true;
     _pourLeft = _pourSeconds;
+    playSound(Sfx.pourBowl);
     onChewFrame?.call();
     notify();
   }
@@ -100,7 +102,6 @@ class FeedGame extends StageGame {
   double _chewLeft = 0;
   double _visualElapsed = 0;
   bool _useLiveModel = false;
-  void Function()? onBite;
   void Function()? onChewFrame;
   Image? _bowlFull;
   Image? _bowlEmpty;
@@ -244,7 +245,7 @@ class FeedGame extends StageGame {
     _chewLeft = chewSeconds;
     _visualElapsed = 0;
     pet.react(PetAnim.eat, seconds: chewSeconds);
-    onBite?.call();
+    playSound(drinking ? Sfx.lap : Sfx.bite, haptic: true);
     onChewFrame?.call();
     notify();
     return true;
@@ -262,6 +263,7 @@ class FeedGame extends StageGame {
       _chewLeft -= dt;
       if (_chewLeft <= 0) {
         activity.chewDone();
+        if (drinking && activity.completed) playSound(Sfx.gulp);
         if (activity.completed) pet.react(PetAnim.happy, seconds: 2);
         onChewFrame?.call();
         notify();
@@ -307,6 +309,15 @@ class BathGame extends StageGame with _CareToolArt {
   List<Offset>? _liveTargets;
   bool spaRoom = false;
 
+  @override
+  Set<Sfx> get soundLoops => !_holding
+      ? const {}
+      : switch (activity.phase) {
+          BathPhase.wet || BathPhase.rinse => const {Sfx.shower},
+          BathPhase.dry => const {Sfx.dryer},
+          _ => const {},
+        };
+
   Future<void> setSpa() async {
     final image = await _prop(this, 'rooms/bath_spa.jpg');
     if (image != null) {
@@ -332,18 +343,21 @@ class BathGame extends StageGame with _CareToolArt {
     _awaitFreshGesture = false;
     _holding = true;
     _toolAt = null;
+    syncSound();
   }
 
   void releaseTool() {
     _awaitFreshGesture = false;
     _holding = false;
     _toolAt = null;
+    syncSound();
     if (_useLiveModel) notify();
   }
 
   void pressAt(Offset p) {
     _awaitFreshGesture = false;
     _aimTool(p);
+    syncSound();
     if (_useLiveModel) notify();
   }
 
@@ -364,7 +378,6 @@ class BathGame extends StageGame with _CareToolArt {
         )
       : pet.hits(p);
 
-  void Function(BathZone zone)? onSoap;
   void Function()? onBathFrame;
   Image? _tubImg;
   Image? _foamImg;
@@ -737,7 +750,9 @@ class BathGame extends StageGame with _CareToolArt {
   }
 
   bool wet([double seconds = 0.1]) {
+    final firstDrop = activity.toolProgress == 0;
     if (!activity.wet(seconds, _aimedZone)) return false;
+    if (firstDrop) playSound(Sfx.splash);
     _refreshFx();
     notify();
     return true;
@@ -747,7 +762,7 @@ class BathGame extends StageGame with _CareToolArt {
     if (!activity.soap(z, amount)) return false;
     if (activity.phase != BathPhase.soap) _finishToolGesture();
     _refreshFx();
-    onSoap?.call(z);
+    playSound(Sfx.bubble, minGap: .3, haptic: true);
     notify();
     return true;
   }
@@ -779,7 +794,21 @@ class BathGame extends StageGame with _CareToolArt {
             BathPhase.nails ||
             BathPhase.curl:
           final target = _activeExtraTarget;
+          final firstContact =
+              target != null && activity.extraTargetProgress(target) == 0;
           if (target != null && activity.applyExtra(dt, target)) {
+            if (phase == BathPhase.nails) {
+              if (activity.phase != phase ||
+                  activity.extraTargetProgress(target) >= 1) {
+                playSound(Sfx.nailClip);
+              }
+            } else if (firstContact) {
+              playSound(switch (phase) {
+                BathPhase.salts => Sfx.salts,
+                BathPhase.massage => Sfx.massage,
+                _ => Sfx.curler,
+              });
+            }
             _refreshFx();
             notify();
           }
@@ -795,6 +824,7 @@ class BathGame extends StageGame with _CareToolArt {
     _holding = false;
     _toolAt = null;
     _awaitFreshGesture = true;
+    syncSound();
   }
 
   @override
@@ -837,8 +867,16 @@ class WalkGame extends StageGame {
   double _sniffLeft = 0;
   bool _useLiveModel = false;
   Image? _panorama;
-  void Function()? onSniff;
   void Function()? onWalkFrame;
+
+  @override
+  Set<Sfx> get soundLoops => activity.completed
+      ? const {}
+      : activity.done == 2 &&
+            (activity.phase == WalkPhase.atStop ||
+                activity.phase == WalkPhase.sniffing)
+      ? const {Sfx.parkAmbience, Sfx.fountain}
+      : const {Sfx.parkAmbience};
 
   set useLiveModel(bool value) {
     _useLiveModel = value;
@@ -1109,7 +1147,7 @@ class WalkGame extends StageGame {
     if (!activity.beginSniff()) return false;
     _sniffLeft = _sniffSeconds;
     pet.baseAnim = PetAnim.sniff;
-    onSniff?.call();
+    playSound(Sfx.sniff, haptic: true);
     notify();
     return true;
   }
@@ -1183,12 +1221,19 @@ class GroomGame extends StageGame with _CareToolArt {
   }
 
   final GroomActivity activity;
-  void Function(Strand s)? onBrushed;
   void Function()? onGroomFrame;
   Offset? _toolPoint;
   List<Offset>? _liveTargets;
   bool _useLiveModel = false;
   bool _awaitFreshGesture = false;
+  double _dryerUntil = 0;
+  bool _dragDrying = false;
+
+  @override
+  Set<Sfx> get soundLoops =>
+      time < _dryerUntil && activity.tool == GroomTool.dryer
+      ? const {Sfx.dryer}
+      : const {};
 
   set useLiveModel(bool value) {
     _useLiveModel = value;
@@ -1208,6 +1253,11 @@ class GroomGame extends StageGame with _CareToolArt {
 
   void releaseTool() {
     _toolPoint = null;
+    if (_dragDrying) {
+      _dryerUntil = 0;
+      _dragDrying = false;
+      syncSound();
+    }
     if (_useLiveModel) notify();
   }
 
@@ -1406,13 +1456,21 @@ class GroomGame extends StageGame with _CareToolArt {
   bool brush(Strand s, [double amount = 0.15]) {
     final tool = activity.tool;
     if (!activity.brush(s, amount)) return false;
+    switch (tool) {
+      case GroomTool.comb:
+        playSound(Sfx.brush, minGap: .37, haptic: true);
+      case GroomTool.scissors:
+        playSound(Sfx.scissors, minGap: .32);
+      case GroomTool.dryer:
+        _dryerUntil = time + .4;
+        syncSound();
+    }
     if (tool != activity.tool) {
       _awaitFreshGesture = true;
       _toolPoint = null;
     }
     _refresh();
     if (activity.strandProgress(tool, s) >= 1) {
-      onBrushed?.call(s);
       if (activity.completed) pet.react(PetAnim.happy, seconds: 2);
     }
     onGroomFrame?.call();
@@ -1433,6 +1491,7 @@ class GroomGame extends StageGame with _CareToolArt {
     if (_awaitFreshGesture) return;
     final s = strandAt(p);
     _toolPoint = p;
+    _dragDrying = activity.tool == GroomTool.dryer;
     final changed = s != null && brush(s, delta.distance / (pet.petSize * 1.5));
     if (!changed && _useLiveModel) notify();
   }
@@ -1471,8 +1530,12 @@ class SleepGame extends StageGame {
   double _sleepLeft = 0;
   bool _useLiveModel = false;
   Rect? _liveBedBounds;
-  void Function()? onStep;
   void Function()? onSleepFrame;
+
+  @override
+  Set<Sfx> get soundLoops => activity.phase == SleepPhase.sleeping
+      ? const {Sfx.sleepBreath}
+      : const {};
 
   set useLiveModel(bool value) {
     _useLiveModel = value;
@@ -1530,6 +1593,7 @@ class SleepGame extends StageGame {
   /// Paso 2: lo arropa.
   bool tuckIn() {
     if (!atBed || !activity.advance(SleepPhase.blanket)) return false;
+    playSound(Sfx.fabric);
     notify();
     return true;
   }
@@ -1542,6 +1606,8 @@ class SleepGame extends StageGame {
     if (!canLightsOff) return false;
     if (!activity.advance(SleepPhase.lights)) return false;
     _sleepLeft = _sleepSeconds;
+    playSound(Sfx.lightSwitch);
+    syncSound();
     notify();
     return true;
   }
@@ -1698,7 +1764,10 @@ class SleepGame extends StageGame {
     }
     if (activity.phase == SleepPhase.sleeping) {
       _sleepLeft -= dt;
-      if (_sleepLeft <= 0 && activity.wake()) notify();
+      if (_sleepLeft <= 0 && activity.wake()) {
+        syncSound();
+        notify();
+      }
     }
     if (_useLiveModel) onSleepFrame?.call();
   }
@@ -1755,6 +1824,12 @@ class VetGame extends StageGame with _CareToolArt {
   List<Offset>? _liveTargets;
   void Function()? onVetFrame;
 
+  @override
+  Set<Sfx> get soundLoops =>
+      _holding && !busy && activity.phase == VetPhase.heart
+      ? const {Sfx.heartbeat}
+      : const {};
+
   set useLiveModel(bool value) {
     _useLiveModel = value;
     pet.showSprite = !value;
@@ -1781,6 +1856,7 @@ class VetGame extends StageGame with _CareToolArt {
   void selectTool() {
     if (busy || _target == null) return;
     _toolSelected = true;
+    playSound(Sfx.tap);
     onVetFrame?.call();
     notify();
   }
@@ -1799,6 +1875,7 @@ class VetGame extends StageGame with _CareToolArt {
   void releaseTool() {
     _holding = false;
     _toolPoint = null;
+    syncSound();
     onVetFrame?.call();
   }
 
@@ -1811,6 +1888,7 @@ class VetGame extends StageGame with _CareToolArt {
         : 0.16;
     final hit = (p - _at(_target!)).distance < pet.petSize * radius;
     _holding = hit;
+    syncSound();
     if (activity.phase == VetPhase.pill && hit) {
       givePill();
       _toolSelected = false;
@@ -1842,6 +1920,7 @@ class VetGame extends StageGame with _CareToolArt {
   bool checkPaws() {
     if (busy || !activity.checkPaws()) return false;
     _start(_VetFx.paws);
+    playSound(Sfx.tap);
     notify();
     return true;
   }
@@ -1850,6 +1929,7 @@ class VetGame extends StageGame with _CareToolArt {
   bool givePill() {
     if (busy || !activity.givePill()) return false;
     _start(_VetFx.pill);
+    playSound(Sfx.gulp);
     notify();
     return true;
   }
