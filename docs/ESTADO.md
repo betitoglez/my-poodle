@@ -4,6 +4,32 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-19 · Revisión de Codex de la PR #4
+
+La revisión de GitHub detecta un P2: una pista podía arrancar después de pedir silencio si la preparación seguía pendiente. Se revalidan las condiciones actuales, la pista solicitada y la destrucción del servicio tras cargar y antes de reanudar. Cinco pruebas de regresión reproducen primero el fallo y pasan con la corrección: silenciar, pausa de actividad, segundo plano, cierre y cambio de pista durante la preparación. Análisis y contenido correctos; **187/187 pruebas** correctas. Corrección subida para una segunda revisión antes de fusionar.
+
+## Sesión 2026-11-19 · Corrección de activación del 3D en iPhone
+
+El propietario detecta que no aparecen los diseños 3D. Causa verificada: `LivePoodleView.enabled` exige `POODLE_LIVE_3D=true`, pero las builds 0.4.11 y 0.4.12 se hicieron sin esa opción. Contenían el GLB y el código nativo, pero mostraban el respaldo 2D; los registros anteriores de empaquetado no acreditaban que el 3D estuviese activo. Fue un error de preparación de esas builds, no una pérdida de los diseños.
+
+Se prepara **0.4.13 (31)** y se añade `tool/build_ios_3d.sh`, que activa la opción y verifica tanto el valor efectivo como el modelo empaquetado. Build Profile **0.4.13 (31)** correcta, instalada sobre la versión previa y abierta en primer plano. El script verifica `POODLE_LIVE_3D=true` decodificando la configuración efectiva y comprueba el GLB empaquetado. Firma estricta correcta. No se han cambiado las reglas ni los diseños: se activa su visor existente. La captura remota de pantalla no está disponible en este entorno. **Confirmación física manual del propietario: «Sí, aparece en 3D».** Esta confirmación acredita la visualización del caniche 3D en el iPhone; no equivale a una revisión completa de cuidados, vestuario o rendimiento.
+
+## Sesión 2026-11-19 · main actualizado y rama rebasada
+
+Por petición del propietario se descarga main directamente de GitHub por HTTPS (SSH agotó el tiempo de conexión), se actualiza main local a `54279f6` y se rebasa `codex/elevenlabs-sfx` sobre ese main. La música queda en un commit propio; los efectos ya incorporados en main por #3 no se duplican. Se conserva `codex/backup-music-before-main-20261119` como referencia previa. Se comprueba que main coincide con GitHub, que es ancestro de la rama y que el árbol tras el rebase coincide con el anterior.
+
+iPhone actualizado y abierto con **0.4.12 (30)**, versión declarada también en pubspec. Análisis y validación correctos, **182/182 pruebas** correctas y build Profile desde la rama rebasada. Firma corregida y verificada antes de instalar. `devicectl` confirma versión y apertura en primer plano con terminación de cualquier instancia anterior. Hay otra instalación antigua `dev.mypoodle.myPoodle` 0.1.0 (1) con el mismo nombre; no se ha desinstalado ni modificado. La instalada y abierta es `com.betitoglez.mypoodle`.
+
+## Sesión 2026-11-19 · iPhone 0.4.11 (29): música y versión actual
+
+Actualización 21:43 (hora de Madrid): tras desbloquear el iPhone, `devicectl` abrió la app en primer plano y se verificó que el proceso del paquete instalado seguía en ejecución. La escucha y revisión visual quedan para la prueba manual del propietario.
+
+Integradas las tres músicas sobre `bb85158` de este worktree, conservando caniche 3D, cuidados ampliados y efectos ElevenLabs. Un único reproductor selecciona Casa/menús, juegos o actividades por ruta; se mantienen las pausas y ajustes independientes de efectos. Fuentes y pistas en [AUDIO](AUDIO.md).
+
+Verificación: análisis sin incidencias, validador correcto, 16 pruebas relevantes y **182/182 pruebas completas** correctas. Build Profile con entrada normal `lib/main.dart`, `--build-name 0.4.11 --build-number 29`; paquete incluye el caniche GLB, los efectos y las tres canciones (hashes coincidentes con las fuentes).
+
+Instalación física completada sobre My Poodle 0.4.10 (28), manteniendo el identificador y sin desinstalar. Se corrigió un rechazo de firma de Flutter.framework por un Info.plist modificado después de firmar: frameworks y app firmados de nuevo con la identidad de desarrollo existente y entitlements preservados; verificación estricta correcta. `devicectl` confirma 0.4.11 (29). Lanzamiento automático bloqueado por el teléfono bloqueado; el propietario puede desbloquearlo y abrir My Poodle. Revisión visual y escucha físicas pendientes.
+
 ## Sesión 2026-11-18 · Piloto de prendas integradas
 
 Alcance autorizado e implementado: gorro de lana, familia jersey y pañuelo coral. Seis recursos ilustrados locales, ajuste por pose mediante malla, oclusión del pelaje original y sombras recortadas al cuerpo. El resto del catálogo conserva su representación anterior. Capturas de frente, perfil y carrera sobre albaricoque, blanco y negro en [la revisión del piloto](reviews/integrated-pilot/README.md). Se descartó una primera prueba de texturas planas: no resolvía el volumen del jersey. Análisis limpio y 36 pruebas relevantes correctas, incluyendo facciones y regresión de artículos ajenos al piloto. Revisado visualmente en este Mac; valoración del propietario y dispositivo pendientes. Sin build de distribución; cambios sin commit del clon original respetados.

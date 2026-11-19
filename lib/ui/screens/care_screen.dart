@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
+import '../../app/background_music.dart';
 import '../../app/texts.dart';
 import '../../domain/balance.dart';
 import '../../domain/rules.dart';
@@ -119,7 +120,13 @@ class CareScreen extends StatelessWidget {
                         )) {
                       return;
                     }
-                    if (context.mounted) pushScreen(context, card.build());
+                    if (context.mounted) {
+                      pushScreen(
+                        context,
+                        card.build(),
+                        music: MusicTrack.activities,
+                      );
+                    }
                   },
                 );
               },

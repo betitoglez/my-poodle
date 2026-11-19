@@ -38,8 +38,10 @@ flutter run -d chrome
 ```
 
 ```bash
-flutter run -d <id-del-dispositivo>
+flutter run --dart-define=POODLE_LIVE_3D=true -d <id-del-dispositivo>
 ```
+
+En móvil, la opción anterior activa los diseños 3D. Para compilar la versión de iPhone usar `tool/build_ios_3d.sh`, que también comprueba que el visor está activado. La vista web usa la representación 2D.
 
 Comprobaciones antes de compilar:
 

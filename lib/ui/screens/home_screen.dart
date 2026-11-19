@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_root.dart';
 import '../../app/app_scope.dart';
+import '../../app/background_music.dart';
 import '../../app/feedback.dart';
 import '../../app/texts.dart';
 import '../../domain/balance.dart';
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     if (c.pet.restingSinceUtc != null && !await _setResting(false)) return;
-    if (mounted) pushScreen(context, screen);
+    if (mounted) pushScreen(context, screen, music: MusicTrack.activities);
   }
 
   void _attend(PetCondition cond) {

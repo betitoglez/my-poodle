@@ -73,7 +73,10 @@ class ActivityFrameState extends State<ActivityFrame>
     if (_pauseOpen || _leaving) return;
     _pauseOpen = true;
     widget.game.pauseEngine();
+    final music = AppScope.feedbackOf(context).music;
+    music.setActivityPaused(true);
     final resume = await showPauseDialog(context, game: widget.isGame);
+    music.setActivityPaused(false);
     _pauseOpen = false;
     if (!mounted) return;
     if (resume) {
@@ -96,11 +99,14 @@ class ActivityFrameState extends State<ActivityFrame>
       return;
     }
     widget.game.pauseEngine();
+    final music = AppScope.feedbackOf(context).music;
+    music.setActivityPaused(true);
     final exit = await showExitActivityDialog(
       context,
       activity: widget.activityName,
       game: widget.isGame,
     );
+    music.setActivityPaused(false);
     if (!mounted) return;
     if (exit) {
       _leave();

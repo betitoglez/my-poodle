@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:my_poodle/app/app_root.dart';
+import 'package:my_poodle/app/background_music.dart';
 import 'package:my_poodle/app/app_scope.dart';
 import 'package:my_poodle/app/feedback.dart';
 import 'package:my_poodle/data/save_codec.dart';
@@ -17,6 +18,7 @@ import 'package:my_poodle/ui/parental_gate.dart';
 import 'package:my_poodle/ui/widgets/common.dart';
 
 import '../support.dart';
+import '../music_player_fake.dart';
 
 /// Recorridos de aceptación sobre la app real (dominio, guardado en memoria,
 /// escenas Flame y widgets). Avanza el tiempo explícitamente: nunca
@@ -43,6 +45,7 @@ Future<void> boot(
   Clock? clock,
   StoreProvider? store,
   EffectPlayback? effectPlayback,
+  BackgroundMusic? music,
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
@@ -53,6 +56,7 @@ Future<void> boot(
       clock: clock ?? FakeClock(now ?? t0),
       storeProvider: store ?? SimulatedStore(delay: Duration.zero),
       effectPlayback: effectPlayback,
+      backgroundMusic: music ?? BackgroundMusic(player: FakeMusicPlayer()),
     ),
   );
   // Espera real a la carga de recursos y partida (E/S asíncrona).
