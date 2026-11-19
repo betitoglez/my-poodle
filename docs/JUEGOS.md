@@ -8,21 +8,21 @@ Interfaz mínima: startRun(GameContext), setPaused(bool), cancel() y callback co
 
 ## Huerto saltarín
 
-**Objetivo.** Atravesar una pista lateral en 30 segundos de juego activo y recoger hasta 12 manzanas. El caniche avanza solo. Un toque en el terreno o el botón Saltar produce un salto. El jugador ve la siguiente plataforma antes del punto de despegue. Una caída devuelve al último punto seguro, con las frutas recogidas aún retiradas y el tiempo en marcha.
+**Objetivo.** Llegar a la meta en 60 segundos de juego activo y recoger hasta 24 frutas. El caniche avanza solo. Toca el terreno o el botón Saltar para superar bancales, vallas y setos. El encuadre muestra más terreno a medida que aumenta la velocidad.
 
-**Construcción.** OrchardGame de Flame completamente 2D, con sprites y cámara lateral. Movimiento cinemático sencillo sin motor de física adicional: paso fijo de 1/120 s con acumulador; usar barrido de hitbox contra plataformas para no atravesarlas. La colisión y el reloj de sesión usan el mismo tiempo simulado. Limitar el retraso acumulado y entrar en pausa ante una interrupción larga. Coordenadas de simulación X derecha/Y arriba; convertir a dibujo Flame (Y hacia abajo) con escala inicial 100 unidades lógicas de dibujo por unidad de juego. Separar hitbox del personaje y animación visual. Comprobar solapamientos con frutas una vez por ID. CameraComponent sigue X con suavidad y altura fija. Toque o botón Jump encolan una intención consumida en el siguiente paso.
+**Simulación y visores.** El juego usa un paso fijo de 1/120 s y separa las colisiones del dibujo. Comparte el recorrido entre el visor 3D y la escena 2D. Las coordenadas de la simulación crecen hacia arriba en Y. La cámara lateral sigue al caniche y se abre de forma gradual.
 
-| Parámetro | Valor inicial de trabajo |
+| Parámetro | Valor |
 |---|---|
-| Avance | 3 unidades/s |
+| Recorrido | 116 unidades de principio a fin, 24 frutas de seis tipos |
+| Avance | De 3 a 9 unidades/s según el punto más lejano alcanzado |
 | Gravedad efectiva | −20 unidades/s² |
 | Velocidad vertical inicial | 7 unidades/s |
-| Altura y alcance ideal a igual cota | 1,23 unidades y 2,1 unidades |
-| Tolerancias | 100 ms después de abandonar suelo; 120 ms de memoria de un toque justo antes de aterrizar |
-| Hueco inicial | 0,6–1,1 unidades entre bordes. Aumentos de altura hasta 0,35 unidades |
-| Premio | Al agotar tiempo o llegar a meta, 2 + frutas únicas, máximo 14 monedas |
+| Tolerancia del salto | 100 ms después de abandonar el suelo y 120 ms de memoria de un toque |
+| Penalización | −5 segundos por choque o caída |
+| Premio | 2 monedas más 2 por fruta, hasta 50 monedas |
 
-Preparar tres tramos manuales de 20 unidades, cuatro frutas por tramo. Primero salto en suelo continuo, después dos bancales, finalmente plataformas y meta. Colocar frutas sobre la curva de salto, incluyendo algunas recogibles sin saltar. Identificar cada fruta por tramo/índice. Al detectar solapamiento añadir a conjunto de recogidas y ocultar su objeto. Una segunda detección no suma. Registrar el punto seguro solo al apoyar ambas patas sobre un bancal. Al caer por debajo de y = −3, anular velocidad, descontar 5 segundos adicionales una sola vez, recolocar en punto seguro y dar medio segundo para leer la escena. HUD muestra tiempo y frutas. Seis apariencias de fruta comparten las mismas reglas de recogida; el suelo combina césped, raíces, tierra estratificada y bancales con juntas. Las patas recorren fotogramas de carrera incluso con accesorios; los cortes sin fotogramas propios articulan las patas del perfil. Pausa y reanudación congelan cronómetro, movimiento y física. Límite de sesión o meta gana la primera transición a Terminado. Con 7 frutas debe acreditar 9 monedas y actualizar el récord si corresponde.
+El tramo final concentra más obstáculos. Cada fruta cuenta una vez, incluso si el caniche reaparece. Al caer, vuelve al último apoyo seguro. La pausa congela cronómetro y física. La partida termina al llegar a la meta o agotar el tiempo y guarda el récord si corresponde.
 
 Ambos juegos consumen 20 de energía y 10 de saciedad al terminar, además de dar +8 de ánimo. Solo admiten tres inicios por ventana móvil de cinco minutos, persistida; con energía cero hay que dormir.
 

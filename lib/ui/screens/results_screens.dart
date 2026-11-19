@@ -288,10 +288,11 @@ class _GameResultScreenState extends State<GameResultScreen> {
   @override
   Widget build(BuildContext context) {
     final r = widget.receipt;
-    final def = GameCatalog.of(widget.game);
+    final balance = AppScope.read(context).balance;
+    final def = GameCatalog.of(widget.game, balance);
     final max = widget.game == GameId.fruit
-        ? 12
-        : AppScope.read(context).balance.frisbee.targetsField.length;
+        ? balance.fruit.maxScore
+        : balance.frisbee.targetsField.length;
     return _ResultLayout(
       room: RoomKind.living,
       kicker: def.title,

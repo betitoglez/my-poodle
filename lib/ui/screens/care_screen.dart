@@ -112,8 +112,12 @@ class CareScreen extends StatelessWidget {
                       showCareBlocked(context, card.kind, blocked);
                       return;
                     }
-                    if (c.pet.restingSinceUtc != null) {
-                      await c.setHomeResting(false);
+                    if (c.pet.restingSinceUtc != null &&
+                        !await saveOrRecover(
+                          context,
+                          () => c.setHomeResting(false),
+                        )) {
+                      return;
                     }
                     if (context.mounted) pushScreen(context, card.build());
                   },

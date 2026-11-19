@@ -188,7 +188,7 @@ class _OrchardScreenState extends State<OrchardScreen>
     final c = AppScope.of(context);
     final live = _render3d && _live.ready;
     final waiting = _game!.waitForStart;
-    final def = GameCatalog.fruit;
+    final def = GameCatalog.fruit(c.balance.fruit);
     return ActivityFrame(
       key: _frame,
       title: def.title,

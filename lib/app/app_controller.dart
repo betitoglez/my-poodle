@@ -266,25 +266,26 @@ class AppController extends ChangeNotifier {
     fullVersion: fullVersion,
   );
 
-  Future<void> setHomeResting(bool resting) => _serial(() async {
-    final state = _confirmed;
-    if (state == null ||
-        hasPending ||
-        (state.restingSinceUtc != null) == resting) {
-      return;
-    }
-    final now = clock.nowUtcSeconds();
-    final next = rules.clock
-        .advance(state, now)
-        .copyWith(
-          restingSinceUtc: resting ? now : null,
-          restEnergyCursorUtc: resting ? now : null,
-          wake: !resting,
-          revision: state.revision + 1,
-          lastCommitId: 'home-rest-$now-${state.revision}',
-        );
-    await _write(next, next);
-  });
+  Future<ActionResult<PetState>> setHomeResting(bool resting) =>
+      _serial(() async {
+        final state = _confirmed;
+        if (state == null ||
+            hasPending ||
+            (state.restingSinceUtc != null) == resting) {
+          return const Ignored();
+        }
+        final now = clock.nowUtcSeconds();
+        final next = rules.clock
+            .advance(state, now)
+            .copyWith(
+              restingSinceUtc: resting ? now : null,
+              restEnergyCursorUtc: resting ? now : null,
+              wake: !resting,
+              revision: state.revision + 1,
+              lastCommitId: 'home-rest-$now-${state.revision}',
+            );
+        return _write(next, next);
+      });
 
   String beginActivity(String activityId) {
     final kind = CareKind.values.where((k) => k.name == activityId).firstOrNull;
@@ -323,16 +324,17 @@ class AppController extends ChangeNotifier {
 
   void cancelActivity(String sessionId) => sessions.cancel(sessionId);
 
-  Future<void> rewardGreeting() => _serial(() async {
+  Future<ActionResult<PetState>> rewardGreeting() => _serial(() async {
     final state = _confirmed;
-    if (state == null || hasPending) return;
+    if (state == null || hasPending) return const Ignored();
     final now = clock.nowUtcSeconds();
     final next = rules.rewardGreeting(
       state,
       'greeting-$now-${state.revision}',
       now,
     );
-    if (next != null) await _write(next, next);
+    if (next == null) return const Ignored();
+    return _write(next, next);
   });
 
   Future<ActionResult<Receipt>> finishCare(
@@ -432,21 +434,23 @@ class AppController extends ChangeNotifier {
     return _commit(next, p);
   }
 
-  Future<void> markHintSeen(String key) => _serial(() async {
-    final state = _confirmed;
-    if (state == null || hasPending || state.prefs.seenHints.contains(key)) {
-      return;
-    }
-    final preferences = state.prefs.copyWith(
-      seenHints: {...state.prefs.seenHints, key},
-    );
-    final next = state.copyWith(
-      prefs: preferences,
-      revision: state.revision + 1,
-      lastCommitId: 'hint-${clock.nowUtcSeconds()}-${state.revision}',
-    );
-    await _write(next, preferences);
-  });
+  Future<ActionResult<Preferences>> markHintSeen(String key) => _serial(
+    () async {
+      final state = _confirmed;
+      if (state == null || hasPending || state.prefs.seenHints.contains(key)) {
+        return const Ignored();
+      }
+      final preferences = state.prefs.copyWith(
+        seenHints: {...state.prefs.seenHints, key},
+      );
+      final next = state.copyWith(
+        prefs: preferences,
+        revision: state.revision + 1,
+        lastCommitId: 'hint-${clock.nowUtcSeconds()}-${state.revision}',
+      );
+      return _write(next, preferences);
+    },
+  );
 
   /// Reinicio confirmado desde la zona adulta.
   Future<void> resetGame() => _serial(() async {

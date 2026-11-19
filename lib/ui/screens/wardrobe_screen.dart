@@ -364,8 +364,9 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                 'Vista previa de ${pet.name} con el aspecto elegido, ${_view.label.toLowerCase()}',
             onTap: (point) async {
               if (live) {
-                if (await _live.petAt(point) == LivePetTap.greeted && mounted) {
-                  await c.rewardGreeting();
+                if (await _live.petAt(point) == LivePetTap.greeted &&
+                    context.mounted) {
+                  await saveOrRecover(context, c.rewardGreeting);
                 }
               } else {
                 _game!.pet.react(PetAnim.happy);

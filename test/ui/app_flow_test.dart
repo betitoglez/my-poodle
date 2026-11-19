@@ -448,12 +448,16 @@ void main() {
     await tapText(t, 'Juegos');
     await t.tap(find.text('Jugar').hitTestable().first);
     await idle(t);
+    expect(find.textContaining('hasta 24 frutas'), findsOneWidget);
+    expect(find.textContaining('60 segundos'), findsOneWidget);
+    expect(find.textContaining('2 monedas + 2 por fruta'), findsOneWidget);
     await tapText(t, 'Jugar');
     await frames(t, seconds: 61);
     await idle(t);
     final coins = saved(backend).coins;
     expect(coins, greaterThanOrEqualTo(2));
     expect(find.text('+$coins monedas'), findsOneWidget);
+    expect(find.textContaining('de 24 frutas'), findsOneWidget);
   });
 
   testWidgets('12 · reinicio: cancelar conserva, confirmar vuelve a Adopción', (

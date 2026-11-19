@@ -367,6 +367,16 @@ Future<bool> resolveSaveFailure(BuildContext context) async {
   return true;
 }
 
+/// Recupera una escritura de estado sin volver a ejecutar la intención.
+Future<bool> saveOrRecover<T>(
+  BuildContext context,
+  Future<ActionResult<T>> Function() action,
+) async => switch (await action()) {
+  Done() => true,
+  Ignored() => false,
+  SaveFailed() => context.mounted && await resolveSaveFailure(context),
+};
+
 /// Ejecuta una intención que guarda y resuelve un posible fallo de guardado.
 Future<T?> commitOrRecover<T>(
   BuildContext context,

@@ -41,7 +41,7 @@ class GamesScreen extends StatelessWidget {
                 AppSpace.l,
               ),
               children: [
-                for (final def in GameCatalog.all)
+                for (final def in GameCatalog.all(c.balance))
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpace.m),
                     child: _GameCard(
@@ -158,9 +158,10 @@ class InstructionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final def = GameCatalog.of(game);
+    final c = AppScope.of(context);
+    final def = GameCatalog.of(game, c.balance);
     final l = Layout.of(context);
-    final reduced = AppScope.of(context).reducedMotion;
+    final reduced = c.reducedMotion;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

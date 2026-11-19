@@ -1,3 +1,4 @@
+import '../domain/balance.dart';
 import '../domain/rules.dart';
 
 /// Definición de un minijuego (contrato común de docs/JUEGOS.md). La pantalla
@@ -29,16 +30,16 @@ class GameDefinition {
 }
 
 abstract final class GameCatalog {
-  static const fruit = GameDefinition(
+  static GameDefinition fruit(FruitRule rule) => GameDefinition(
     id: GameId.fruit,
     title: 'Huerto saltarín',
     thumbnail: 'assets/images/cards/orchard.jpg',
-    tagline: 'Salta los bancales y recoge frutas.',
-    objective: 'Llega a la meta recogiendo hasta 12 frutas.',
+    tagline: 'Salta los obstáculos y recoge frutas.',
+    objective: 'Llega a la meta recogiendo hasta ${rule.maxScore} frutas.',
     gesture: 'Toca la pantalla o el botón Saltar para saltar.',
-    limitLabel: '30 segundos',
+    limitLabel: '${rule.seconds} segundos',
     scoreLabel: 'frutas',
-    rewardLabel: '2 monedas + 1 por fruta',
+    rewardLabel: '${rule.baseCoins} monedas + ${rule.coinsPerPoint} por fruta',
   );
 
   static const frisbee = GameDefinition(
@@ -53,7 +54,13 @@ abstract final class GameCatalog {
     rewardLabel: '3 monedas + 3 por captura',
   );
 
-  static const all = [fruit, frisbee];
+  static List<GameDefinition> all(Balance balance) => [
+    fruit(balance.fruit),
+    frisbee,
+  ];
 
-  static GameDefinition of(GameId id) => all.firstWhere((g) => g.id == id);
+  static GameDefinition of(GameId id, Balance balance) => switch (id) {
+    GameId.fruit => fruit(balance.fruit),
+    GameId.frisbee => frisbee,
+  };
 }

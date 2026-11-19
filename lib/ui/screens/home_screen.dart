@@ -45,10 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
       painter: PetPainterScope.of(context),
       look: c.look,
       reducedMotion: c.reducedMotion,
-      onPetTapped: () {
-        AppScope.feedbackOf(context).play(Sfx.tap);
-        AppScope.read(context).markHintSeen('home.pet');
-      },
+      onPetTapped: () => AppScope.feedbackOf(context).play(Sfx.tap),
     );
     // Un único caniche que refleja el aspecto y la salud confirmados.
     _game!.setLook(c.look);
@@ -73,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       showCareBlocked(context, kind, blocked);
       return;
     }
-    if (c.pet.restingSinceUtc != null) await c.setHomeResting(false);
+    if (c.pet.restingSinceUtc != null && !await _setResting(false)) return;
     if (mounted) pushScreen(context, screen);
   }
 
@@ -108,9 +105,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Al acostarse mira de frente: el giro vuelve a ese ángulo para no
   /// quedar desfasado.
-  void _setResting(bool value) {
-    if (value) setState(() => _view = PetView.front);
-    AppScope.read(context).setHomeResting(value);
+  Future<bool> _setResting(bool value) async {
+    final c = AppScope.read(context);
+    final saved = await saveOrRecover(context, () => c.setHomeResting(value));
+    if (saved && value && mounted) setState(() => _view = PetView.front);
+    return saved;
   }
 
   @override
@@ -170,20 +169,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 semanticsLabel:
                     '${pet.name} en el salón, ${_view.label.toLowerCase()}. Toca para hacerle una caricia.',
                 onTap: (p) async {
-                  if (live) {
-                    final tap = await _live.petAt(p);
-                    if (tap != LivePetTap.missed && mounted) {
-                      if (resting) await c.setHomeResting(false);
-                      if (!mounted) return;
-                      setState(_game!.reactToPetTap);
-                      if (tap == LivePetTap.greeted) await c.rewardGreeting();
-                    }
-                  } else {
-                    if (resting && _game!.pet.hits(p)) {
-                      await c.setHomeResting(false);
-                    }
-                    if (!mounted) return;
-                    setState(() => _game!.tapAt(p));
+                  final tap = live
+                      ? await _live.petAt(p)
+                      : (_game!.pet.hits(p)
+                            ? LivePetTap.touched
+                            : LivePetTap.missed);
+                  if (!context.mounted || tap == LivePetTap.missed) return;
+                  if (resting && !await _setResting(false)) return;
+                  if (!context.mounted) return;
+                  setState(_game!.reactToPetTap);
+                  if (tap == LivePetTap.greeted) {
+                    await saveOrRecover(context, c.rewardGreeting);
+                  }
+                  if (context.mounted) {
+                    await saveOrRecover(
+                      context,
+                      () => c.markHintSeen('home.pet'),
+                    );
                   }
                 },
                 onDragUpdate: live
@@ -244,7 +246,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           text: live
                               ? 'Toca a ${pet.name} para que se ponga a dos patas. Arrastra para girar.'
                               : 'Toca a ${pet.name} para hacerle una caricia.',
-                          onClose: () => c.markHintSeen('home.pet'),
+                          onClose: () => saveOrRecover(
+                            context,
+                            () => c.markHintSeen('home.pet'),
+                          ),
                         ),
                       ),
                     if (live)

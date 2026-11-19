@@ -148,7 +148,7 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
     return HintBubble(
       text: text,
       icon: icon,
-      onClose: () => c.markHintSeen(hintId),
+      onClose: () => saveOrRecover(context, () => c.markHintSeen(hintId)),
     );
   }
 
