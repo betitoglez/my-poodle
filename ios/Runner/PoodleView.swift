@@ -72,7 +72,7 @@ private final class PoodleView: NSObject, FlutterPlatformView, WKNavigationDeleg
   private var configuration: String?
   private var ready = false
   private let coordinateCounts = [
-    "bowlBounds": 4, "bathTargets": 8, "vetTargets": 6, "groomTargets": 6, "sleepBounds": 4,
+    "bowlBounds": 4, "bathTargets": 16, "vetTargets": 6, "groomTargets": 6, "sleepBounds": 4,
   ]
 
   init(frame: CGRect, id: Int64, messenger: FlutterBinaryMessenger, directory: URL?) {

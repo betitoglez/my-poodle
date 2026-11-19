@@ -138,7 +138,7 @@ private class PoodleView(context: Context, private val channel: MethodChannel) :
         }
 
         @JavascriptInterface
-        fun bathTargets(json: String) = sendTargets("bathTargets", json, 8)
+        fun bathTargets(json: String) = sendTargets("bathTargets", json, 16)
 
         @JavascriptInterface
         fun vetTargets(json: String) = sendTargets("vetTargets", json, 6)
