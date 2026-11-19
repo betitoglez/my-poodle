@@ -4,6 +4,12 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-19 · main actualizado y rama rebasada
+
+Por petición del propietario se descarga main directamente de GitHub por HTTPS (SSH agotó el tiempo de conexión), se actualiza main local a `54279f6` y se rebasa `codex/elevenlabs-sfx` sobre ese main. La música queda en un commit propio; los efectos ya incorporados en main por #3 no se duplican. Se conserva `codex/backup-music-before-main-20261119` como referencia previa. Se comprueba que main coincide con GitHub, que es ancestro de la rama y que el árbol tras el rebase coincide con el anterior.
+
+iPhone actualizado y abierto con **0.4.12 (30)**, versión declarada también en pubspec. Análisis y validación correctos, **182/182 pruebas** correctas y build Profile desde la rama rebasada. Firma corregida y verificada antes de instalar. `devicectl` confirma versión y apertura en primer plano con terminación de cualquier instancia anterior. Hay otra instalación antigua `dev.mypoodle.myPoodle` 0.1.0 (1) con el mismo nombre; no se ha desinstalado ni modificado. La instalada y abierta es `com.betitoglez.mypoodle`.
+
 ## Sesión 2026-11-19 · iPhone 0.4.11 (29): música y versión actual
 
 Actualización 21:43 (hora de Madrid): tras desbloquear el iPhone, `devicectl` abrió la app en primer plano y se verificó que el proceso del paquete instalado seguía en ejecución. La escucha y revisión visual quedan para la prueba manual del propietario.
