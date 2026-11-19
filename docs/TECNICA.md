@@ -5,14 +5,14 @@
 Flutter y dominio Dart puro, visor WebGL 3D local con puente iOS/Android y respaldo 2D. Bundle ID com.betitoglez.mypoodle y producto mypoodle.full_version permanecen estables. La beta exige localización de interfaz/nombre, guardado compatible del idioma y cupos premium, captura del render nativo y álbum privado. No se añaden cuentas de jugador ni backend. El flujo de compras se valida finalmente en Sandbox/TestFlight.
 
 
-Decisión confirmada el 16 de noviembre de 2026. Juego móvil completamente 2D para iOS y Android, con partida local e independiente por instalación. El diseño web es una referencia visual; la implementación Flutter comienza en F00.
+Implementación móvil para iOS y Android, con partida local e independiente por instalación. El visor 3D actual y sus puentes nativos amplían la base inicial de Flame; el diseño web conserva valor de referencia visual.
 
 ## Herramientas y responsabilidades
 
 | Parte | Elección e integración |
 |---|---|
 | Aplicación | Flutter, canal estable, Dart incluido en el SDK. Fijar versión exacta compatible en F00 y registrarla en ESTADO; no se presupone instalado ni compilado |
-| Juego | Flame dentro de GameWidget para mascota, cuidados y minijuegos. Sprites, atlas, SpriteAnimationComponent, componentes hijos y CameraComponent. Todo se renderiza en 2D |
+| Juego | Flame dentro de GameWidget para mascota, cuidados y minijuegos. Sprites, atlas, SpriteAnimationComponent, componentes hijos y CameraComponent. El caniche móvil usa el visor WebGL local; Flame compone escenarios, efectos y minijuegos con respaldo 2D |
 | UI | Widgets Flutter para navegación, formularios, armario, HUD y modales. Referencia lógica 390×844; SafeArea, LayoutBuilder y teclado nativo. Una sola ruta activa y un dueño por gesto |
 | Dominio | Dart puro, clases inmutables, reloj inyectable, operaciones serializadas; jsonDecode/jsonEncode de dart:convert con validación explícita |
 | Recursos | JSON, PNG con transparencia, atlas y secuencias por capas empaquetados en assets y declarados en pubspec.yaml. Audio local de Mureka/ElevenLabs; elegir un único paquete de reproducción compatible en F03 |
@@ -44,7 +44,7 @@ android/        configuración y puente de almacenamiento Kotlin
 ios/            configuración y puente de almacenamiento Swift
 test/          domain/, data/, ui/, game/
 integration_test/ app_flow_test.dart
-tool/           validate_content.dart
+tool/           validate_content.dart, validate_localizations.dart, build_testflight.sh
 ```
 
 AppRoot construye reloj, catálogos, SaveStore, EntitlementStore, StoreController y sesión una vez. Un estado observable sencillo entrega revisiones confirmadas a widgets y componentes. Bootstrap carga antes de decidir Adopción o Casa. Los minijuegos se registran por ID en GameRegistry, no por nombre de archivo o ruta ejecutable tomada del JSON. Mantener una instancia de juego por ruta, creada fuera de build; al salir pausar, cancelar sesión y liberar listeners, audio y recursos exclusivos. Compartir atlas de la mascota sin duplicarlos por combinación.
@@ -135,3 +135,11 @@ Decisión del 17 de noviembre de 2026; reglas de producto en [FUNCIONAL](FUNCION
 
 
 **Configuración local F07.5.** `ios/Runner/MyPoodle.storekit` contiene el no consumible y está seleccionado en Run/Debug y Test del esquema compartido Runner. No configura las consolas ni los precios reales. In-App Purchase está habilitado en SystemCapabilities; el archivo StoreKit se copia solo al bundle de pruebas, no a los recursos de producción. Se usa Swift Package Manager de Flutter (no hay Podfile). Android declara explícitamente BILLING; no se fija ni fuerza una versión de Billing en Gradle de la app. Billing 9.1.0 ya está verificada en el grafo Gradle resuelto, el manifiesto fusionado y el metadato del APK; ver el registro Android de ESTADO.
+
+## Idiomas, cupo diario y fotografías
+
+`lib/l10n/` ofrece 11 catálogos JSON locales, resolución por idioma/script y selector persistido en `Preferences.language`. Valores antiguos sin idioma usan el sistema; los no soportados resuelven inglés. `InfoPlist.strings` y recursos Android localizan el nombre nativo. Las interpolaciones conservan nombres de jugador e importes de tienda. La puerta adulta escribe números en el idioma activo.
+
+El documento v1 añade opcionalmente `premiumTrialStartedUtc: {gameId: utcSeconds}`. Los guardados antiguos empiezan sin consumos. `beginGame` serializa la confirmación del inicio y del cupo, y solo entrega sesión después de guardar; fallo de disco conserva el intento. El reloj UTC define 86.400 segundos, sin desbloquear por retroceso. No requiere servicio remoto. Reiniciar la partida desde la zona adulta crea una partida nueva; el cupo local no es un sistema antifraude de cuenta.
+
+`PhotoScreen` compone el fondo Flutter y una captura PNG del canvas 3D mediante el canal nativo `snapshot`. `PhotoAlbum` guarda imágenes y un índice separados de partida y compras; límite de 24 fotos, temporales y sustitución del índice. No solicita cámara ni acceso a Fotos, no comparte ni sube imágenes. Ver [TestFlight](TESTFLIGHT.md) para el build verificable y [Idiomas](IDIOMAS.md).

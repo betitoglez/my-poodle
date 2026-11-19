@@ -1,3 +1,14 @@
+# Estado de la implementación
+
+## Candidata MVP 0.5.0 (32) · 20-11-2026
+
+- Rama `codex/mvp-testflight-purchases` rebasada sobre main `f08fb2d`.
+- Interfaz de 11 variantes y nombres nativos implementados: 559 mensajes por idioma, selector persistente, inglés de respaldo y ambos scripts chinos. La traducción inicial requiere revisión lingüística humana antes de producción.
+- Modo foto con composición Flutter + PNG del visor nativo y álbum privado de 24 fotos; cupo premium de 24 h por juego, confirmado antes de entregar la sesión. Casos de fallo, concurrencia y reinicio probados.
+- Análisis y validadores de contenido/idiomas correctos; **218/218 pruebas**. Los 11 recorridos de pantalla 320×568 cubren nombre literal, foto/álbum, juegos y pregunta adulta. Compilación iOS Release sin firma correcta con 3D activo; aún no acredita captura nativa en iPhone.
+- Ficha Apple e IAP no consumible creados; IAP `6837002992` con 11 nombres/descripciones localizados. Precio real bloqueado por revisión automática hasta autorización explícita de 1,99 €. La variante del nombre español de ficha espera elección por colisión de «Mi Caniche».
+- En preparación: Archive/IPA firmado, revisión de Codex, subida/procesamiento y aceptación Sandbox/3D física. No se consideran completados por este registro.
+
 ## Actualización de integración · 19-11-2026
 
 - Compras: PR #5 fusionada en main (`f08fb2d`), 193 pruebas y revisión Codex sin incidencias. Esto no acredita compra física iPhone.
@@ -5,11 +16,9 @@
 - Apple rechaza el nombre exacto de ficha «Mi Caniche» por estar ocupado; se espera elección del propietario para una variante. El nombre nativo español sigue siendo Mi Caniche.
 - En desarrollo y validación: 11 idiomas, nombre nativo localizado, modo foto y cupo gratuito de juegos premium. La primera beta no se publica sin estos requisitos.
 
-# Estado de la implementación
-
 Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (smoke test en iPhone; ver última sesión).
 
-**Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
+**Resumen histórico, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
 ## Sesión 2026-11-19 · MVP y preparación de TestFlight
 

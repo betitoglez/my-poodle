@@ -1,4 +1,4 @@
-import base64, json, plistlib, sys
+import base64, hashlib, json, plistlib, re, subprocess, sys
 from pathlib import Path
 app=Path(sys.argv[1])
 config=Path('ios/Flutter/Generated.xcconfig').read_text().splitlines()
@@ -13,6 +13,11 @@ assert info.get('CFBundleDevelopmentRegion')=='en', 'English fallback missing'
 assert info.get('ITSAppUsesNonExemptEncryption') is False
 for tag in ['en','es','fr','de','pt-BR','it','ru','ko','ja','zh-Hans','zh-Hant']:
  assert (app/f'{tag}.lproj/InfoPlist.strings').is_file(), f'Native name missing: {tag}'
- assert len(json.loads((assets/f'assets/l10n/{tag}.json').read_text()))>500, f'Empty catalog: {tag}'
+ packaged=assets/f'assets/l10n/{tag}.json'
+ assert packaged.read_bytes()==Path(f'assets/l10n/{tag}.json').read_bytes(), f'Stale catalog: {tag}'
+ assert len(json.loads(packaged.read_text()))>500, f'Empty catalog: {tag}'
+ expected=re.search(r'"CFBundleDisplayName" = "([^"]+)";', Path(f'ios/Runner/{tag}.lproj/InfoPlist.strings').read_text())[1]
+ localized=plistlib.loads(subprocess.check_output(['plutil','-convert','xml1','-o','-',str(app/f'{tag}.lproj/InfoPlist.strings')]))
+ assert localized['CFBundleDisplayName']==expected, f'Incorrect native name: {tag}'
 assert not list(app.rglob('*.storekit')), 'Local StoreKit configuration must not ship'
 print(f"Verified iOS {info['CFBundleShortVersionString']} ({info['CFBundleVersion']}): 3D, 11 languages, native names and native IAP.")

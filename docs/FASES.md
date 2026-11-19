@@ -25,8 +25,8 @@ Actualizado el 19-11-2026. Sustituye las fichas antiguas centradas en un juego e
 | F07.6 · Apple Sandbox | Pendiente | App Store Connect, producto, precios, testers y compra física | Precio/hoja Sandbox, compra/cancelación/pendiente/restauración/revocación y persistencia acreditados |
 | F07.7 · Aceptación móvil | Parcial | Offline iPhone, interrupciones, accesibilidad, rendimiento y cobertura 3D | Dispositivo, build y evidencia por caso; no confundir prueba automática con física |
 | F08 · TestFlight | En preparación | Archive/IPA firmada con 3D, idiomas y modo foto; metadatos y distribución beta | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
-| F09 · Idiomas MVP | Pendiente de implementación | es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans, zh-Hant; nombre y selector | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
-| F10 · Modo foto MVP | Pendiente de implementación | Posado/giro, captura 3D, álbum privado, vista y borrado | Imagen real del render; fotos conservadas tras reiniciar; sin acceso a fotos ajenas |
+| F09 · Idiomas MVP | Implementado y probado automáticamente | es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans, zh-Hant; nombre y selector | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
+| F10 · Modo foto MVP | Implementado; aceptación física pendiente | Posado/giro, captura 3D, álbum privado, vista y borrado | Imagen real del render; fotos conservadas tras reiniciar; sin acceso a fotos ajenas |
 | F11 · Juegos nuevos | Por definir | Parejas, Simón de perritos y laberinto | Reglas, premios, tier y alcance aprobados antes de implementar |
 
 F09 y F10 forman parte de la puerta de salida F08: la primera beta no se considera terminada sin ellos. F11 mantiene definición pendiente por indicación del propietario.

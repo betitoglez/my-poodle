@@ -321,7 +321,7 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
             )
           else
             _instruction(
-              '${option.label}. $text',
+              '${localize(context, option.label)}. ${localize(context, text)}',
               icon: Icons.restaurant_rounded,
             ),
           const SizedBox(height: AppSpace.m),
@@ -459,7 +459,7 @@ class _CareOptionTile extends StatelessWidget {
                             for (final effect in choice.delta.entries)
                               LSemantics(
                                 label:
-                                    '${Texts.needLabels[effect.key]} '
+                                    '${localize(context, Texts.needLabels[effect.key]!)} '
                                     '${effect.value >= 0 ? '+' : ''}${effect.value}',
                                 excludeSemantics: true,
                                 child: Row(

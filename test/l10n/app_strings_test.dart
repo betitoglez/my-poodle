@@ -90,6 +90,10 @@ void main() {
       expect(en.text('Casa está feliz y sano.'), contains('Casa'));
       expect(en.text('Cuenco de agua de Casa'), contains('Casa'));
       expect(
+        en.text('Vista previa de {p1} con el aspecto elegido, de frente'),
+        contains('{p1}'),
+      );
+      expect(
         en.text('Duración: 20 segundos · 5 lanzamientos.'),
         isNot(contains('segundos')),
       );

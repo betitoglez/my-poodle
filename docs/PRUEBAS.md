@@ -133,3 +133,13 @@ Mantener el dispositivo desbloqueado y la app en primer plano. Una muestra que i
 Al terminar, reconstruir `flutter build apk --release --target=lib/main.dart` e instalar mediante `adb -s <android-id> install -r build/app/outputs/flutter-apk/app-release.apk`; conservar la identidad y firma de la instalación. No desinstalar para solucionar una incompatibilidad de firma sin autorización del propietario. La clave debug de la plantilla no acredita firma de distribución.
 
 Para validar Billing revisar `aapt dump permissions <apk>`, el manifiesto fusionado y `:app:dependencyInsight --configuration releaseRuntimeClasspath --dependency com.android.billingclient:billing`. Los permisos esperados y su procedencia constan en la sesión Android de ESTADO. La consulta de producto no acredita compra, aprobación, cancelación, restauración ni reembolso.
+
+## MVP multilingüe, álbum y prueba diaria
+
+- `dart run tool/validate_localizations.dart`: mismos mensajes y parámetros en los 11 catálogos; bloquea catálogos vacíos/incompletos.
+- `test/l10n/app_strings_test.dart`: nombres, respaldo inglés, scripts chinos, parámetros, números de puerta adulta y persistencia.
+- `test/ui/localization_photo_test.dart`: pantalla 320×568, nombre de jugador literal, controles de foto, álbum, juegos y puerta adulta para cada idioma.
+- `test/domain/premium_trial_test.dart` y `test/ui/premium_trial_test.dart`: frontera 86.399/86.400 s, guardados antiguos, compra completa, fallo de escritura, concurrencia y abandono/reinicio.
+- `test/data/photo_album_test.dart`: reinicio, eliminación, índice dañado, fallo de reemplazo y capacidad bajo escrituras simultáneas.
+
+En iPhone comprobar con el 3D activo que la foto contiene al caniche con su ropa, pose y giro reales; volver del álbum no altera la partida. Probar guardar, ampliar, borrar y reabrir; los tests de widgets no acreditan el puente WebGL del dispositivo. Probar cambio de idioma, lectura CJK/cirílica, VoiceOver y textos largos a escala grande. La traducción inicial requiere revisión lingüística humana antes de producción. No marcar la compra Sandbox como aceptada por haber pasado la tienda simulada.

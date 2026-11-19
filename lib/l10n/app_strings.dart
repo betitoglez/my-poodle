@@ -132,7 +132,8 @@ class AppStrings {
     for (final pattern in _patterns) {
       final match = pattern.regex.firstMatch(source);
       if (match == null) continue;
-      var result = messages[pattern.source]!;
+      final template = messages[pattern.source]!;
+      final values = <String, String>{};
       for (var i = 0; i < pattern.parameters.length; i++) {
         final value = match.group(i + 1) ?? '';
         final parameter = pattern.parameters[i];
@@ -142,8 +143,12 @@ class AppStrings {
         final translated = playerName || depth >= 3
             ? value
             : _text(value, depth + 1);
-        result = result.replaceAll('{$parameter}', translated);
+        values[parameter] = translated;
       }
+      final result = template.replaceAllMapped(
+        _placeholder,
+        (m) => values[m[0]!.substring(1, m[0]!.length - 1)] ?? m[0]!,
+      );
       return source.length > 1 && source == source.toUpperCase()
           ? result.toUpperCase()
           : result;

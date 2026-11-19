@@ -33,7 +33,7 @@ La UI combina títulos serif redondeados (familia de referencia Young Serif), te
 
 ## Puerta adulta
 
-Protege la compra, «Restaurar compras», la Zona adulta (reinicio y modo demostración) y cualquier enlace externo. Sustituye a la pulsación mantenida de 2 s, que supera cualquier niño. Pide escribir en cifras un número del 21 al 99 mostrado en letras («Escribe en cifras: cuarenta y siete») con teclado numérico. Número aleatorio en cada apertura; un fallo muestra otro número sin revelar la respuesta; tras tres fallos seguidos espera 30 s antes de otro intento. Cerrar o salir la reinicia. El acceso concedido vale solo para la acción solicitada y caduca al salir de la pantalla protegida. Textos de adulto en español neutro; no usar colores ni animaciones que inviten al niño a pulsar. Revisar antes de publicar con las normas vigentes de Apple Kids y Google Play Families.
+Protege la compra, «Restaurar compras», la Zona adulta (reinicio y modo demostración) y cualquier enlace externo. Sustituye a la pulsación mantenida de 2 s, que supera cualquier niño. Pide escribir en cifras un número del 21 al 99 mostrado en letras («Escribe en cifras: cuarenta y siete») con teclado numérico. Número aleatorio en cada apertura; un fallo muestra otro número sin revelar la respuesta; tras tres fallos seguidos espera 30 s antes de otro intento. Cerrar o salir la reinicia. El acceso concedido vale solo para la acción solicitada y caduca al salir de la pantalla protegida. Textos de adulto y número escrito en el idioma activo; no usar colores ni animaciones que inviten al niño a pulsar. Revisar antes de publicar con las normas vigentes de Apple Kids y Google Play Families.
 
 ## Adaptación al móvil
 
@@ -51,3 +51,7 @@ En compacto recortar primero aire del entorno y reducir título; el panel puede 
 6. Preparar bucles de casa/parque con Mureka y efectos de acciones con ElevenLabs. Recortar y equilibrar niveles, empaquetar audio local y probar un único reproductor compatible; precargar efectos cortos. Todo feedback esencial se entiende en silencio. No hay generación de arte/audio durante la partida.
 
 La galería web y los ejemplos de Figma son referencias de UX y arte. La app usa ilustraciones, sprites y composición 2D de PetComponent en todas las pantallas. Los minijuegos de referencia comunican gesto y feedback; la física 2D, persistencia y métricas de producción están en JUEGOS y TECNICA.
+
+## Modo foto
+
+Entrada desde el icono de cámara en Casa. Conserva el aspecto actual; permite girar, volver de frente y alternar pose de pie/tumbado. Capturar no altera necesidades, monedas ni prendas. Una captura confirma el guardado y aparece en el álbum privado. El álbum permite ampliar y eliminar una foto con confirmación. Los controles se redistribuyen en varias líneas cuando el idioma requiere más espacio.
