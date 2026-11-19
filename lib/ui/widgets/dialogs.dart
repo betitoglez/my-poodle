@@ -4,12 +4,14 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_controller.dart';
 import '../../app/app_scope.dart';
+import '../../app/feedback.dart';
 import '../../domain/rules.dart';
 import '../ask_adult_view.dart';
 import '../theme.dart';
 import 'common.dart';
 
 void showCareBlocked(BuildContext context, CareKind kind, String reason) {
+  AppScope.feedbackOf(context).play(Sfx.blocked);
   final controller = AppScope.read(context);
   final cooldown =
       reason.startsWith('Podrás repetir') &&
@@ -234,6 +236,7 @@ Future<InsufficientChoice> showInsufficientDialog(
   required int missing,
   required int price,
 }) async {
+  AppScope.feedbackOf(context).play(Sfx.blocked);
   final r = await showDialog<InsufficientChoice>(
     context: context,
     builder: (c) => _DialogFrame(

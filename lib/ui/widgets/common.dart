@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/app_scope.dart';
+import '../../app/feedback.dart';
 import '../../domain/balance.dart';
 import '../theme.dart';
 
@@ -26,6 +28,16 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final action = onPressed;
+    final press = action == null
+        ? null
+        : () {
+            context.getInheritedWidgetOfExactType<AppScope>()?.feedback.play(
+              Sfx.tap,
+              haptic: false,
+            );
+            action();
+          };
     final size = Size(
       expand ? double.infinity : AppSizes.touch,
       big ? AppSizes.bigButton : AppSizes.touch,
@@ -48,12 +60,12 @@ class AppButton extends StatelessWidget {
     );
     final button = secondary
         ? OutlinedButton(
-            onPressed: onPressed,
+            onPressed: press,
             style: OutlinedButton.styleFrom(minimumSize: size),
             child: child,
           )
         : FilledButton(
-            onPressed: onPressed,
+            onPressed: press,
             style: FilledButton.styleFrom(minimumSize: size),
             child: child,
           );

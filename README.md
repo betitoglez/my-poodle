@@ -94,7 +94,7 @@ Casa → Ajustes → «Soy un adulto» → puerta numérica → Zona adulta → 
 | Fondos del huerto y del prado, miniaturas de tarjetas | Recortes de las ilustraciones de referencia del propietario (`docs/arte`) | Confirmar derechos y exportar a resolución final |
 | Armario ampliado | Peinados osito y cachorro, ropa, accesorios y colores nuevos con capas generadas por Meshy; los colores de una prenda son variantes de tono de una sola capa. Los artículos y peinados nuevos no tienen capas de salto, comer ni galope: en esas poses se usa el perfil o no se dibujan | Capas propias para cada pose |
 | Animaciones | Transformaciones por capas sobre un reloj común (reposo, parpadeo, caricia, comida, baño, cepillado, trote, olfateo, carrera, salto, captura, celebración, descanso) | Secuencias dibujadas |
-| Audio | No hay archivos; efectos con respuesta háptica y ajustes guardados | Música Mureka y efectos ElevenLabs, un reproductor y licencias por archivo |
+| Audio | [37 efectos locales activos](docs/audio/EFECTOS.md), reproducción por acción y ajuste de efectos guardado | Pistas instrumentales |
 | Tipografía | Fuentes del sistema | Empaquetar Young Serif y Nunito (OFL) |
 | Textos | Privacidad marcada como provisional; resto de textos de juego definitivos para revisión | Política legal real |
 | Veterinario y dormir | Escenas con efectos vectoriales (estetoscopio, lupa, pastilla, manta, noche); consulta ilustrada con Meshy | Animaciones dibujadas |

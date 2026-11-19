@@ -3,6 +3,7 @@ import 'dart:ui' hide TextStyle;
 
 import 'package:flame/game.dart';
 
+import '../app/feedback.dart';
 import '../domain/games/frisbee_sim.dart';
 import 'pet/appearance_catalog.dart';
 import 'pet/pet_component.dart';
@@ -34,7 +35,7 @@ class FrisbeeGame extends FlameGame {
   final PetComponent pet;
   final void Function(int catches) onFinished;
   final void Function()? onHud;
-  final void Function(String event)? onEvent;
+  final void Function(Sfx event)? onEvent;
   final void Function()? onVisualFrame;
   bool waitForStart = false;
   bool _live = false;
@@ -135,7 +136,7 @@ class FrisbeeGame extends FlameGame {
   bool launch(FieldPoint dest) {
     if (paused || waitForStart || !sim.launch(dest)) return false;
     aimPreview = null;
-    onEvent?.call('throw');
+    onEvent?.call(Sfx.throwDisc);
     return true;
   }
 
@@ -160,10 +161,17 @@ class FrisbeeGame extends FlameGame {
     sim.advance(dt);
     if (before == FrisbeePhase.flight && sim.phase == FrisbeePhase.catchAnim) {
       _lastCaught = sim.lastCaught;
-      onEvent?.call(sim.lastCaught! ? 'catch' : 'miss');
+      onEvent?.call(sim.lastCaught! ? Sfx.catchDisc : Sfx.miss);
     }
     _placePet();
-    if (before != sim.phase || seconds != sim.remaining.ceil()) onHud?.call();
+    final secondsLeft = sim.remaining.ceil();
+    if (secondsLeft != seconds &&
+        secondsLeft >= 1 &&
+        secondsLeft <= 5 &&
+        !sim.finished) {
+      onEvent?.call(Sfx.countdown);
+    }
+    if (before != sim.phase || seconds != secondsLeft) onHud?.call();
     onVisualFrame?.call();
     if (sim.finished && !_reported) {
       _reported = true;

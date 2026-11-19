@@ -83,6 +83,7 @@ class LivePoodleView extends StatefulWidget {
     this.orchardLevel,
     this.frisbee = false,
     this.idle = false,
+    this.onPanting,
     this.roaming = false,
     this.hygiene = 100,
     this.mood = 100,
@@ -110,6 +111,7 @@ class LivePoodleView extends StatefulWidget {
   final bool sleeping;
   final ValueChanged<Rect>? onSleepBounds;
   final bool walking;
+  final ValueChanged<bool>? onPanting;
   final OrchardLevel? orchardLevel;
   final bool frisbee, idle, roaming, sick, passiveBed;
   final int hygiene, mood, energy;
@@ -319,7 +321,13 @@ class _LivePoodleState extends State<LivePoodleView> {
         _loadTimer?.cancel();
         widget.controller.ready = call.method == 'ready';
         widget.controller.failed = call.method == 'failed';
+        if (widget.controller.failed) widget.onPanting?.call(false);
         widget.onStatusChanged();
+      } else if (call.method == 'motionSound') {
+        final event = call.arguments;
+        if (event == 0 || event == 1) {
+          widget.onPanting?.call(event == 1);
+        }
       } else if (call.method == 'bowlBounds' || call.method == 'sleepBounds') {
         final values = (call.arguments as List).cast<double>();
         final bounds = Rect.fromLTRB(

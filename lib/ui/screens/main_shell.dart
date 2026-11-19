@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
+import '../../app/feedback.dart';
 import '../navigation.dart';
 import '../widgets/common.dart';
 import 'care_screen.dart';
@@ -44,7 +45,12 @@ class _MainShellState extends State<MainShell> {
             children: [
               NavigationBar(
                 selectedIndex: tab.index,
-                onDestinationSelected: (i) => shell.go(ShellTab.values[i]),
+                onDestinationSelected: (i) {
+                  if (i != tab.index) {
+                    AppScope.feedbackOf(context).play(Sfx.tap, haptic: false);
+                    shell.go(ShellTab.values[i]);
+                  }
+                },
                 destinations: const [
                   NavigationDestination(
                     icon: Icon(Icons.home_rounded),

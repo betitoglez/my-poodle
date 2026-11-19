@@ -164,6 +164,7 @@ class OrchardSim {
   int jumpsStarted = 0;
   int falls = 0;
   int collisions = 0;
+  BarrierKind? lastBarrierHit;
   double get routeProgress =>
       ((math.max(x, _furthestX) - level.startX) / (level.goalX - level.startX))
           .clamp(0, 1);
@@ -293,6 +294,7 @@ class OrchardSim {
       safeX = x;
       safeY = barrier.ground;
       collisions++;
+      lastBarrierHit = barrier.kind;
       _penalize(.28);
       break;
     }

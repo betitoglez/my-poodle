@@ -200,6 +200,7 @@ let orchardState = [1, 0, 0, -0.344, 0, 0, 0];
 let frisbeeState = [];
 let vetState = [0, 0, 0.85, 0.55, 0, -1, 0];
 let postTub = false;
+let panting = false;
 let renderWidth = 0, renderHeight = 0;
 let configured = false, firstFrameRendered = false;
 function draw() {
@@ -360,6 +361,11 @@ function tick(now) {
   updateSleepGlyphs(passive && phase >= .99, now, configuration.reduced);
   idle.update(configuration, (now-idleOrigin)*.001,configuration.reduced,
     restingInBed || phase > .04 || roomMotion.active, roomMotion.wagging);
+  const pantNow = configuration.idle && idle.mouthOpen.value > .12;
+  if (pantNow !== panting) {
+    panting = pantNow;
+    PoodleHost.motionSound?.(panting ? 1 : 0);
+  }
   if (configuration.veterinary && !configuration.reduced && vetState[0] === 2 &&
       vetState[5] >= 0 && head) {
     headPose.copy(head.quaternion);

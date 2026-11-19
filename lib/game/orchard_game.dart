@@ -3,6 +3,7 @@ import 'dart:ui' hide TextStyle;
 
 import 'package:flame/game.dart';
 
+import '../app/feedback.dart';
 import '../domain/games/orchard_sim.dart';
 import 'pet/appearance_catalog.dart';
 import 'pet/pet_component.dart';
@@ -37,7 +38,7 @@ class OrchardGame extends FlameGame {
   final PetComponent pet;
   final void Function(int apples) onFinished;
   final void Function()? onHud;
-  final void Function(String event)? onEvent;
+  final void Function(Sfx event)? onEvent;
   final void Function()? onVisualFrame;
   bool waitForStart;
   bool _live = false;
@@ -132,6 +133,7 @@ class OrchardGame extends FlameGame {
     final penaltyBefore = showPenalty;
     final jumpsBefore = sim.jumpsStarted;
     final fallsBefore = sim.falls, hitsBefore = sim.collisions;
+    final wasGrounded = sim.grounded;
     _penaltyLeft = math.max(0, _penaltyLeft - dt);
     sim.advance(dt);
     for (final id in sim.justCollected) {
@@ -139,13 +141,28 @@ class OrchardGame extends FlameGame {
       final a = sim.level.apples[index];
       _fruitMask |= 1 << index;
       _sparkles.add((Offset(a.x, a.y), 0));
-      onEvent?.call('apple');
+      onEvent?.call(Sfx.apple);
     }
-    if (sim.jumpsStarted != jumpsBefore) onEvent?.call('jump');
+    if (sim.jumpsStarted != jumpsBefore) onEvent?.call(Sfx.jump);
     if (sim.falls != fallsBefore || sim.collisions != hitsBefore) {
       _penaltyLeft = 1.3;
       lastPenaltyWasFall = sim.falls != fallsBefore;
-      onEvent?.call('fall');
+      onEvent?.call(
+        lastPenaltyWasFall
+            ? Sfx.fall
+            : sim.lastBarrierHit == BarrierKind.hedge
+            ? Sfx.hitHedge
+            : Sfx.hitFence,
+      );
+    } else {
+      if (!wasGrounded && sim.grounded) onEvent?.call(Sfx.land);
+      final secondsLeft = sim.remaining.ceil();
+      if (secondsLeft != secondsBefore &&
+          secondsLeft >= 1 &&
+          secondsLeft <= 5 &&
+          !sim.finished) {
+        onEvent?.call(Sfx.countdown);
+      }
     }
     for (var i = _sparkles.length - 1; i >= 0; i--) {
       final (p, age) = _sparkles[i];
