@@ -13,16 +13,22 @@
       "satiety": 65,
       "hygiene": 70,
       "mood": 75,
-      "energy": 80
+      "energy": 80,
+      "hydration": 90
     },
     "deltaPerTick100": {
       "satiety": -75,
       "hygiene": -50,
       "mood": -50,
-      "energy": 100
+      "energy": 100,
+      "hydration": -150
     }
   },
   "care": {
+    "drink": {
+      "steps": ["fill", "sip", "sip", "sip"],
+      "delta": { "hydration": 60 }
+    },
     "feed": {
       "steps": [
         "bite",
@@ -36,20 +42,28 @@
     "bath": {
       "steps": [
         "wet",
+        "soap.head",
         "soap.back",
         "soap.paws",
         "soap.chest",
-        "rinse"
+        "rinse",
+        "dry"
       ],
       "delta": {
-        "hygiene": 25
+        "hygiene": 30
       }
     },
     "groom": {
       "steps": [
-        "forelock",
-        "ears",
-        "back"
+        "comb.forelock",
+        "comb.ears",
+        "comb.back",
+        "cut.forelock",
+        "cut.ears",
+        "cut.back",
+        "dry.forelock",
+        "dry.ears",
+        "dry.back"
       ],
       "delta": {
         "hygiene": 8
@@ -84,22 +98,22 @@
         "lights"
       ],
       "delta": {
-        "energy": 45,
-        "mood": 3
+        "energy": 60,
+        "mood": 10
       }
     }
   },
   "games": {
     "fruit": {
-      "seconds": 30,
-      "maxScore": 12,
+      "seconds": 60,
+      "maxScore": 24,
       "baseCoins": 2,
-      "coinsPerPoint": 1,
+      "coinsPerPoint": 2,
       "tier": "full"
     },
     "frisbee": {
-      "throws": 3,
-      "maxScore": 3,
+      "throws": 5,
+      "maxScore": 5,
       "baseCoins": 3,
       "coinsPerPoint": 3,
       "flightSeconds": 1.1,
@@ -116,6 +130,14 @@
         [
           1.5,
           4
+        ],
+        [
+          -2,
+          4.5
+        ],
+        [
+          2,
+          6.5
         ]
       ],
       "tier": "free"
@@ -123,7 +145,8 @@
   },
   "gameCompleteDelta": {
     "mood": 8,
-    "energy": -6
+    "energy": -20,
+    "satiety": -10
   },
   "styles": [
     {
@@ -166,6 +189,13 @@
       "slot": "hair",
       "cost": 0,
       "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "hair.show",
+      "slot": "hair",
+      "cost": 0,
+      "initial": false,
       "tier": "free"
     },
     {

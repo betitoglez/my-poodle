@@ -24,6 +24,8 @@ class SaveCodec {
 
   String encode(PetState s) => jsonEncode({
     'schemaVersion': PetState.schemaVersion,
+    'careCompletedUtc': s.careCompletedUtc,
+    'gameStartedUtc': s.gameStartedUtc,
     'revision': s.revision,
     'lastCommitId': s.lastCommitId,
     'name': s.name,
@@ -32,6 +34,9 @@ class SaveCodec {
     'hygiene100': s.need100(Need.hygiene),
     'mood100': s.need100(Need.mood),
     'energy100': s.need100(Need.energy),
+    'hydration100': s.need100(Need.hydration),
+    'restingSinceUtc': s.restingSinceUtc,
+    'restEnergyCursorUtc': s.restEnergyCursorUtc,
     'coins': s.coins,
     'owned': (s.owned.toList()..sort()),
     'appearance': s.appearance.toJson(),
@@ -115,7 +120,23 @@ class SaveCodec {
     final lastSick = j['lastSickUtc'];
     final seed = j['sickSeed'];
     final hints = j['seenHints'];
+    final careTimes = j['careCompletedUtc'] ?? <String, dynamic>{};
+    final gameTimes = j['gameStartedUtc'] ?? <dynamic>[];
+    final restStart = j['restingSinceUtc'];
+    final restCursor = j['restEnergyCursorUtc'];
+    if (careTimes is! Map<String, dynamic> ||
+        careTimes.values.any((v) => v is! int || v < 0) ||
+        gameTimes is! List ||
+        gameTimes.any((v) => v is! int || v < 0)) {
+      throw SaveFormatException('Límites de actividad inválidos');
+    }
     return PetState(
+      restingSinceUtc: restStart is int && restStart >= 0 ? restStart : null,
+      restEnergyCursorUtc: restCursor is int && restCursor >= 0
+          ? restCursor
+          : null,
+      careCompletedUtc: careTimes.cast<String, int>(),
+      gameStartedUtc: gameTimes.cast<int>(),
       revision: revision,
       lastCommitId: req<String>('lastCommitId'),
       name: (nameResult).value,
@@ -125,6 +146,9 @@ class SaveCodec {
         Need.hygiene: need('hygiene100'),
         Need.mood: need('mood100'),
         Need.energy: need('energy100'),
+        Need.hydration: j.containsKey('hydration100')
+            ? need('hydration100')
+            : balance.initial100[Need.hydration]!,
       },
       coins: coins,
       owned: Set.unmodifiable(owned),

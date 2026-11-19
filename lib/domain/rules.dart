@@ -1,11 +1,13 @@
 import 'appearance.dart';
 import 'balance.dart';
+import 'care_options.dart';
 import 'entitlements.dart';
+import 'food.dart';
 import 'needs_clock.dart';
 import 'pet_state.dart';
 
 /// Actividades con resultado confirmable. Los IDs coinciden con balance-v1.
-enum CareKind { feed, bath, walk, groom, sleep, vet }
+enum CareKind { feed, bath, walk, groom, sleep, vet, drink }
 
 /// Estados que enciende el visor, estilo tamagotchi. [need] es la medida
 /// que lo enciende; la enfermedad es un estado aparte.
@@ -14,6 +16,7 @@ enum PetCondition {
   dirty(Need.hygiene),
   sad(Need.mood),
   tired(Need.energy),
+  thirsty(Need.hydration),
   sick(null);
 
   const PetCondition(this.need);
@@ -66,15 +69,151 @@ class Rules {
     return out;
   }
 
-  /// Cuidado completado: aplica el efecto del catálogo, sin monedas.
-  Receipt finishCare(PetState s, CareKind kind, String opId, int nowUtc) {
+  static const activityWindow = 300;
+  static const vetCost = 30;
+  static const thirstyBelow = 35;
+
+  CareOption? _careOption(CareKind kind, CareOption? selection) {
+    final CareOption? fallback = switch (kind) {
+      CareKind.feed => Food.basic,
+      CareKind.bath => BathPlan.standard,
+      CareKind.drink => Drink.water,
+      _ => null,
+    };
+    if (selection == null) return fallback;
+    return switch ((kind, selection)) {
+      (CareKind.feed, Food()) ||
+      (CareKind.bath, BathPlan()) ||
+      (CareKind.drink, Drink()) => selection,
+      _ => null,
+    };
+  }
+
+  int careWaitSeconds(
+    PetState s,
+    CareKind kind,
+    int nowUtc, {
+    bool fullVersion = false,
+  }) {
+    final last = s.careCompletedUtc[kind.name];
+    if (fullVersion || last == null) return 0;
+    return (activityWindow - (nowUtc - last)).clamp(0, activityWindow);
+  }
+
+  PetState? rewardGreeting(PetState s, String opId, int nowUtc) {
+    final before = clock.advance(s, nowUtc);
+    final last = before.careCompletedUtc['greeting'];
+    if (before.isSick ||
+        before.need100(Need.energy) == 0 ||
+        last != null && nowUtc - last < activityWindow) {
+      return null;
+    }
+    return _commit(
+      before.copyWith(
+        needs100: _applyDelta(before, {Need.mood: 10}),
+        careCompletedUtc: {...before.careCompletedUtc, 'greeting': nowUtc},
+      ),
+      opId,
+    );
+  }
+
+  String? careBlocked(
+    PetState s,
+    CareKind kind,
+    int nowUtc, {
+    CareOption? option,
+    bool fullVersion = false,
+  }) {
+    if (s.need100(Need.energy) == 0 && kind != CareKind.sleep) {
+      return 'Necesita dormir: su energía está a cero.';
+    }
+    final wait = careWaitSeconds(s, kind, nowUtc, fullVersion: fullVersion);
+    if (wait > 0) {
+      return 'Podrás repetir este cuidado en ${wait ~/ 60} min ${wait % 60} s.';
+    }
+    final selected = _careOption(kind, option);
+    if (option != null && selected == null) {
+      return 'Opción de cuidado inválida.';
+    }
+    if (selected != null && selected.tier == Tier.full && !fullVersion) {
+      return kind == CareKind.feed
+          ? 'Esta comida necesita la versión completa.'
+          : '${selected.label} necesita la versión completa.';
+    }
+    final cost = kind == CareKind.vet ? vetCost : selected?.cost ?? 0;
+    if (s.coins < cost) return 'Necesitas $cost monedas (tienes ${s.coins}).';
+    return null;
+  }
+
+  String? gameBlocked(PetState s, int nowUtc) {
+    if (s.need100(Need.energy) == 0) {
+      return 'Necesita dormir: su energía está a cero.';
+    }
+    final recent = s.gameStartedUtc
+        .where((t) => nowUtc - t < activityWindow)
+        .toList();
+    if (recent.length >= 3) {
+      recent.sort();
+      final wait = activityWindow - (nowUtc - recent.first);
+      return 'Ya has jugado 3 veces. Vuelve en ${wait ~/ 60} min ${wait % 60} s.';
+    }
+    return null;
+  }
+
+  PetState startGame(PetState s, String opId, int nowUtc) {
+    final before = clock.advance(s, nowUtc);
+    final blocked = gameBlocked(before, nowUtc);
+    if (blocked != null) throw RuleException(blocked);
+    return _commit(
+      before.copyWith(
+        wake: true,
+        gameStartedUtc: [
+          ...before.gameStartedUtc.where((t) => nowUtc - t < activityWindow),
+          nowUtc,
+        ],
+      ),
+      opId,
+    );
+  }
+
+  /// Efecto, coste y plazo se confirman juntos, sin dobles cobros.
+  Receipt finishCare(
+    PetState s,
+    CareKind kind,
+    String opId,
+    int nowUtc, {
+    CareOption? option,
+    bool fullVersion = false,
+    String? groomingHair,
+  }) {
     final rule = balance.care[kind.name];
     if (rule == null) throw RuleException('Cuidado desconocido: ${kind.name}');
     final before = clock.advance(s, nowUtc);
+    final blocked = careBlocked(
+      before,
+      kind,
+      nowUtc,
+      option: option,
+      fullVersion: fullVersion,
+    );
+    if (blocked != null) throw RuleException(blocked);
+    final selected = _careOption(kind, option);
+    final cost = kind == CareKind.vet ? vetCost : selected?.cost ?? 0;
+    final appearance =
+        kind == CareKind.groom &&
+            groomingHair != null &&
+            balance.item(groomingHair)?.slot == Slot.hair &&
+            before.owned.contains(groomingHair)
+        ? before.appearance.withSlot(Slot.hair, groomingHair)
+        : before.appearance;
     final after = _commit(
       before.copyWith(
-        needs100: _applyDelta(before, rule.delta),
+        appearance: appearance,
+        coins: before.coins - cost,
+        careCompletedUtc: {...before.careCompletedUtc, kind.name: nowUtc},
+        needs100: _applyDelta(before, selected?.delta ?? rule.delta),
         cured: rule.cures,
+        wake: true,
       ),
       opId,
     );
@@ -202,6 +341,7 @@ class Rules {
       if (s.needPoints(Need.hygiene) < st.dirtyBelow) PetCondition.dirty,
       if (s.needPoints(Need.mood) < st.sadBelow) PetCondition.sad,
       if (s.needPoints(Need.energy) < st.tiredBelow) PetCondition.tired,
+      if (s.needPoints(Need.hydration) < thirstyBelow) PetCondition.thirsty,
       if (s.isSick) PetCondition.sick,
     };
   }
@@ -227,7 +367,7 @@ class Rules {
   /// Empates entre saciedad/higiene/ánimo: comida, baño y juego.
   Need lowestNeed(PetState s) {
     var best = Need.satiety;
-    for (final n in [Need.satiety, Need.hygiene, Need.mood, Need.energy]) {
+    for (final n in Need.values) {
       if (s.need100(n) < s.need100(best)) best = n;
     }
     return best;

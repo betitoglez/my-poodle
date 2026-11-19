@@ -12,6 +12,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 import '../widgets/status_bubbles.dart';
 import '../widgets/turn_control.dart';
@@ -30,6 +31,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   HomeGame? _game;
+  final _live = LivePoodleController();
   final _texts = Texts();
   String? _suggestion;
   Object? _suggestedFor;
@@ -43,15 +45,13 @@ class _HomeScreenState extends State<HomeScreen> {
       painter: PetPainterScope.of(context),
       look: c.look,
       reducedMotion: c.reducedMotion,
-      onPetTapped: () {
-        AppScope.feedbackOf(context).play(Sfx.tap);
-        AppScope.read(context).markHintSeen('home.pet');
-      },
+      onPetTapped: () => AppScope.feedbackOf(context).play(Sfx.tap),
     );
     // Un único caniche que refleja el aspecto y la salud confirmados.
     _game!.setLook(c.look);
     _game!.reducedMotion = c.reducedMotion;
-    _game!.pet.fx = PetFx(sick: c.pet.isSick);
+    _game!.pet.fx = PetFx(sick: c.pet.isSick)
+        .withHygiene(c.pet.needPoints(Need.hygiene));
   }
 
   void _turn(PetView v) {
@@ -61,13 +61,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Lleva a la actividad que resuelve cada estado: el veterinario y la cama
   /// tienen pantalla propia; el resto, la de su medida.
+  Future<void> _openCare(CareKind kind, Widget screen) async {
+    final c = AppScope.read(context);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    final blocked = c.careBlocked(kind);
+    if (blocked != null) {
+      showCareBlocked(context, kind, blocked);
+      return;
+    }
+    if (c.pet.restingSinceUtc != null && !await _setResting(false)) return;
+    if (mounted) pushScreen(context, screen);
+  }
+
   void _attend(PetCondition cond) {
     switch (cond) {
       case PetCondition.sick:
-        pushScreen(context, const VetScreen());
+        _openCare(CareKind.vet, const VetScreen());
       case PetCondition.tired:
-        pushScreen(context, const SleepScreen());
-      case PetCondition.hungry || PetCondition.dirty || PetCondition.sad:
+        _openCare(CareKind.sleep, const SleepScreen());
+      case PetCondition.hungry ||
+          PetCondition.dirty ||
+          PetCondition.sad ||
+          PetCondition.thirsty:
         _actNeed(cond.need!);
     }
   }
@@ -75,23 +91,25 @@ class _HomeScreenState extends State<HomeScreen> {
   void _actNeed(Need need) {
     switch (need) {
       case Need.satiety:
-        pushScreen(context, const FeedScreen());
+        _openCare(CareKind.feed, const FeedScreen());
       case Need.hygiene:
-        pushScreen(context, const BathScreen());
+        _openCare(CareKind.bath, const BathScreen());
       case Need.mood:
         ShellScope.maybeOf(context)?.go(ShellTab.games);
       case Need.energy:
-        _setResting(!_game!.resting);
+        _openCare(CareKind.sleep, const SleepScreen());
+      case Need.hydration:
+        _openCare(CareKind.drink, const DrinkScreen());
     }
   }
 
   /// Al acostarse mira de frente: el giro vuelve a ese ángulo para no
   /// quedar desfasado.
-  void _setResting(bool value) {
-    setState(() {
-      _game!.setResting(value);
-      if (value) _view = PetView.front;
-    });
+  Future<bool> _setResting(bool value) async {
+    final c = AppScope.read(context);
+    final saved = await saveOrRecover(context, () => c.setHomeResting(value));
+    if (saved && value && mounted) setState(() => _view = PetView.front);
+    return saved;
   }
 
   @override
@@ -109,7 +127,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ? _texts.pick(Texts.conditionSuggestions[urgent]!, name: pet.name)
           : _texts.pick(Texts.suggestions[lowest]!, name: pet.name);
     }
-    final resting = _game!.resting;
+    final resting = pet.restingSinceUtc != null;
+    if (_game!.resting != resting) _game!.setResting(resting);
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(pet.appearance);
+    final live =
+        showModel && _live.ready && LivePoodleView.supports(pet.appearance);
+    _game!.pet.showSprite = !showModel;
+    _game!.useLiveBed = showModel;
     final showHint = !pet.prefs.seenHints.contains('home.pet');
     final actionNeed = urgent?.need ?? lowest;
     final actionLabel =
@@ -141,20 +168,72 @@ class _HomeScreenState extends State<HomeScreen> {
                 game: _game!,
                 semanticsLabel:
                     '${pet.name} en el salón, ${_view.label.toLowerCase()}. Toca para hacerle una caricia.',
-                onTap: (p) => setState(() => _game!.tapAt(p)),
+                onTap: (p) async {
+                  final tap = live
+                      ? await _live.petAt(p)
+                      : (_game!.pet.hits(p)
+                            ? LivePetTap.touched
+                            : LivePetTap.missed);
+                  if (!context.mounted || tap == LivePetTap.missed) return;
+                  if (resting && !await _setResting(false)) return;
+                  if (!context.mounted) return;
+                  setState(_game!.reactToPetTap);
+                  if (tap == LivePetTap.greeted) {
+                    await saveOrRecover(context, c.rewardGreeting);
+                  }
+                  if (context.mounted) {
+                    await saveOrRecover(
+                      context,
+                      () => c.markHintSeen('home.pet'),
+                    );
+                  }
+                },
+                onDragUpdate: live
+                    ? (_, _, delta) => _live.rotate(delta.dx)
+                    : null,
                 overlay: Stack(
                   fit: StackFit.expand,
                   children: [
+                    if (showModel)
+                      Positioned.fill(
+                        child: LivePoodleView(
+                          controller: _live,
+                          appearance: pet.appearance,
+                          resting: resting,
+                          passiveBed: true,
+                          idle: true,
+                          roaming: true,
+                          hygiene: pet.needPoints(Need.hygiene),
+                          mood: pet.needPoints(Need.mood),
+                          energy: pet.needPoints(Need.energy),
+                          sick: pet.isSick,
+                          reducedMotion: c.reducedMotion,
+                          wardrobe: false,
+                          onStatusChanged: () => setState(() {}),
+                        ),
+                      ),
                     Positioned(
                       left: AppSpace.s,
                       top: AppSpace.s,
+                      bottom: AppSpace.s,
                       child: LayoutBuilder(
-                        builder: (context, scene) => StatusBubbles(
-                          active: conditions,
-                          reducedMotion: c.reducedMotion,
-                          onTap: _attend,
-                          vertical: scene.maxHeight >= 260,
-                        ),
+                        builder: (context, scene) {
+                          final vertical = scene.maxHeight >= 224;
+                          return Align(
+                            alignment: Alignment.topLeft,
+                            child: StatusBubbles(
+                              active: conditions,
+                              reducedMotion: c.reducedMotion,
+                              onTap: _attend,
+                              vertical: vertical,
+                              itemExtent: vertical
+                                  ? ((scene.maxHeight - 8) /
+                                            StatusBubbles.order.length)
+                                        .clamp(36.0, AppSizes.touch - 4)
+                                  : AppSizes.touch - 4,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     if (showHint)
@@ -164,11 +243,36 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: 64,
                         child: HintBubble(
                           icon: Icons.touch_app_rounded,
-                          text: 'Toca a ${pet.name} para hacerle una caricia.',
-                          onClose: () => c.markHintSeen('home.pet'),
+                          text: live
+                              ? 'Toca a ${pet.name} para que se ponga a dos patas. Arrastra para girar.'
+                              : 'Toca a ${pet.name} para hacerle una caricia.',
+                          onClose: () => saveOrRecover(
+                            context,
+                            () => c.markHintSeen('home.pet'),
+                          ),
                         ),
                       ),
-                    if (!resting)
+                    if (live)
+                      Positioned(
+                        right: AppSpace.s,
+                        bottom: AppSpace.s,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton.filledTonal(
+                              tooltip: 'Volver de frente',
+                              onPressed: _live.front,
+                              icon: const Icon(Icons.restart_alt_rounded),
+                            ),
+                            const SizedBox(width: 6),
+                            FilledButton.tonal(
+                              onPressed: () => _setResting(!resting),
+                              child: Text(resting ? 'Levantarse' : 'Tumbarse'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (!resting)
                       Positioned(
                         right: AppSpace.s,
                         bottom: AppSpace.s,
@@ -183,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: box.maxHeight * 0.56),
+              constraints: BoxConstraints(maxHeight: box.maxHeight * 0.51),
               child: Panel(
                 child: SingleChildScrollView(
                   child: Column(
@@ -230,9 +334,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         children: [
-                          for (final n in Need.values)
+                          for (final n in Need.values.where(
+                            (n) => n != Need.hydration,
+                          ))
                             NeedMeter(
                               need: n,
+                              onTap: () => _actNeed(n),
                               label: Texts.needLabels[n]!,
                               value: pet.needPoints(n),
                               highlight: urgent == null ? n == lowest : false,
@@ -240,7 +347,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(height: AppSpace.s),
-                      HealthMeter(points: pet.healthPoints, sick: pet.isSick),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: HealthMeter(
+                              points: pet.healthPoints,
+                              sick: pet.isSick,
+                              onTap: () => _attend(PetCondition.sick),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpace.s),
+                          Expanded(
+                            child: NeedMeter(
+                              need: Need.hydration,
+                              onTap: () => _actNeed(Need.hydration),
+                              label: Texts.needLabels[Need.hydration]!,
+                              value: pet.needPoints(Need.hydration),
+                              highlight:
+                                  urgent == PetCondition.thirsty ||
+                                  urgent == null && lowest == Need.hydration,
+                            ),
+                          ),
+                        ],
+                      ),
                       if (urgent == null && lowest != Need.energy) ...[
                         SizedBox(height: l.compact ? AppSpace.xs : AppSpace.s),
                         Align(

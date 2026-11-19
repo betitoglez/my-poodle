@@ -13,7 +13,7 @@ class BalanceFormatException implements Exception {
 }
 
 /// Cuatro medidas en centésimas (0..10000).
-enum Need { satiety, hygiene, mood, energy }
+enum Need { satiety, hygiene, mood, energy, hydration }
 
 class CareRule {
   const CareRule({

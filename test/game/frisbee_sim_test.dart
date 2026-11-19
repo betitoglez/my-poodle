@@ -11,6 +11,18 @@ void run(FrisbeeSim s, double fps) {
 }
 
 void main() {
+  test('el reloj cuenta al apuntar y cierra a los 20 segundos', () {
+    final game = sim();
+    game.advance(19.9);
+    expect(game.canThrow, isTrue);
+    expect(game.launchAssisted(), isTrue);
+    game.advance(.2);
+    expect(game.remaining, 0);
+    expect(game.finished, isTrue);
+    expect(game.launchAssisted(), isFalse);
+    expect(game.catches, 0);
+  });
+
   test('tres asistidos → 3 capturas a 30 y 60 fps', () {
     for (final fps in [30.0, 60.0]) {
       final s = sim();

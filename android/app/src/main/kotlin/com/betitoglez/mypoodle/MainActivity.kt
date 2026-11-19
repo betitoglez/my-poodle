@@ -8,6 +8,9 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        flutterEngine.platformViewsController.registry.registerViewFactory(
+            "my_poodle/poodle_3d", PoodleViewFactory(flutterEngine.dartExecutor.binaryMessenger)
+        )
         // Directorio privado excluido de Auto Backup y transferencia entre dispositivos.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "my_poodle/storage")
             .setMethodCallHandler { call, result ->

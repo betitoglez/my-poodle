@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:my_poodle/app/app_root.dart';
+import 'package:my_poodle/app/app_scope.dart';
 import 'package:my_poodle/data/save_codec.dart';
 import 'package:my_poodle/data/save_store.dart';
 import 'package:my_poodle/data/storage_backend.dart';
@@ -179,6 +180,7 @@ void main() {
       await adopt(t, 'Miel');
       await tapText(t, 'Cuidados');
       await tapText(t, 'Comer');
+      await tapText(t, 'Pienso diario · Gratis');
       // Salir tras dos bocados: no aplica la mejora.
       await tapText(t, 'Dar un bocado');
       await frames(t, seconds: 1.5);
@@ -190,6 +192,7 @@ void main() {
       expect(saved(backend).needPoints(Need.satiety), 65);
       // Completar: 65 → 85.
       await tapText(t, 'Comer');
+      await tapText(t, 'Pienso diario · Gratis');
       for (var i = 0; i < 3; i++) {
         await tapText(t, 'Dar un bocado');
         // Toque durante la masticación: no cuenta.
@@ -207,8 +210,148 @@ void main() {
     },
   );
 
+  testWidgets('el medidor de hidratación abre el cuenco y guarda tres sorbos', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final state = PetState.adopt(
+      validName: 'Miel',
+      nowUtc: t0,
+      balance: balance,
+    ).copyWith(needs100: {...balance.initial100, Need.hydration: 2000});
+    final backend = MemoryBackend();
+    backend.files[SaveStore.primary] = SaveCodec(balance).encode(state);
+    await boot(t, backend);
+    await tapText(t, 'Hidratación');
+    await tapText(t, 'Agua · Gratis');
+    await tapText(t, 'Llenar el cuenco');
+    await frames(t, seconds: 1.2);
+    expect(saved(backend).needPoints(Need.hydration), 20);
+    for (var i = 0; i < 3; i++) {
+      await tapText(t, 'Dar un sorbo');
+      await frames(t, seconds: 1.5);
+    }
+    await idle(t);
+    expect(find.text('20 → 80'), findsOneWidget);
+    expect(saved(backend).needPoints(Need.hydration), 80);
+  });
+
+  testWidgets('la bebida de pago se confirma y se cobra al tercer sorbo', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final state =
+        PetState.adopt(
+          validName: 'Miel',
+          nowUtc: t0,
+          balance: balance,
+        ).copyWith(
+          coins: 15,
+          needs100: {
+            ...balance.initial100,
+            Need.hydration: 1000,
+            Need.energy: 3000,
+            Need.mood: 5000,
+          },
+        );
+    final backend = MemoryBackend();
+    backend.files[SaveStore.primary] = SaveCodec(balance).encode(state);
+    await boot(t, backend);
+    await tapText(t, 'Hidratación');
+    await tapText(t, 'Agua con vitaminas');
+    await tapText(t, 'Llenar el cuenco');
+    expect(find.text('Confirmar la bebida'), findsOneWidget);
+    await tapText(t, 'Cancelar');
+    expect(saved(backend).coins, 15);
+    await tapText(t, 'Llenar el cuenco');
+    await tapText(t, 'Aceptar');
+    await frames(t, seconds: 1.2);
+    for (var i = 0; i < 2; i++) {
+      await tapText(t, 'Dar un sorbo');
+      await frames(t, seconds: 1.5);
+    }
+    expect(saved(backend).coins, 15);
+    expect(saved(backend).needPoints(Need.hydration), 10);
+    await tapText(t, 'Dar un sorbo');
+    await frames(t, seconds: 1.5);
+    await idle(t);
+    final after = saved(backend);
+    expect(after.coins, 0);
+    expect(after.needPoints(Need.hydration), 100);
+    expect(after.needPoints(Need.energy), 60);
+    expect(after.needPoints(Need.mood), 60);
+  });
+
+  testWidgets('una ración de pago se confirma y solo se cobra al terminar', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final seed = PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance)
+        .copyWith(
+          coins: 30,
+          needs100: {...balance.initial100, Need.satiety: 2000},
+        );
+    final backend = MemoryBackend()
+      ..files[SaveStore.primary] = SaveCodec(balance).encode(seed);
+    await boot(t, backend);
+    await tapText(t, 'Cuidados');
+    await tapText(t, 'Comer');
+    await tapText(t, 'Comida premium');
+    expect(find.text('Confirmar la ración'), findsNothing);
+    expect(find.text('Pienso diario · Gratis'), findsOneWidget);
+    await tapText(t, 'Dar un bocado');
+    expect(find.text('Confirmar la ración'), findsOneWidget);
+    await tapText(t, 'Cancelar');
+    expect(saved(backend).coins, 30);
+    expect(saved(backend).needPoints(Need.satiety), 20);
+
+    await tapText(t, 'Dar un bocado');
+    await tapText(t, 'Aceptar');
+    await frames(t, seconds: 1.5);
+    await tapIcon(t, Icons.close_rounded);
+    await tapText(t, 'Salir');
+    expect(saved(backend).coins, 30);
+    expect(saved(backend).needPoints(Need.satiety), 20);
+
+    await tapText(t, 'Comer');
+    await tapText(t, 'Comida premium');
+    await tapText(t, 'Dar un bocado');
+    await tapText(t, 'Aceptar');
+    for (var bite = 2; bite <= 3; bite++) {
+      await frames(t, seconds: 1.5);
+      await tapText(t, 'Dar un bocado');
+    }
+    await frames(t, seconds: 1.5);
+    expect(saved(backend).coins, 20);
+    expect(saved(backend).needPoints(Need.satiety), 60);
+  });
+
+  testWidgets('Frisbee termina con un acierto al agotar los 20 segundos', (
+    t,
+  ) async {
+    final backend = MemoryBackend();
+    await boot(t, backend);
+    await adopt(t, 'Miel');
+    await tapText(t, 'Juegos');
+    await t.ensureVisible(find.text('Frisbee en el prado'));
+    await idle(t);
+    await tapText(t, 'Frisbee en el prado');
+    await tapText(t, 'Jugar');
+    await tapText(t, 'Lanzar al aro');
+    await frames(t, seconds: 21);
+    await idle(t);
+    final score = find.text('1 de 5 capturas · ¡nuevo récord!');
+    expect(score, findsOneWidget);
+    final controller = AppScope.read(t.element(score));
+    await t.runAsync(() => controller.markHintSeen('test.result'));
+    await idle(t);
+    expect(t.takeException(), isNull);
+    expect(score, findsOneWidget);
+    expect(saved(backend).coins, 6);
+  });
+
   testWidgets(
-    '3 a 7 · frisbee 12 monedas, pañuelo, quitar/poner, vista previa cancelada',
+    '3 a 7 · frisbee 18 monedas, pañuelo, quitar/poner, vista previa cancelada',
     (t) async {
       final backend = MemoryBackend();
       await boot(t, backend);
@@ -217,17 +360,20 @@ void main() {
       await t.ensureVisible(find.text('Frisbee en el prado'));
       await idle(t);
       await tapText(t, 'Frisbee en el prado');
-      expect(find.text('Duración: 3 lanzamientos.'), findsOneWidget);
+      expect(
+        find.text('Duración: 20 segundos · 5 lanzamientos.'),
+        findsOneWidget,
+      );
       await tapText(t, 'Jugar');
-      for (var i = 0; i < 3; i++) {
+      for (var i = 0; i < 5; i++) {
         await tapText(t, 'Lanzar al aro');
         // Segundo toque en vuelo: no lanza otra vez.
         await t.tap(find.text('Lanzar al aro').first, warnIfMissed: false);
         await frames(t, seconds: 2.8);
       }
       await idle(t);
-      expect(find.text('+12 monedas'), findsOneWidget);
-      expect(saved(backend).coins, 12);
+      expect(find.text('+18 monedas'), findsOneWidget);
+      expect(saved(backend).coins, 18);
       await tapText(t, 'Casa');
       await tapText(t, 'Armario');
       await tapText(t, 'Accesorios');
@@ -236,7 +382,7 @@ void main() {
       await tapText(t, 'Comprar y usar · 10');
       expect(find.text('Saldo restante'), findsOneWidget);
       await tapText(t, 'Confirmar');
-      expect(saved(backend).coins, 2);
+      expect(saved(backend).coins, 8);
       expect(saved(backend).appearance.neck, 'neck.coral');
       await tapText(t, 'Quitar');
       expect(saved(backend).appearance.neck, 'neck.none');
@@ -244,17 +390,17 @@ void main() {
       await tapText(t, 'Usar');
       expect(
         [saved(backend).coins, saved(backend).appearance.neck],
-        [2, 'neck.coral'],
+        [8, 'neck.coral'],
       );
       // Vista previa de plata (24) sin saldo: descartar conserva el aspecto.
       await tapText(t, 'Colores');
       await tapText(t, 'Gris plata');
-      expect(find.text('Faltan 22 · Jugar'), findsOneWidget);
+      expect(find.text('Faltan 16 · Jugar'), findsOneWidget);
       await tapText(t, 'Casa');
       expect(find.text('¿Te quedas con este aspecto?'), findsOneWidget);
       await tapText(t, 'Descartar');
       expect(saved(backend).appearance.coat, 'coat.apricot');
-      expect(saved(backend).coins, 2);
+      expect(saved(backend).coins, 8);
       expect(find.text('En casa'.toUpperCase()), findsOneWidget);
     },
   );
@@ -290,22 +436,28 @@ void main() {
     expect(find.text('Seguir jugando'), findsOneWidget);
     await tapText(t, 'Salir');
     expect(saved(backend).coins, 0);
-    expect(saved(backend).revision, 1);
+    expect(saved(backend).revision, 2);
   });
 
-  testWidgets('huerto completo concede 2 + manzanas una sola vez', (t) async {
+  testWidgets('huerto completo concede 2 + 2 por fruta una sola vez', (
+    t,
+  ) async {
     final backend = MemoryBackend();
     await boot(t, backend, store: fullStore());
     await adopt(t, 'Coco');
     await tapText(t, 'Juegos');
     await t.tap(find.text('Jugar').hitTestable().first);
     await idle(t);
+    expect(find.textContaining('hasta 24 frutas'), findsOneWidget);
+    expect(find.textContaining('60 segundos'), findsOneWidget);
+    expect(find.textContaining('2 monedas + 2 por fruta'), findsOneWidget);
     await tapText(t, 'Jugar');
-    await frames(t, seconds: 31);
+    await frames(t, seconds: 61);
     await idle(t);
     final coins = saved(backend).coins;
     expect(coins, greaterThanOrEqualTo(2));
     expect(find.text('+$coins monedas'), findsOneWidget);
+    expect(find.textContaining('de 24 frutas'), findsOneWidget);
   });
 
   testWidgets('12 · reinicio: cancelar conserva, confirmar vuelve a Adopción', (
@@ -490,6 +642,7 @@ void main() {
         await adopt(t, 'Bartolomé Miel');
         for (final tab in ['Cuidados', 'Juegos', 'Armario', 'Casa']) {
           await tapText(t, tab);
+          expect(t.takeException(), isNull, reason: tab);
         }
         expect(find.text('Bartolomé Miel'), findsWidgets);
       },

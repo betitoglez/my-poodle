@@ -4,6 +4,28 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-18 · Piloto de prendas integradas
+
+Alcance autorizado e implementado: gorro de lana, familia jersey y pañuelo coral. Seis recursos ilustrados locales, ajuste por pose mediante malla, oclusión del pelaje original y sombras recortadas al cuerpo. El resto del catálogo conserva su representación anterior. Capturas de frente, perfil y carrera sobre albaricoque, blanco y negro en [la revisión del piloto](reviews/integrated-pilot/README.md). Se descartó una primera prueba de texturas planas: no resolvía el volumen del jersey. Análisis limpio y 36 pruebas relevantes correctas, incluyendo facciones y regresión de artículos ajenos al piloto. Revisado visualmente en este Mac; valoración del propietario y dispositivo pendientes. Sin build de distribución; cambios sin commit del clon original respetados.
+
+Segunda revisión del piloto: cuello, puños y bajo del jersey dejan pasar el pelaje del perro mediante contornos curvos. De perfil y en carrera, la manga gira con la pata y su abertura comparte la deformación de la tela. Se regeneraron las capturas del jersey, el pañuelo y el conjunto. La suite completa pasó con 147 pruebas y el análisis estático quedó limpio.
+
+Tercera revisión del piloto. Los bordes del cuello se ajustan por pose para el pañuelo coral, el jersey, la pajarita, el pañuelo de punto y los tres collares. Se añaden tres sprites de espalda y capturas de los accesorios de cuello y el conjunto. La suite completa pasó con 148 pruebas, el análisis quedó limpio y se validaron los recursos. Revisión visual en el Mac.
+
+Cuarta revisión del piloto. El jersey cubre el pecho y la cadera de perfil y se ajusta a ambas patas traseras de espaldas. Solo asoma una franja del pañuelo en la nuca y la cola queda a la vista. Se actualizaron las capturas del juego y las pruebas de cobertura.
+
+## Sesión 2026-11-17 · Cuidados interactivos y revisión visual
+
+Trabajo aislado en `feat/interactive-care`, partiendo de `fb4a500`, para respetar los cambios sin commit del clon original. Se configura el ID común `com.betitoglez.mypoodle` en Android/iOS. **Build de distribución pendiente de actualización de main y rebase por indicación del propietario.** No se ha probado esta revisión en dispositivo.
+
+Implementado: paneles de necesidades y salud pulsables; seis raciones con coste/efectos atómicos y versión completa cuando corresponde; veterinario 30 monedas; dormir +60 energía/+10 ánimo; jugar −20 energía/−10 saciedad; energía cero bloquea actividades excepto dormir. Cada cuidado tiene plazo de 300 s al completar; juegos, tres inicios por ventana móvil de 300 s. Los plazos se guardan con compatibilidad con partidas anteriores.
+
+Baño: ducha mantenida 5 s, cuatro zonas incluyendo cabeza, aclarado 5 s y secador 5 s. Peluquería: peine, tijeras y secador en tres zonas cada uno. Veterinario: seleccionar herramienta, auscultar y examinar manteniendo sobre zona, arrastrar pastilla. Herramientas visibles bajo el dedo; soltar interrumpe el trabajo temporizado. Cuenco dividido detrás/delante del hocico; cama con borde delante y manta limitada al lomo.
+
+Arte: recoloreado por píxel en isolate y caché acotada, conservando facciones oscuras, alfa y microtextura; paletas con luces/sombras. Accesorios por anclajes y trazados escalables que sustituyen las capas contaminadas de pelo. Los accesorios ya no fuerzan pose estática al correr; patas articuladas para cortes sin galope propio. Huerto: seis frutas, césped/raíces/estratos/bancales y penalización de 5 s por caída. Frisbee: cinco intentos. Higiene: cinco fases bajo 65.
+
+Verificación: pruebas del dominio, persistencia, gestos, navegación, reservas concurrentes, catálogo y renders reales. Evidencias reproducibles en `test/game/appearance_review_test.dart` y `test/ui/care_composition_review_test.dart` (`POODLE_REVIEW=1` guarda PNG en `docs/reviews/`). Resultado final de verificaciones, ver registro de entrega de esta revisión. Precio vegano provisional: 15 monedas, pendiente de concretar por el propietario.
+
 ## Sesión 2026-11-16 · Prototipo completo Flutter + Flame
 
 Encargo: [PROMPT_PROTOTIPO_FLUTTER_DART](../README.md#prototipo-flutter) (prototipo de experiencia con las 19 vistas, cuidados, dos minijuegos y personalización persistente). Repositorio sin commits previos.
@@ -365,3 +387,71 @@ El teléfono se detectó en reposo durante el primer recorrido (`mWakefulness=As
 **Entrega en el teléfono:** `flutter build apk --release --target=lib/main.dart` correcto (58,0 MB), `adb install -r` → Success, parada y lanzamiento de la actividad normal con `am start -W` → Status ok. Se conserva la instalación y sus datos; queda la entrada normal Release con la corrección de reanudación, no el harness. La firma sigue siendo la de depuración de la plantilla: no es un paquete publicable. Se mantiene el workaround de lint añadido antes de esta sesión; el lint completo de los plugins no se acredita.
 
 **Pendientes:** compra real de prueba, pendiente/cancelación/restauración/reembolso en Play Internal (producto y cuenta del propietario, F07.6); StoreKit local/sandbox iOS; offline/segundo plano iPhone; teclado real, transferencia/restauración de backup y rendimiento de 60 s por escena. Android SDK, APK, grafo y manifiesto dejan de estar bloqueados. La confirmación offline corresponde al Xiaomi y no acredita offline en iPhone.
+
+## Sesión 2026-11-18 · PoC de vestuario 3D
+
+Malla texturizada generada en Meshy 7.1 a partir de tres vistas y vestuario articulado en Blender 5.3.0. Se revisan tres conjuntos, dos cortes y cinco poses en el worktree de `poc/vestuario-3d`. Se reabrió la escena con sus texturas empaquetadas y se verificaron los 16 huesos, las claves de forma, el bucle de 12 imágenes y el recuento de 147.704 a 153.368 triángulos por configuración. Los [resultados y archivos editables](reviews/wardrobe-3d/README.md) incluyen la comparación con el 2D.
+
+### Revisión de ropa y accesorios 3D
+
+Se revisaron los materiales, las costuras, los volantes y el ajuste de los accesorios en Blender 5.3.0. El peto mantiene libre la cola y las botas tienen dos alturas de caña según la prenda. La recogida separa más las patas delanteras y traseras. Se regeneraron las 30 vistas, la comparativa 2D y 3D, la lámina de detalle y el bucle de 12 fotogramas. La escena reabre con las texturas empaquetadas. Las seis configuraciones vestidas tienen entre 148.468 y 162.752 triángulos. [Detalle de las prendas](reviews/wardrobe-3d/detalles-de-ropa.png).
+
+### Montura Meshy y revisión de ángulos 3D
+
+Se generó una montura privada en Meshy 7.1 Estándar por 20 créditos, a partir de una referencia frontal y otra lateral de la pieza. Se ajustó en Blender al hocico y las orejas, con apoyos nasales y lentes claras separadas. Se verificó la escena editable y se regeneraron 42 vistas de los dos peinados. Los seis conjuntos siguen por debajo de 200.000 triángulos. [Ajuste de la montura](reviews/wardrobe-3d/gafas-ajuste.png) · [Ángulos osito](reviews/wardrobe-3d/angulos-osito.png) · [Ángulos pompón](reviews/wardrobe-3d/angulos-pompon.png).
+
+### Build de vestuario 3D en el Xiaomi
+
+APK Release arm64 de 40,4 MB instalada por USB en el Redmi A5 con el nombre Vestuario 3D y el identificador `com.betitoglez.mypoodle.wardrobepreview`. ADB confirmó la instalación y el arranque de la actividad. La lista de paquetes confirmó también la instalación de My Poodle. Tras desbloquear el Xiaomi, se comprobó por toque el cambio de impermeable a peto, de osito a pompón, la vista cenital, la reproducción de la carrera con dos fotogramas distintos y la pose de recogida. El visor quedó abierto con el impermeable y las gafas de frente. En Flutter pasaron el análisis de la entrada de prueba y el test de selección de conjunto, peinado, vista cenital y carrera. Se verificaron 42 imágenes y los seis bucles prerenderizados.
+
+### Casa y Armario con renderizado 3D en tiempo real
+
+La variante Android 0.2.0 incluye la app y carga un GLB local con esqueleto en Casa y Armario. Tiene giro libre, respuesta de la cola a la caricia y una transición reversible entre las dos poses. En el Xiaomi Redmi A5 se comprobó el giro desde varios ángulos, el movimiento de cola, ambas poses y el conjunto de impermeable, gorro y gafas en el armario. Se abrió una partida de Frisbee con el sprite 2D. Pasaron 25 pruebas automatizadas de juegos y recorrido general. La app de prueba usa una partida separada con Miel. Los materiales de las prendas son simplificados y el catálogo sin modelo 3D usa el visor 2D. [Montaje y compilación del visor](reviews/wardrobe-3d/README.md#3d-en-tiempo-real-en-casa-y-armario).
+
+### Telas de Blender en el visor 3D
+
+La versión Android 0.2.1 (4) exporta mapas de color y normales de siete piezas del peto, el vestido y el impermeable. Se verificaron las coordenadas UV, los pesos y el clip de tumbarse del GLB. El APK Release arm64 de 62,3 MB se actualizó por USB en el Redmi A5. Se comprobaron los tres conjuntos de frente, al arrastrar hasta el perfil y tras tumbarse y levantarse. Quedó abierta la vista previa del peto en Armario. La iluminación corresponde a la escena en tiempo real. [Montaje y compilación del visor](reviews/wardrobe-3d/README.md#3d-en-tiempo-real-en-casa-y-armario).
+
+La versión 0.2.2 completa los acabados de los ocho artículos del piloto 3D. Incluye las telas y remates, la lana, el caucho y el acetato con vetas y lentes transparentes. En el Redmi A5 se recorrieron los tres conjuntos con giro y cambio de pose. Se corrigió la holgura al tumbarse y se verificó el GLB final en 16 vistas WebGL con los tres conjuntos y una combinación mixta con corte pompón. En la combinación de impermeable y botas, las cañas todavía rozan las perneras en flexión. El APK Release arm64 de 64,7 MB corresponde a la compilación 6 del paquete de prueba.
+
+La versión 0.2.3 (7) corrige el roce del impermeable con las cuatro botas al tumbarse. El GLB tiene una variante de la animación que adelanta las patas delanteras y deja espacio detrás. Las cañas se acortan al flexionar y vuelven a su altura al levantarse. La revisión de 49 muestras de la transición reprodujo la intersección original y confirmó la separación con la variante corregida. Las capturas WebGL verificaron ambos perfiles y la espalda, y se comprobó la vuelta a la pose de pie. El APK Release arm64 se instaló por USB en el Redmi A5 y se probó el conjunto de perfil y desde atrás antes de dejarlo de pie en el armario. **Looks 3D → Impermeable y botas** abre el conjunto de prueba.
+
+La versión 0.3.0 (8) cubre las 27 prendas y accesorios de `balance-v1.json`, con ocho variantes de color que comparten modelos. Añade el corte cachorro al visor 3D. Se revisaron 12 combinaciones de frente, perfil, espalda y tumbado desde dos ángulos. La comprobación geométrica de 11 pares de prendas y calzado cubrió 49 muestras por par sin cruces de malla. El peto con botas de lluvia se revisó visualmente con la caña recogida bajo la pernera. El conjunto de mayor detalle tiene 155.493 triángulos visibles. Pasaron el análisis de Flutter y las 15 pruebas de recorrido y armario. El APK Release arm64 de 69,4 MB se instaló por USB en el Redmi A5.
+
+Tras desbloquear el Redmi A5, se comprobó la misma compilación con los tres Looks 3D nuevos al girar, tumbarse y levantarse. También se sustituyó el collar de perlas por el de chapa en el conjunto del vestido lila a través del selector del armario. Las miniaturas 2D de Colores pueden mostrar el color base del jersey mientras el visor aplica la variante elegida.
+
+La versión 0.3.1 (9) usa 42 miniaturas WebP capturadas desde el visor 3D para todas las fichas del armario en la variante de prueba. Cada ficha muestra el artículo y la escena superior muestra la combinación. Se verificaron las 42 fichas contra el catálogo, incluido el azul del jersey, y se revisaron Colores, Ropa, Accesorios y Peinados en el Redmi A5 tras instalar el APK Release de 69,8 MB. Al elegir rojo o azul, la variante de la ficha coincidió con el visor en el teléfono. Pasaron el análisis de Flutter y las 15 pruebas de recorrido y armario.
+
+La versión 0.3.2 (10) añade el caniche y el cuenco 3D a **Hora de comer**. La animación sigue el reloj de la actividad, incluida la pausa, y la zona táctil coincide con la proyección del cuenco. Se inspeccionaron 18 vistas WebGL con tres aspectos. En 49 muestras de la animación no se detectó cruce entre las mallas del cuenco, el perro y las botas de lluvia. El hocico queda por debajo del borde durante el bocado. Pasaron las 33 pruebas de comida, recorridos y simulaciones 2D. El APK Release de 69,8 MB quedó instalado por USB en el Redmi A5.
+
+En el Redmi A5 se dio un bocado tocando el cuenco y otro con el botón. En ambos se observó el hocico por debajo del borde y la vuelta a la pose de pie. Tras el primer bocado, el borde del cuenco oculta el pienso restante desde la cámara lateral. Se descartó la comida de prueba antes del tercer bocado y se abrió Frisbee para comprobar su sprite 2D.
+
+La versión 0.3.3 (11) eleva la cámara de **Hora de comer** y reduce la extensión y la altura del montón de pienso en cada bocado. La revisión WebGL distinguió el cuenco lleno, dos tercios, un tercio y vacío, con el hocico por debajo del borde durante el bocado. Las 22 pruebas de comida y recorridos pasaron. El APK Release de 69,8 MB se instaló por USB en el Redmi A5.
+
+Tras desbloquear el Redmi A5, se verificaron el cuenco lleno, dos tercios y un tercio, además del hocico dentro del cuenco al masticar. Se dio el primer bocado tocando el cuenco y el segundo con el botón. Se descartó esa comida de prueba y se dejó seleccionada una ración nueva de pienso diario.
+
+La versión 0.3.4 (12) añade el baño 3D con zonas táctiles sobre el lomo, las patas, el pecho y la cabeza. La ducha, el aclarado y el secador requieren cinco segundos de uso cada uno. La espuma sigue el progreso por zona y el pelaje recupera su acabado durante el secado. Se revisaron siete estados del baño en WebGL. Pasaron las 19 pruebas de cuidados y minijuegos 2D. El APK Release de 69,8 MB se instaló por USB en el Redmi A5.
+
+En el Redmi A5 se completó el baño tocando directamente el caniche. La ducha conservó el progreso al soltar, las cuatro zonas reaccionaron al frotar, y se comprobó la retirada de espuma y el secador. La pantalla de resultado registró +25 de higiene, de 65 a 90, en la partida de prueba.
+
+La versión 0.3.5 (13) añade la consulta veterinaria 3D con mesa, fonendoscopio, lupa y pastilla. Se revisaron seis poses y estados del visor WebGL. Pasaron 51 pruebas de cuidados, salud, coste y simulaciones de minijuegos 2D. Se instaló el APK Release en el Redmi A5 y se completó la consulta en modo demostración. Tras auscultar el pecho, revisar las patas y arrastrar la pastilla al hocico, Miel pasó de Malito a Sano y el saldo pasó de 100 a 70 monedas.
+
+La versión 0.3.6 (14) incorpora la peluquería 3D. Peine, tijeras y secador modifican el pelaje en flequillo, orejas y lomo a medida que avanza el gesto. Los cortes que aún están en el catálogo se pueden previsualizar. Un corte adquirido se guarda en la misma operación que el cuidado. Se comprobaron siete estados WebGL, incluidas las variantes pompón y cachorro, y pasaron 41 pruebas de cuidados, catálogo y minijuegos 2D. El APK Release se instaló por USB en el Redmi A5.
+
+En el Redmi A5 se eligió Corte pompón como vista previa y se completaron los nueve pasos arrastrando directamente sobre el caniche. Se comprobó el aplanado del pelo durante el peinado, la transformación del flequillo con las tijeras y el volumen tras secar. Se dejó abierta la vista previa terminada para revisar el corte.
+
+La versión 0.3.7 (15) incorpora el descanso 3D en **Cuidados → Dormir** y al tocar el medidor de Energía. La cama recibe al caniche en una pose acurrucada. La manta se despliega sobre el cuerpo y sus bordes dejan libre la cabeza. El interruptor atenúa el salón, la cama y el pelaje. Se revisaron ocho estados y variantes en WebGL. Pasaron 43 pruebas, incluidas las de orden, recuperación de energía y los minijuegos 2D. Se instaló y verificó la versión en el Redmi A5 tocando la cama para acostar y arropar a Miel y luego el interruptor de la sala. El resultado registró 100 de energía y +10 de ánimo.
+
+La versión 0.3.8 (16) incorpora el paseo 3D con pisada articulada, sendero de piedra, flores, banco y fuente. Cada parada requiere una indicación explícita de olfatear. Pasaron 33 pruebas de cuidados, recorrido y minijuegos 2D. Se instaló y completó el paseo en el Redmi A5 tocando las huellas y probando también el botón **Olfatear**. El resultado registró +15 de ánimo y −5 de energía.
+
+La versión 0.3.9 (17) incorpora Huerto Saltarín en 3D con galope y salto articulados, bancales de tierra y ladrillo, y seis tipos de fruta en doce colocaciones. El juego conserva la simulación de salto, colección y recuperación. Cada caída descuenta cinco segundos una sola vez y se indica en pantalla. Se revisaron diez estados WebGL, pasaron 30 pruebas automatizadas y el APK Release se instaló en el Redmi A5. Frisbee conserva su escena 2D.
+
+En el Redmi A5 se jugó desde la versión completa del modo demostración. Se hicieron saltos sobre el sendero, se recogieron cuatro frutas distintas y se verificó que una caída mostrara −5 s y devolviera a Miel al último apoyo con la puntuación intacta. La partida terminó con cuatro frutas y seis monedas de premio. Se dejó abierto el resultado para repetir desde allí.
+
+La versión 0.4.0 (18) añade Frisbee 3D con 20 segundos y hasta cinco lanzamientos. Las escenas con visor muestran un indicador de carga. Se ajustó el tinte de los cuatro pelajes alternativos, la pisada del paseo, la cama y los collares. El armario reúne los artículos de cuello y conserva los IDs de guardado existentes. Se añadieron el corte de concurso inspirado en el Continental, una silueta propia para el corte Osito, gestos en reposo, efectos de estado y ocho herramientas ilustradas. Se revisaron los cambios visuales en WebGL. Pasaron 144 pruebas y el APK Release quedó instalado en el Redmi A5. En el teléfono se verificaron la carga con indicador, el jadeo y la cama en Casa, el disco en la boca y el resultado al agotarse el reloj. El lanzamiento por arrastre registró una captura y seis monedas.
+
+## Prototipo de vestuario articulado en 2D
+
+El prototipo ajusta el peto verde, el pañuelo coral y las botas de lluvia con los cortes osito y pompón. Comparte la anatomía por vista y usa el mismo esqueleto de perfil para las fases de carrera. Se activa en desarrollo con `--dart-define=POODLE_ARTICULATED_PILOT=true`.
+
+Las [cinco poses de revisión](reviews/vestuario-articulado/cinco-poses.png) muestran frente, perfil, espalda y carrera en extensión y recogida. La [lámina de piezas](reviews/vestuario-articulado/piezas-por-separado.png) compara el peto con y sin pañuelo o botas. Se regeneran con `POODLE_REVIEW=1 flutter test --no-pub test/game/articulated_wardrobe_review_test.dart`. También quedan las comparativas de [varios conjuntos en 2D](reviews/combinaciones-2d/armario-2d.png) y del [mismo conjunto en varias poses](reviews/combinaciones-2d/mismo-conjunto.png).

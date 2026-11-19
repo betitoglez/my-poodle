@@ -4,6 +4,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val wardrobePreview = providers.environmentVariable("MY_POODLE_WARDROBE_PREVIEW").orNull == "1"
+
 android {
     namespace = "com.betitoglez.mypoodle"
     compileSdk = flutter.compileSdkVersion
@@ -16,7 +18,13 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.betitoglez.mypoodle"
+        applicationId = if (wardrobePreview) {
+            "com.betitoglez.mypoodle.wardrobepreview"
+        } else {
+            "com.betitoglez.mypoodle"
+        }
+        manifestPlaceholders["mypoodleAppLabel"] =
+            if (wardrobePreview) "Vestuario 3D" else "My Poodle"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24 // Flutter 3.50 e in_app_purchase 3.3.1

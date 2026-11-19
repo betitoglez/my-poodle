@@ -178,7 +178,8 @@ def main():
             os.remove(os.path.join(out_dir, f))
     ref_hair = spec['referenceHair']
     meta = {'schemaVersion': 1, 'unitHeightPx': spec['unitHeightPx'], 'poses': {}, 'hair': {}, 'items': {},
-            'expressions': {}, 'coats': spec['coats'], 'variants': spec.get('variants', {})}
+            'expressions': {}, 'coats': spec['coats'], 'variants': spec.get('variants', {}),
+            'hairAliases': spec.get('hairAliases', {})}
 
     # Unidad por pose de origen: altura del caniche de referencia (pies a cabeza).
     unit_src = {}
@@ -236,6 +237,9 @@ def main():
         meta['poses'][pose]['landmarks'] = {
             k: [round((v[0] - ax) / unit, 3), round((v[1] - ay) / unit, 3)] for k, v in lm.items() if v
         }
+
+        # Referencias medidas para poses donde la silueta no define las facciones.
+        meta['poses'][pose]['landmarks'].update(pinfo.get('landmarks', {}))
 
         for (kind, lid), im in layers.items():
             im = im.crop(box).resize(size, Image.LANCZOS)

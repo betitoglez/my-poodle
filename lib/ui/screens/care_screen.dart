@@ -2,10 +2,12 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
 import '../../app/texts.dart';
+import '../../domain/balance.dart';
 import '../../domain/rules.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/dialogs.dart';
 import 'care_activity_screens.dart';
 import 'main_shell.dart';
 
@@ -31,7 +33,7 @@ class CareScreen extends StatelessWidget {
     _CareCard(
       CareKind.bath,
       'assets/images/cards/bath.jpg',
-      'Mojar, enjabonar y aclarar',
+      'Ducha, esponja, aclarado y secador',
       () => const BathScreen(),
     ),
     _CareCard(
@@ -43,7 +45,7 @@ class CareScreen extends StatelessWidget {
     _CareCard(
       CareKind.groom,
       'assets/images/cards/salon.jpg',
-      'Cepillar tres mechones',
+      'Peine, tijeras y secador',
       () => const GroomScreen(),
     ),
     _CareCard(
@@ -57,6 +59,12 @@ class CareScreen extends StatelessWidget {
       'assets/images/rooms/vet.jpg',
       'Revisión y pastilla',
       () => const VetScreen(),
+    ),
+    _CareCard(
+      CareKind.drink,
+      'assets/images/cards/kitchen.jpg',
+      'Llena el cuenco de agua',
+      () => const DrinkScreen(),
     ),
   ];
 
@@ -87,26 +95,32 @@ class CareScreen extends StatelessWidget {
               itemBuilder: (context, i) {
                 final card = _cards[i];
                 final rule = c.balance.care[card.kind.name]!;
-                final effects = rule.delta.entries
-                    .map(
-                      (e) =>
-                          '${e.value > 0 ? '+' : '−'}${e.value.abs()} ${Texts.needLabels[e.key]}',
-                    )
-                    .join(' · ');
-                final main = rule.delta.keys.first;
-                final cures = rule.cures;
                 final sick = c.pet.isSick && card.kind == CareKind.vet;
                 return _IllustratedCard(
                   image: card.image,
                   title: Texts.careTitles[card.kind]!,
                   subtitle: card.subtitle,
-                  footer: cures ? 'Cura la salud · $effects' : effects,
-                  footerIcon: cures
-                      ? Icons.medical_services_rounded
-                      : main.icon,
-                  footerColor: cures ? AppColors.coral : main.color,
+                  effects: rule.delta,
+                  cures: rule.cures,
+                  price: card.kind == CareKind.vet ? Rules.vetCost : null,
                   badge: sick ? '¡Malito!' : null,
-                  onTap: () => pushScreen(context, card.build()),
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.hideCurrentSnackBar();
+                    final blocked = c.careBlocked(card.kind);
+                    if (blocked != null) {
+                      showCareBlocked(context, card.kind, blocked);
+                      return;
+                    }
+                    if (c.pet.restingSinceUtc != null &&
+                        !await saveOrRecover(
+                          context,
+                          () => c.setHomeResting(false),
+                        )) {
+                      return;
+                    }
+                    if (context.mounted) pushScreen(context, card.build());
+                  },
                 );
               },
             ),
@@ -122,9 +136,9 @@ class _IllustratedCard extends StatelessWidget {
     required this.image,
     required this.title,
     required this.subtitle,
-    required this.footer,
-    required this.footerIcon,
-    required this.footerColor,
+    required this.effects,
+    required this.cures,
+    this.price,
     required this.onTap,
     this.badge,
   });
@@ -132,16 +146,33 @@ class _IllustratedCard extends StatelessWidget {
   final String image;
   final String title;
   final String subtitle;
-  final String footer;
-  final IconData footerIcon;
-  final Color footerColor;
+  final Map<Need, int> effects;
+  final bool cures;
+  final int? price;
   final VoidCallback onTap;
+
+  String _amount(int change) => '${change >= 0 ? '+' : '−'}${change.abs()}';
+
+  Widget _effect(IconData icon, Color color, String text) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 15, color: color),
+      const SizedBox(width: 3),
+      Text(text, style: AppText.small.copyWith(fontWeight: FontWeight.w800)),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
+    final details = [
+      if (cures) 'Cura la salud',
+      for (final e in effects.entries)
+        '${_amount(e.value)} ${Texts.needLabels[e.key]}',
+      if (price != null) '$price monedas',
+    ].join('. ');
     return Semantics(
       button: true,
-      label: '$title. $subtitle. $footer.${badge == null ? '' : ' $badge'}',
+      label: '$title. $subtitle. $details.${badge == null ? '' : ' $badge'}',
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -197,21 +228,36 @@ class _IllustratedCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 2,
                       children: [
-                        Icon(footerIcon, size: 16, color: footerColor),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            footer,
-                            style: AppText.small.copyWith(
-                              color: AppColors.ink,
-                              fontWeight: FontWeight.w800,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                        if (cures)
+                          _effect(
+                            Icons.medical_services_rounded,
+                            AppColors.coral,
+                            'Cura',
                           ),
-                        ),
+                        for (final e in effects.entries)
+                          _effect(e.key.icon, e.key.color, _amount(e.value)),
+                        if (price != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CoinIcon(size: 15),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  '$price monedas',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppText.small.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ],

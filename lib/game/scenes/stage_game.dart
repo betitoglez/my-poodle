@@ -224,6 +224,7 @@ class HomeGame extends StageGame {
 
   final void Function()? onPetTapped;
   bool resting = false;
+  bool useLiveBed = false;
 
   final bed = BedProp();
 
@@ -247,18 +248,16 @@ class HomeGame extends StageGame {
   Rect get _bedRect => bed.rect(pet.position.toOffset(), pet.petSize);
 
   void _bedBack(Canvas c) {
-    if (resting) bed.paintBack(c, _bedRect);
+    if (resting && !useLiveBed) bed.paintBack(c, _bedRect);
   }
 
   void _bedFront(Canvas c) {
-    if (resting) bed.paintFront(c, _bedRect);
+    if (resting && !useLiveBed) bed.paintFront(c, _bedRect);
   }
 
   void _zzz(Canvas c) {
-    if (!resting) return;
-    final head =
-        pet.position.toOffset() +
-        Offset(pet.petSize * 0.2, -pet.petSize * 0.95);
+    if (!resting || useLiveBed) return;
+    final head = pet.landmarkScene('headTop') + Offset(pet.petSize * .09, 0);
     for (var i = 0; i < 3; i++) {
       final k = ((time * 0.5 + i / 3) % 1);
       final tp = _text('z', 14 + i * 5.0, const Color(0xFF5C354E));
@@ -268,11 +267,13 @@ class HomeGame extends StageGame {
 
   @override
   void tapAt(Offset p) {
-    if (pet.hits(p)) {
-      if (resting) setResting(false);
-      pet.react(PetAnim.happy, seconds: 1.6);
-      onPetTapped?.call();
-    }
+    if (pet.hits(p)) reactToPetTap();
+  }
+
+  void reactToPetTap() {
+    if (resting) setResting(false);
+    pet.react(PetAnim.happy, seconds: 1.6);
+    onPetTapped?.call();
   }
 }
 

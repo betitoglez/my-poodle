@@ -17,6 +17,7 @@ class Texts {
     Need.hygiene: 'Higiene',
     Need.mood: 'Ánimo',
     Need.energy: 'Energía',
+    Need.hydration: 'Hidratación',
   };
 
   static const suggestions = {
@@ -36,6 +37,7 @@ class Texts {
       'Un descanso en casa le sentará bien.',
       '{name} se acurrucaría en su cojín.',
     ],
+    Need.hydration: ['¿Le llenamos el cuenco de agua a {name}?'],
   };
 
   static const careTitles = {
@@ -45,6 +47,7 @@ class Texts {
     CareKind.groom: 'Peluquería',
     CareKind.sleep: 'Dormir',
     CareKind.vet: 'Veterinario',
+    CareKind.drink: 'Dar de beber',
   };
 
   static const careDone = {
@@ -69,6 +72,7 @@ class Texts {
       '¡Qué bien ha descansado {name}!',
     ],
     CareKind.vet: ['{name} está sano y tranquilo.'],
+    CareKind.drink: ['¡{name} ya se ha refrescado!'],
   };
 
   static const curedMessages = [
@@ -98,6 +102,7 @@ class Texts {
       '{name} está cansado. A dormir un ratito.',
       '{name} se cae de sueño. ¿Lo acostamos?',
     ],
+    PetCondition.thirsty: ['{name} tiene sed. ¿Le damos agua?'],
   };
 
   /// Botón de Casa para los estados que no se resuelven atendiendo su
@@ -113,6 +118,7 @@ class Texts {
     Need.satiety: 'Comer',
     Need.hygiene: 'Bañar',
     Need.mood: 'Jugar',
+    Need.hydration: 'Dar de beber',
   };
 
   static const conditionNames = {
@@ -121,6 +127,7 @@ class Texts {
     PetCondition.dirty: 'Sucio',
     PetCondition.sad: 'Triste',
     PetCondition.tired: 'Cansado',
+    PetCondition.thirsty: 'Sed',
   };
 
   static const allGood = [

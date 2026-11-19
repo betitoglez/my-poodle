@@ -31,34 +31,59 @@ class NeedsClock {
   /// retrocede no se aplica nada ni se mueve el cursor.
   PetState advance(PetState s, int nowUtc) {
     final elapsed = nowUtc - s.needsCursorUtc;
-    if (elapsed < balance.tickSeconds) return s;
-    final ticks = elapsed ~/ balance.tickSeconds;
+    final ticks = elapsed < balance.tickSeconds
+        ? 0
+        : elapsed ~/ balance.tickSeconds;
+    final restStart = s.restingSinceUtc;
+    final restCursor = s.restEnergyCursorUtc ?? restStart;
+    final restMinutes = restCursor == null || nowUtc <= restCursor
+        ? 0
+        : (nowUtc - restCursor) ~/ 60;
+    if (ticks == 0 && restMinutes == 0) return s;
     final applied = ticks > balance.maxTicks ? balance.maxTicks : ticks;
-    final needs = Map<Need, int>.of(s.needs100);
+    final needs = {for (final need in Need.values) need: s.need100(need)};
     var sickSince = s.sickSinceUtc;
     var lastSick = s.lastSickUtc;
+    var creditedRestMinutes = 0;
     for (var i = 1; i <= applied; i++) {
       final tickTime = s.needsCursorUtc + i * balance.tickSeconds;
+      if (restCursor != null) {
+        final credited = ((tickTime - restCursor) ~/ 60).clamp(0, restMinutes);
+        needs[Need.energy] = clampNeed(
+          needs[Need.energy]! + (credited - creditedRestMinutes) * 100,
+        );
+        creditedRestMinutes = credited;
+      }
+      final thirsty = needs[Need.hydration]! <= 2000;
       for (final n in Need.values) {
         var d = balance.deltaPerTick100[n] ?? 0;
+        if (n == Need.energy && restStart != null && tickTime >= restStart) {
+          d = 0;
+        }
         if (n == Need.mood && sickSince != null) {
           d += balance.health.sickMoodPerTick100;
         }
+        if (n == Need.mood && thirsty) d -= 100;
         needs[n] = clampNeed((needs[n] ?? 0) + d);
       }
       if (sickSince == null &&
-          tickTime - lastSick >= balance.health.cooldownSeconds) {
-        if (_rollSick(s.sickSeed, tickTime, needs)) {
-          sickSince = tickTime;
-          lastSick = tickTime;
-        }
+          tickTime - lastSick >= balance.health.cooldownSeconds &&
+          _rollSick(s.sickSeed, tickTime, needs)) {
+        sickSince = tickTime;
+        lastSick = tickTime;
       }
     }
+    needs[Need.energy] = clampNeed(
+      needs[Need.energy]! + (restMinutes - creditedRestMinutes) * 100,
+    );
     return s.copyWith(
       needs100: needs,
       needsCursorUtc: s.needsCursorUtc + ticks * balance.tickSeconds,
       sickSinceUtc: sickSince,
       lastSickUtc: lastSick,
+      restEnergyCursorUtc: restMinutes == 0
+          ? restCursor
+          : restCursor! + restMinutes * 60,
     );
   }
 
@@ -69,7 +94,8 @@ class NeedsClock {
     final neglected =
         (needs[Need.satiety] ?? 0) < h.neglectSatietyBelow * 100 ||
         (needs[Need.hygiene] ?? 0) < h.neglectHygieneBelow * 100 ||
-        (needs[Need.energy] ?? 0) < h.neglectEnergyBelow * 100;
+        (needs[Need.energy] ?? 0) < h.neglectEnergyBelow * 100 ||
+        (needs[Need.hydration] ?? 9000) <= 2000;
     final chance = h.randomChance + (neglected ? h.neglectChance : 0);
     return rollPer10000(seed, tickTime) < chance;
   }

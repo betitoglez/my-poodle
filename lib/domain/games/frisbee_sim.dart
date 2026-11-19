@@ -22,6 +22,7 @@ class FrisbeeSim {
     required List<(double, double)> targets,
     this.flightSeconds = 1.1,
     this.catchRadius = 1,
+    this.timeLimit = roundSeconds,
   }) : targets = [for (final t in targets) FieldPoint(t.$1, t.$2)];
 
   static const FieldPoint origin = FieldPoint(0, 0);
@@ -33,15 +34,18 @@ class FrisbeeSim {
   static const double peak = 1.8;
   static const double catchSeconds = 0.6;
   static const double returnSeconds = 0.7;
+  static const double roundSeconds = 20;
 
   final List<FieldPoint> targets;
   final double flightSeconds;
   final double catchRadius;
+  final double timeLimit;
 
   FrisbeePhase phase = FrisbeePhase.aim;
   int attempts = 0;
   int catches = 0;
   double _t = 0; // tiempo en la fase actual
+  double _elapsed = 0;
   FieldPoint? destination;
   bool? lastCaught;
   final List<bool> history = [];
@@ -54,6 +58,7 @@ class FrisbeeSim {
       ? (_t / flightSeconds).clamp(0, 1).toDouble()
       : 0;
   double get phaseTime => _t;
+  double get remaining => math.max(0, timeLimit - _elapsed);
 
   /// Arrastre normalizado (dx a la derecha, dy hacia arriba, fracciones de
   /// ancho/alto). Devuelve null si es demasiado corto: vuelve a apuntar.
@@ -91,8 +96,10 @@ class FrisbeeSim {
   bool launchAssisted() => launch(currentTarget);
 
   void advance(double seconds) {
-    if (finished || phase == FrisbeePhase.aim) return;
-    _t += seconds;
+    if (finished || seconds <= 0 || !seconds.isFinite) return;
+    final active = math.min(remaining, seconds);
+    _elapsed += active;
+    _t += active;
     switch (phase) {
       case FrisbeePhase.flight:
         if (_t >= flightSeconds) {
@@ -118,6 +125,10 @@ class FrisbeeSim {
       case FrisbeePhase.aim:
       case FrisbeePhase.finished:
         break;
+    }
+    if (remaining <= 1e-9) {
+      _elapsed = timeLimit;
+      phase = FrisbeePhase.finished;
     }
   }
 }

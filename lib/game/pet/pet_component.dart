@@ -28,8 +28,10 @@ class PetComponent extends PositionComponent {
   double petSize;
   bool reducedMotion;
   PetFx fx = PetFx.none;
+  int? hygiene;
   double airborne = 0;
   bool facingLeft = false;
+  bool showSprite = true;
 
   double _t = 0;
   PetAnim? _reaction;
@@ -131,6 +133,7 @@ class PetComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    if (!showSprite) return;
     if (facingLeft) {
       canvas.save();
       canvas.scale(-1, 1);
@@ -144,7 +147,7 @@ class PetComponent extends PositionComponent {
       size: petSize,
       reducedMotion: reducedMotion,
       airborne: airborne,
-      fx: fx,
+      fx: hygiene == null ? fx : fx.withHygiene(hygiene!),
     );
     if (facingLeft) canvas.restore();
   }

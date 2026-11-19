@@ -4,11 +4,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:my_poodle/data/save_codec.dart';
 import 'package:my_poodle/data/save_store.dart';
 import 'package:my_poodle/data/storage_backend.dart';
+import 'package:my_poodle/domain/activities.dart';
 import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/pet_state.dart';
 import 'package:my_poodle/domain/rules.dart';
 import 'package:my_poodle/ui/widgets/common.dart';
 import 'package:my_poodle/ui/widgets/status_bubbles.dart';
+import 'package:my_poodle/ui/widgets/scene_view.dart';
+import 'package:my_poodle/game/care/care_games.dart';
 
 import '../support.dart';
 import 'app_flow_test.dart'
@@ -26,6 +29,18 @@ MemoryBackend backendWith(PetState Function(PetState) tweak) {
 
 Set<PetCondition> lit(WidgetTester t) =>
     t.widget<StatusBubbles>(find.byType(StatusBubbles)).active;
+
+Future<void> holdVet(WidgetTester t, String target) async {
+  final scene = t.widget<SceneView>(find.byType(SceneView));
+  final g = scene.game as VetGame;
+  final point =
+      t.getTopLeft(find.byType(SceneView)) + g.pet.landmarkScene(target);
+  final touch = await t.startGesture(point);
+  await frames(t, seconds: 3.2);
+  await touch.up();
+  await frames(t, seconds: 1.6);
+  await idle(t);
+}
 
 void main() {
   setUp(rootBundle.clear);
@@ -72,7 +87,7 @@ void main() {
     t,
   ) async {
     final backend = backendWith(
-      (s) => s.copyWith(sickSinceUtc: t0, lastSickUtc: t0),
+      (s) => s.copyWith(sickSinceUtc: t0, lastSickUtc: t0, coins: 30),
     );
     await boot(t, backend);
     await tapText(t, 'Cuidados');
@@ -81,12 +96,25 @@ void main() {
     expect(find.textContaining('está malito'), findsWidgets);
     // El orden es el del corazón, las patas y la pastilla.
     expect(find.text('Dar la pastilla'), findsNothing);
-    await tapText(t, 'Escuchar el corazón');
-    await frames(t, seconds: 1.6);
-    await tapText(t, 'Revisar las patas');
-    await frames(t, seconds: 1.6);
+    await tapText(t, 'Usar fonendoscopio');
+    await holdVet(t, 'chest');
+    await tapText(t, 'Usar lupa');
+    await holdVet(t, 'paws');
     expect(saved(backend).isSick, isTrue); // aún no se ha guardado nada
-    await tapText(t, 'Dar la pastilla');
+    await tapText(t, 'Coger pastilla');
+    final scene = t.widget<SceneView>(find.byType(SceneView));
+    final game = scene.game as VetGame;
+    final mouth =
+        t.getTopLeft(find.byType(SceneView)) + game.pet.landmarkScene('mouth');
+    await t.tapAt(mouth);
+    await idle(t);
+    expect(game.activity.phase, VetPhase.pill);
+    final start =
+        t.getTopLeft(find.byType(SceneView)) +
+        Offset(game.size.x * 0.82, game.size.y * 0.55);
+    final gesture = await t.startGesture(start);
+    await gesture.moveTo(mouth);
+    await gesture.up();
     await frames(t, seconds: 2);
     await idle(t);
     expect(find.text('Malito → Sano'), findsOneWidget);
@@ -101,21 +129,31 @@ void main() {
   testWidgets('veterinario sano: revisión de dos pasos sin pastilla', (
     t,
   ) async {
-    final backend = backendWith((s) => s);
+    final backend = backendWith((s) => s.copyWith(coins: 30));
     await boot(t, backend);
     await tapText(t, 'Cuidados');
     await tapText(t, 'Veterinario');
-    await tapText(t, 'Escuchar el corazón');
-    await frames(t, seconds: 1.6);
-    await tapText(t, 'Revisar las patas');
-    await frames(t, seconds: 1.8);
+    await tapText(t, 'Usar fonendoscopio');
+    final scene = find.byType(SceneView);
+    final touch = await t.startGesture(
+      t.getTopLeft(scene) + const Offset(20, 80),
+    );
+    await frames(t, seconds: 3.2);
+    await touch.up();
+    expect(
+      (t.widget<SceneView>(scene).game as VetGame).activity.phase,
+      VetPhase.heart,
+    );
+    await holdVet(t, 'chest');
+    await tapText(t, 'Usar lupa');
+    await holdVet(t, 'paws');
     await idle(t);
     expect(find.text('Dar la pastilla'), findsNothing);
     expect(saved(backend).needPoints(Need.mood), 80);
     expect(saved(backend).isSick, isFalse);
   });
 
-  testWidgets('dormir: cama, manta, luz y +45 de energía una sola vez', (
+  testWidgets('dormir: cama, manta, luz y +60 de energía una sola vez', (
     t,
   ) async {
     final backend = backendWith(
@@ -125,16 +163,22 @@ void main() {
     expect(lit(t), {PetCondition.tired});
     await tapText(t, 'Cuidados');
     await tapText(t, 'Dormir');
+    final scene = t.widget<SceneView>(find.byType(SceneView));
+    final sleep = scene.game as SleepGame;
     await tapText(t, 'Llevar a su cama');
     await frames(t, seconds: 1.8);
+    expect(sleep.lightsOff(), isFalse);
     await tapText(t, 'Arropar');
+    expect(sleep.canLightsOff, isFalse);
     await frames(t, seconds: 1.6);
     await tapText(t, 'Apagar la luz');
-    await frames(t, seconds: 6);
+    await frames(t, seconds: 1);
+    expect(saved(backend).needPoints(Need.energy), 20);
+    await frames(t, seconds: 5);
     await idle(t);
     final s = saved(backend);
-    expect(s.needPoints(Need.energy), 65);
-    expect(s.needPoints(Need.mood), 78);
+    expect(s.needPoints(Need.energy), 80);
+    expect(s.needPoints(Need.mood), 85);
     expect(s.revision, 2);
     expect(find.text('DORMIR COMPLETADO'), findsOneWidget);
   });
@@ -159,7 +203,7 @@ void main() {
     await boot(t, backend);
     await tapText(t, 'Armario');
     await tapText(t, 'Accesorios');
-    for (final sub in ['Cabeza', 'Ojos', 'Collares', 'Cuello', 'Patucos']) {
+    for (final sub in ['Cabeza', 'Ojos', 'Cuello', 'Patucos']) {
       expect(find.text(sub), findsWidgets, reason: sub);
     }
     await tapText(t, 'Lazo rosa');
@@ -270,6 +314,7 @@ void main() {
         PetCondition.dirty: Need.hygiene,
         PetCondition.sad: Need.mood,
         PetCondition.tired: Need.energy,
+        PetCondition.thirsty: Need.hydration,
         PetCondition.sick: null,
       },
     );
