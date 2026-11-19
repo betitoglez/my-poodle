@@ -186,6 +186,13 @@
       "tier": "free"
     },
     {
+      "id": "hair.show",
+      "slot": "hair",
+      "cost": 0,
+      "initial": false,
+      "tier": "free"
+    },
+    {
       "id": "hair.pom",
       "slot": "hair",
       "cost": 30,

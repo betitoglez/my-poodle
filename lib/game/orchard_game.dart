@@ -19,6 +19,8 @@ class OrchardGame extends FlameGame {
     required this.onFinished,
     this.onHud,
     this.onEvent,
+    this.onVisualFrame,
+    this.waitForStart = false,
     OrchardSim? sim,
   }) : sim = sim ?? OrchardSim(),
        pet = PetComponent(
@@ -36,15 +38,39 @@ class OrchardGame extends FlameGame {
   final void Function(int apples) onFinished;
   final void Function()? onHud;
   final void Function(String event)? onEvent;
+  final void Function()? onVisualFrame;
+  bool waitForStart;
+  bool _live = false;
   bool _reported = false;
   double camX = 0;
   double time = 0;
+  double _penaltyLeft = 0;
+  int _fruitMask = 0;
   Image? _bg;
   final List<(Offset, double)> _sparkles = [];
 
   /// Escala: píxeles por unidad de juego, ajustada para ver el siguiente salto.
   double get scale => math.min(size.x / 4.8, size.y / 3.4);
   double get groundScreenY => size.y * 0.8;
+  bool get showPenalty => _penaltyLeft > 0;
+
+  set useLiveModel(bool value) {
+    _live = value;
+    pet.showSprite = !value;
+  }
+
+  // Coordinates are taken from the fixed-step simulation, including recovery.
+  List<num> get liveFrame => [
+    sim.x,
+    sim.y,
+    sim.vy,
+    camX,
+    sim.respawning || sim.blocked || waitForStart ? 0 : (sim.grounded ? 1 : 2),
+    _fruitMask,
+    time,
+  ];
+
+  void start() => waitForStart = false;
 
   Offset toScreen(double x, double y) =>
       Offset((x - camX) * scale, groundScreenY - y * scale);
@@ -60,20 +86,29 @@ class OrchardGame extends FlameGame {
       _bg = null; // Fallback visible: cielo liso.
     }
     add(Painted(_background, priority: 0));
-    add(Painted(_world, priority: 5));
+    add(
+      Painted((c) {
+        if (!_live) _world(c);
+      }, priority: 5),
+    );
     add(pet);
-    add(Painted(_effects, priority: 20));
+    add(
+      Painted((c) {
+        if (!_live) paintEffects(c);
+      }, priority: 20),
+    );
   }
 
   /// Toque en el campo o botón Saltar: misma intención.
   void jump() {
-    if (paused || sim.finished) return;
+    if (paused || waitForStart || sim.finished) return;
     sim.jump();
   }
 
   @override
   void update(double dt) {
     super.update(dt);
+    if (size.isZero()) return;
     if (sim.finished) {
       pet.baseAnim = PetAnim.celebrate;
       pet.pose = PetPose.front;
@@ -83,16 +118,30 @@ class OrchardGame extends FlameGame {
       }
       return;
     }
+    if (waitForStart) {
+      pet.baseAnim = PetAnim.idle;
+      _positionPet(dt);
+      onVisualFrame?.call();
+      return;
+    }
     time += dt;
+    final secondsBefore = sim.remaining.ceil(), scoreBefore = sim.score;
+    final penaltyBefore = showPenalty;
     final jumpsBefore = sim.jumpsStarted, fallsBefore = sim.falls;
+    _penaltyLeft = math.max(0, _penaltyLeft - dt);
     sim.advance(dt);
     for (final id in sim.justCollected) {
-      final a = sim.level.apples.firstWhere((e) => e.id == id);
+      final index = sim.level.apples.indexWhere((e) => e.id == id);
+      final a = sim.level.apples[index];
+      _fruitMask |= 1 << index;
       _sparkles.add((Offset(a.x, a.y), 0));
       onEvent?.call('apple');
     }
     if (sim.jumpsStarted != jumpsBefore) onEvent?.call('jump');
-    if (sim.falls != fallsBefore) onEvent?.call('fall');
+    if (sim.falls != fallsBefore) {
+      _penaltyLeft = 1.3;
+      onEvent?.call('fall');
+    }
     for (var i = _sparkles.length - 1; i >= 0; i--) {
       final (p, age) = _sparkles[i];
       if (age > 0.6) {
@@ -101,9 +150,25 @@ class OrchardGame extends FlameGame {
         _sparkles[i] = (p, age + dt);
       }
     }
+    _positionPet(dt);
+    pet.airborne = sim.vy;
+    pet.baseAnim = sim.respawning
+        ? PetAnim.idle
+        : sim.grounded
+        ? (sim.blocked ? PetAnim.idle : PetAnim.run)
+        : PetAnim.jump;
+    if (secondsBefore != sim.remaining.ceil() ||
+        scoreBefore != sim.score ||
+        penaltyBefore != showPenalty) {
+      onHud?.call();
+    }
+    onVisualFrame?.call();
+  }
+
+  void _positionPet(double dt) {
     // Cámara: caniche al 28 % para ver el siguiente apoyo.
     final target = sim.x - (size.x / scale) * 0.28;
-    camX = reducedMotion
+    camX = reducedMotion || waitForStart
         ? target
         : camX + (target - camX) * math.min(1, dt * 8);
     pet.petSize = scale * 0.9;
@@ -111,20 +176,14 @@ class OrchardGame extends FlameGame {
       (sim.x - camX) * scale,
       groundScreenY - sim.y * scale,
     );
-    pet.airborne = sim.vy;
-    pet.baseAnim = sim.respawning
-        ? PetAnim.idle
-        : sim.grounded
-        ? (sim.blocked ? PetAnim.idle : PetAnim.run)
-        : PetAnim.jump;
-    onHud?.call();
   }
 
   void _background(Canvas c) {
     // Fondo del hueco: tierra en sombra bajo el nivel del suelo.
     c.drawRect(
       Rect.fromLTWH(0, groundScreenY + scale * 0.3, size.x, size.y),
-      Paint()..color = const Color(0xFF4F6B3A),
+      Paint()
+        ..color = _live ? const Color(0xFF51382A) : const Color(0xFF4F6B3A),
     );
     final bg = _bg;
     if (bg == null) return;
@@ -285,13 +344,13 @@ class OrchardGame extends FlameGame {
       c,
       Offset(g.dx + scale * 0.45 - label.width / 2, g.dy - scale * 1.75),
     );
-    for (final (index, a) in sim.level.apples.indexed) {
+    for (final a in sim.level.apples) {
       if (sim.collected.contains(a.id)) continue;
       final p = toScreen(a.x, a.y);
       if (p.dx < -30 || p.dx > size.x + 30) continue;
       final r = OrchardSim.appleRadius * scale;
       final bob = reducedMotion ? 0.0 : math.sin(time * 3 + a.x) * 2;
-      _fruit(c, p + Offset(0, bob), r, index % 6);
+      _fruit(c, p + Offset(0, bob), r, a.kind.index);
     }
   }
 
@@ -397,7 +456,7 @@ class OrchardGame extends FlameGame {
     c.restore();
   }
 
-  void _effects(Canvas c) {
+  void paintEffects(Canvas c) {
     for (final (p, age) in _sparkles) {
       final s = toScreen(p.dx, p.dy);
       final k = age / 0.6;
@@ -417,9 +476,13 @@ class OrchardGame extends FlameGame {
         Color.fromARGB((255 * (1 - k)).round(), 92, 53, 78),
       ).paint(c, s + Offset(-8, -30 - 20 * k));
     }
-    if (sim.respawning) {
+    if (showPenalty) {
       final p = pet.position.toOffset();
-      final txt = sceneText('−5 s', 18, const Color(0xFF5C354E));
+      final txt = sceneText(
+        '−${OrchardSim.fallPenaltySeconds} s',
+        18,
+        const Color(0xFF5C354E),
+      );
       txt.paint(c, p + Offset(-txt.width / 2, -pet.petSize * 1.25));
     }
   }

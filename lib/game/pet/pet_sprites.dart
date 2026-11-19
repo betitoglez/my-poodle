@@ -157,12 +157,15 @@ class PetSprites {
   bool hasPose(String pose) => poses.containsKey(pose);
   bool hasCoat(String id) => _coats.containsKey(id);
   List<double>? coatMatrix(String id) => _coats[id];
-  bool hasHair(String id, String pose) => _hair[id]?.containsKey(pose) ?? false;
+  bool hasHair(String id, String pose) =>
+      _hair[_hairLayerId(id)]?.containsKey(pose) ?? false;
 
   Iterable<String> get hairIds => _hair.keys;
   Iterable<String> get itemIds => [..._items.keys, ..._variants.keys];
 
   String _layerId(String id) => _variants[id]?.of ?? id;
+  // The continental silhouette has a dedicated mesh in the 3D viewer.
+  String _hairLayerId(String id) => id == 'hair.show' ? 'hair.pom' : id;
 
   /// ¿Se conoce el artículo en el atlas (directo o como variante)?
   bool knowsItem(String id) => _items.containsKey(_layerId(id));
@@ -186,7 +189,8 @@ class PetSprites {
   // ------------------------------------------------------------ capas
 
   SpriteLayer? hairLayer(String id, String pose) => _layer(
-    _hair[id]?[pose] ?? (pose == 'eat' ? _hair['hair.natural']!['eat'] : null),
+    _hair[_hairLayerId(id)]?[pose] ??
+        (pose == 'eat' ? _hair['hair.natural']!['eat'] : null),
   );
 
   SpriteLayer? itemLayer(String id, String pose) =>
@@ -196,7 +200,7 @@ class PetSprites {
       _layer(_expressions[id]?[pose]);
 
   SpriteLayer? stateLayer(String state, String hair, String pose) =>
-      _layer(_states[state]?[hair]?[pose]);
+      _layer(_states[state]?[_hairLayerId(hair)]?[pose]);
 
   SpriteLayer? _layer(_Entry? e) {
     if (e == null) return null;
@@ -241,12 +245,13 @@ class PetSprites {
     Iterable<String> extras = const ['blink', 'happy'],
   }) async {
     final files = <String>{};
+    final layerId = _hairLayerId(hair);
     for (final p in poseNames) {
       final h =
-          _hair[hair]?[p] ??
+          _hair[layerId]?[p] ??
           (p == 'eat' ? _hair['hair.natural']!['eat'] : null);
       if (p == 'eat' && !hasHair(hair, p)) {
-        final head = _hair[hair]?['front'];
+        final head = _hair[layerId]?['front'];
         if (head != null) files.add(head.file);
       }
       if (h != null) files.add(h.file);
@@ -258,7 +263,7 @@ class PetSprites {
         final e = _expressions[x]?[p];
         if (e != null) files.add(e.file);
       }
-      final m = _states['messy']?[hair]?[p];
+      final m = _states['messy']?[layerId]?[p];
       if (m != null) files.add(m.file);
     }
     await Future.wait([for (final f in files) _request(f)]);

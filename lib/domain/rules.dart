@@ -134,6 +134,7 @@ class Rules {
     int nowUtc, {
     Food food = Food.basic,
     bool fullVersion = false,
+    String? groomingHair,
   }) {
     final rule = balance.care[kind.name];
     if (rule == null) throw RuleException('Cuidado desconocido: ${kind.name}');
@@ -151,8 +152,16 @@ class Rules {
         : kind == CareKind.feed
         ? food.cost
         : 0;
+    final appearance =
+        kind == CareKind.groom &&
+            groomingHair != null &&
+            balance.item(groomingHair)?.slot == Slot.hair &&
+            before.owned.contains(groomingHair)
+        ? before.appearance.withSlot(Slot.hair, groomingHair)
+        : before.appearance;
     final after = _commit(
       before.copyWith(
+        appearance: appearance,
         coins: before.coins - cost,
         careCompletedUtc: {...before.careCompletedUtc, kind.name: nowUtc},
         needs100: _applyDelta(

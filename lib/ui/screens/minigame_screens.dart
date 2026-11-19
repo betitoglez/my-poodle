@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_root.dart';
@@ -5,6 +8,7 @@ import '../../app/app_scope.dart';
 import '../../app/feedback.dart';
 import '../../app/texts.dart';
 import '../../domain/games/frisbee_sim.dart';
+import '../../domain/games/orchard_sim.dart';
 import '../../domain/rules.dart';
 import '../../domain/balance.dart';
 import '../../game/frisbee_game.dart';
@@ -16,6 +20,7 @@ import '../theme.dart';
 import '../widgets/activity_frame.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 import 'games_screen.dart';
 import 'results_screens.dart';
@@ -89,6 +94,50 @@ class _OrchardScreenState extends State<OrchardScreen>
     with _GameSession, FrameSafeRefresh {
   OrchardGame? _game;
   final _frame = GlobalKey<ActivityFrameState>();
+  final _live = LivePoodleController();
+  final _effectsFrame = ValueNotifier<int>(0);
+  bool _render3d = false;
+  Timer? _loadTimeout;
+  List<num>? _lastVisualFrame;
+
+  void _syncOrchard() {
+    if (!_render3d || !_live.ready || !mounted) return;
+    final state = _game!.liveFrame;
+    if (listEquals(state, _lastVisualFrame)) return;
+    _lastVisualFrame = state;
+    _live.orchard(state);
+    _effectsFrame.value++;
+  }
+
+  void _fallback() {
+    if (!mounted) return;
+    _loadTimeout?.cancel();
+    setState(() {
+      _render3d = false;
+      _game!
+        ..useLiveModel = false
+        ..start();
+    });
+  }
+
+  void _onViewerStatus() {
+    if (_live.failed) {
+      _fallback();
+    } else if (_render3d && _live.ready) {
+      _loadTimeout?.cancel();
+      _game!.useLiveModel = true;
+      _syncOrchard();
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _loadTimeout?.cancel();
+    _effectsFrame.dispose();
+    super.dispose();
+  }
+
   @override
   GameId get gameId => GameId.fruit;
 
@@ -105,6 +154,8 @@ class _OrchardScreenState extends State<OrchardScreen>
     if (!await beginSession() || !mounted) return;
     final c = AppScope.read(context);
     final fx = AppScope.feedbackOf(context);
+    _render3d =
+        LivePoodleView.enabled && LivePoodleView.supports(c.pet.appearance);
     _game = OrchardGame(
       painter: PetPainterScope.of(context),
       look: c.look,
@@ -113,6 +164,8 @@ class _OrchardScreenState extends State<OrchardScreen>
         if (mounted) complete(score);
       }),
       onHud: refreshAfterFrame,
+      waitForStart: _render3d,
+      onVisualFrame: _syncOrchard,
       onEvent: (e) => fx.play(switch (e) {
         'apple' => Sfx.apple,
         'fall' => Sfx.fall,
@@ -120,6 +173,7 @@ class _OrchardScreenState extends State<OrchardScreen>
       }),
     );
     _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
+    if (_render3d) _loadTimeout = Timer(const Duration(seconds: 10), _fallback);
     setState(() {});
   }
 
@@ -129,6 +183,9 @@ class _OrchardScreenState extends State<OrchardScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final sim = _game!.sim;
+    final c = AppScope.of(context);
+    final live = _render3d && _live.ready;
+    final waiting = _game!.waitForStart;
     final def = GameCatalog.fruit;
     return ActivityFrame(
       key: _frame,
@@ -143,19 +200,47 @@ class _OrchardScreenState extends State<OrchardScreen>
         game: _game!,
         semanticsLabel: 'Huerto lateral. Toca para saltar.',
         onPress: (_) => _game!.jump(),
+        overlay: _render3d
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  LivePoodleView(
+                    controller: _live,
+                    appearance: c.pet.appearance,
+                    resting: false,
+                    reducedMotion: c.reducedMotion,
+                    wardrobe: false,
+                    orchardLevel: sim.level,
+                    onStatusChanged: _onViewerStatus,
+                  ),
+                  if (live)
+                    IgnorePointer(
+                      child: CustomPaint(
+                        painter: _OrchardEffects(_game!, _effectsFrame),
+                      ),
+                    ),
+                ],
+              )
+            : null,
       ),
       hud: GameHud(
         items: [
           (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
-          (Icons.apple_rounded, 'Frutas', '${sim.score} / 12'),
+          (
+            Icons.apple_rounded,
+            'Frutas',
+            '${sim.score} / ${sim.level.apples.length}',
+          ),
         ],
       ),
       controls: Row(
         children: [
           Expanded(
             child: Text(
-              sim.respawning
-                  ? 'Caída: −5 s. Seguimos desde el último bancal.'
+              _game!.showPenalty
+                  ? 'Caída −${OrchardSim.fallPenaltySeconds} s. Vuelves al último apoyo.'
+                  : waiting
+                  ? 'Salta los bancales y recoge las frutas.'
                   : def.gesture,
               style: AppText.body.copyWith(fontWeight: FontWeight.w700),
             ),
@@ -167,11 +252,15 @@ class _OrchardScreenState extends State<OrchardScreen>
             child: Listener(
               onPointerDown: (_) => _game!.jump(),
               child: AppButton(
-                label: 'Saltar',
-                icon: Icons.arrow_upward_rounded,
+                label: waiting ? (live ? 'Empezar' : 'Cargando…') : 'Saltar',
+                icon: waiting
+                    ? Icons.play_arrow_rounded
+                    : Icons.arrow_upward_rounded,
                 big: true,
                 expand: true,
-                onPressed: () {},
+                onPressed: waiting
+                    ? (live ? () => setState(_game!.start) : null)
+                    : () {},
               ),
             ),
           ),
@@ -179,6 +268,23 @@ class _OrchardScreenState extends State<OrchardScreen>
       ),
     );
   }
+}
+
+class _OrchardEffects extends CustomPainter {
+  _OrchardEffects(this.game, Listenable repaint) : super(repaint: repaint);
+
+  final OrchardGame game;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    game.paintEffects(canvas);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_OrchardEffects oldDelegate) => oldDelegate.game != game;
 }
 
 // ======================================================================
@@ -197,6 +303,38 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
   final _texts = Texts();
   String? _missText;
   Size _area = Size.zero;
+  final _live = LivePoodleController();
+  final _visual = ValueNotifier<int>(0);
+  bool _showModel = false;
+  List<num>? _lastFrame;
+
+  void _syncFrisbee() {
+    if (!mounted || !_showModel || !_live.ready) return;
+    final frame = _game!.liveFrame;
+    if (frame.isNotEmpty && !listEquals(frame, _lastFrame)) {
+      _lastFrame = frame;
+      _live.frisbee(frame);
+    }
+    _visual.value++;
+  }
+
+  void _viewerStatus() {
+    if (!mounted) return;
+    if (_live.failed) {
+      _showModel = false;
+      _game!.start();
+    }
+    _game!.useLiveModel = _showModel && _live.ready;
+    _syncFrisbee();
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _visual.dispose();
+    super.dispose();
+  }
+
   @override
   GameId get gameId => GameId.frisbee;
 
@@ -214,6 +352,8 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
     final c = AppScope.read(context);
     final fx = AppScope.feedbackOf(context);
     final rule = c.balance.frisbee;
+    _showModel =
+        LivePoodleView.enabled && LivePoodleView.supports(c.pet.appearance);
     _game = FrisbeeGame(
       painter: PetPainterScope.of(context),
       look: c.look,
@@ -227,6 +367,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
         if (mounted) complete(score);
       }),
       onHud: refreshAfterFrame,
+      onVisualFrame: _syncFrisbee,
       onEvent: (e) {
         switch (e) {
           case 'catch':
@@ -239,7 +380,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
             fx.play(Sfx.throwDisc);
         }
       },
-    );
+    )..waitForStart = _showModel;
     _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
     setState(() {});
   }
@@ -258,17 +399,19 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final sim = _game!.sim;
+    final c = AppScope.of(context);
+    final waiting = _game!.waitForStart;
     final def = GameCatalog.frisbee;
-    final status = switch (sim.phase) {
-      FrisbeePhase.aim =>
-        _missText ??
-            'Arrastra hacia arriba y suelta. La línea muestra dónde caerá.',
-      FrisbeePhase.flight => '¡El disco vuela!',
-      FrisbeePhase.catchAnim =>
-        sim.lastCaught == true ? '¡Atrapado!' : (_missText ?? '¡Casi!'),
-      FrisbeePhase.returning => 'Tu caniche vuelve con el disco…',
-      FrisbeePhase.finished => '¡Partida terminada!',
-    };
+    final status = waiting
+        ? 'Apunta al aro y atrapa el disco en 20 segundos.'
+        : switch (sim.phase) {
+            FrisbeePhase.aim => _missText ?? 'Arrastra hacia arriba y suelta. La línea muestra dónde caerá.',
+            FrisbeePhase.flight => '¡El disco vuela!',
+            FrisbeePhase.catchAnim =>
+              sim.lastCaught == true ? '¡Atrapado!' : (_missText ?? '¡Casi!'),
+            FrisbeePhase.returning => 'Tu caniche vuelve con el disco…',
+            FrisbeePhase.finished => '¡Partida terminada!',
+          };
     return ActivityFrame(
       title: def.title,
       activityName: 'la partida',
@@ -285,7 +428,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
             semanticsLabel:
                 'Prado con el aro objetivo. Arrastra hacia arriba para lanzar.',
             onDragUpdate: (start, p, _) {
-              if (!sim.canThrow || _game!.paused) return;
+              if (waiting || !sim.canThrow || _game!.paused) return;
               final aim = _aim(start, p);
               _game!.setAim(aim, tooShort: aim == null);
             },
@@ -296,11 +439,34 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
               if (aim != null) _game!.launch(aim);
             },
             onDragCancel: () => _game!.setAim(null),
+            overlay: _showModel
+                ? Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      LivePoodleView(
+                        controller: _live,
+                        appearance: c.pet.appearance,
+                        onStatusChanged: _viewerStatus,
+                        resting: false,
+                        reducedMotion: c.reducedMotion,
+                        wardrobe: false,
+                        frisbee: true,
+                      ),
+                      if (_live.ready)
+                        IgnorePointer(
+                          child: CustomPaint(
+                            painter: _FrisbeeGuide(_game!, _visual),
+                          ),
+                        ),
+                    ],
+                  )
+                : null,
           );
         },
       ),
       hud: GameHud(
         items: [
+          (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
           (
             Icons.album_rounded,
             'Lanzamiento',
@@ -321,16 +487,38 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
           SizedBox(
             width: 150,
             child: AppButton(
-              label: 'Lanzar al aro',
+              label: waiting
+                  ? (_live.ready ? 'Empezar' : 'Cargando…')
+                  : 'Lanzar al aro',
               icon: Icons.gps_fixed_rounded,
               semanticsHint: 'Lanzamiento asistido hacia el centro del aro',
               big: true,
               expand: true,
-              onPressed: sim.canThrow ? () => _game!.launchAssisted() : null,
+              onPressed: waiting
+                  ? (_live.ready ? () => setState(_game!.start) : null)
+                  : sim.canThrow
+                  ? () => _game!.launchAssisted()
+                  : null,
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _FrisbeeGuide extends CustomPainter {
+  _FrisbeeGuide(this.game, Listenable repaint) : super(repaint: repaint);
+  final FrisbeeGame game;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    game.paintGuide(canvas);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_FrisbeeGuide previous) => previous.game != game;
 }

@@ -18,6 +18,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 import '../widgets/turn_control.dart';
 import 'main_shell.dart';
@@ -29,7 +30,7 @@ extension SlotUi on Slot {
     Slot.outfit => 'Ropa',
     Slot.head => 'Cabeza',
     Slot.eyes => 'Ojos',
-    Slot.collar => 'Collares',
+    Slot.collar => 'Cuello',
     Slot.neck => 'Cuello',
     Slot.paws => 'Patucos',
   };
@@ -71,13 +72,7 @@ enum _Category {
       : _Category.values.firstWhere((c) => c.firstSlot == s);
 }
 
-const _accessorySlots = [
-  Slot.head,
-  Slot.eyes,
-  Slot.collar,
-  Slot.neck,
-  Slot.paws,
-];
+const _accessorySlots = [Slot.head, Slot.eyes, Slot.neck, Slot.paws];
 
 /// P09 · Armario. La vista previa es una copia del aspecto: no modifica el
 /// estado guardado ni descuenta monedas hasta confirmar.
@@ -98,8 +93,12 @@ class WardrobeScreen extends StatefulWidget {
 
 class _WardrobeScreenState extends State<WardrobeScreen> {
   StageGame? _game;
+  final _live = LivePoodleController();
+  bool _resting3D = false;
   late Appearance _preview;
-  late Slot _slot = widget.initialSlot;
+  late Slot _slot = widget.initialSlot == Slot.collar
+      ? Slot.neck
+      : widget.initialSlot;
   PetView _view = PetView.front;
   bool _busy = false;
   ShellController? _shell;
@@ -239,7 +238,12 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   List<_Section> _sections(AppController c, Slot slot) {
     final out = <_Section>[];
     final byVariety = <String, _Section>{};
-    for (final it in c.balance.itemsFor(slot)) {
+    final items = [
+      ...c.balance.itemsFor(slot),
+      if (slot == Slot.neck)
+        ...c.balance.itemsFor(Slot.collar).where((item) => !item.initial),
+    ];
+    for (final it in items) {
       final v = c.looks.varietyOf(it.id);
       if (v == null) {
         if (out.isEmpty || out.last.variety != null) {
@@ -258,19 +262,39 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     return out;
   }
 
+  String _selected(Appearance appearance) =>
+      _slot == Slot.neck &&
+          appearance.neck == 'neck.none' &&
+          appearance.collar != 'collar.none'
+      ? appearance.collar
+      : appearance.of(_slot);
+
+  Appearance _selectItem(AppController c, StyleItem item) {
+    var appearance = _preview;
+    if (_slot == Slot.neck) {
+      appearance = appearance
+          .withSlot(Slot.neck, c.balance.baseFor(Slot.neck).id)
+          .withSlot(Slot.collar, c.balance.baseFor(Slot.collar).id);
+    }
+    return appearance.withSlot(item.slot, item.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppScope.of(context);
     final pet = c.pet;
     final l = Layout.of(context);
-    final selectedId = _preview.of(_slot);
+    final selectedId = _selected(_preview);
     final item = c.balance.item(selectedId)!;
     final owned = pet.owned.contains(selectedId);
-    final equipped = pet.appearance.of(_slot) == selectedId;
+    final equipped = _selected(pet.appearance) == selectedId;
     final dirty = _preview != pet.appearance;
     final cost = c.lookCost(_preview);
     final locked = c.lockedIn(_preview).isNotEmpty;
     final zoom = ThumbZoom.of(_slot);
+    final showModel = LivePoodleView.enabled && !_live.failed;
+    final live = showModel && _live.ready && LivePoodleView.supports(_preview);
+    _game!.pet.showSprite = !live;
 
     // Acción contextual.
     late final Widget action;
@@ -283,9 +307,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
               expand: true,
               onPressed: _busy || c.saving
                   ? null
-                  : () => _apply(
-                      _preview.withSlot(_slot, c.balance.baseFor(_slot).id),
-                    ),
+                  : () => _apply(_selectItem(c, c.balance.baseFor(_slot))),
             )
           : const AppButton(
               label: 'Equipado',
@@ -337,10 +359,34 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
             game: _game!,
             semanticsLabel:
                 'Vista previa de ${pet.name} con el aspecto elegido, ${_view.label.toLowerCase()}',
-            onTap: (_) => _game!.pet.react(PetAnim.happy),
+            onTap: (point) {
+              if (live && _game!.pet.hits(point)) _live.pet();
+              _game!.pet.react(PetAnim.happy);
+            },
+            onDragUpdate: live
+                ? (start, _, delta) {
+                    if (_game!.pet.hits(start)) _live.rotate(delta.dx);
+                  }
+                : null,
             overlay: Stack(
               fit: StackFit.expand,
               children: [
+                if (showModel)
+                  Positioned.fill(
+                    child: LivePoodleView(
+                      controller: _live,
+                      appearance: _preview,
+                      resting: _resting3D,
+                      reducedMotion: c.reducedMotion,
+                      wardrobe: true,
+                      idle: true,
+                      hygiene: pet.needPoints(Need.hygiene),
+                      mood: pet.needPoints(Need.mood),
+                      energy: pet.needPoints(Need.energy),
+                      sick: pet.isSick,
+                      onStatusChanged: () => setState(() {}),
+                    ),
+                  ),
                 if (dirty)
                   Positioned(
                     right: AppSpace.s,
@@ -354,11 +400,30 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                 Positioned(
                   right: AppSpace.s,
                   bottom: AppSpace.s,
-                  child: TurnControl(
-                    view: _view,
-                    onTurn: _turn,
-                    compact: l.compact,
-                  ),
+                  child: live
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton.filledTonal(
+                              tooltip: 'Volver de frente',
+                              onPressed: _live.front,
+                              icon: const Icon(Icons.restart_alt_rounded),
+                            ),
+                            const SizedBox(width: 6),
+                            FilledButton.tonal(
+                              onPressed: () =>
+                                  setState(() => _resting3D = !_resting3D),
+                              child: Text(
+                                _resting3D ? 'Levantarse' : 'Tumbarse',
+                              ),
+                            ),
+                          ],
+                        )
+                      : TurnControl(
+                          view: _view,
+                          onTurn: _turn,
+                          compact: l.compact,
+                        ),
                 ),
               ],
             ),
@@ -449,6 +514,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                               ),
                           delegate: SliverChildBuilderDelegate((context, i) {
                             final it = sec.items[i];
+                            final preview = _selectItem(c, it);
                             return _ItemTile(
                               item: it,
                               label: sec.variety != null
@@ -457,15 +523,13 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                                   : c.looks.label(it.id),
                               swatch: c.looks.swatch(it.id),
                               zoom: zoom,
-                              look: c.looks.resolve(
-                                _preview.withSlot(_slot, it.id),
-                              ),
+                              useModelArtwork: showModel,
+                              look: c.looks.resolve(preview),
                               selected: it.id == selectedId,
                               owned: pet.owned.contains(it.id),
                               locked: c.isLocked(it.id),
-                              equipped: pet.appearance.of(_slot) == it.id,
-                              onTap: () =>
-                                  _setPreview(_preview.withSlot(_slot, it.id)),
+                              equipped: _selected(pet.appearance) == it.id,
+                              onTap: () => _setPreview(preview),
                             );
                           }, childCount: sec.items.length),
                         ),
@@ -603,6 +667,7 @@ class _ItemTile extends StatelessWidget {
     this.swatch,
     required this.look,
     required this.zoom,
+    required this.useModelArtwork,
     required this.selected,
     required this.owned,
     required this.equipped,
@@ -613,6 +678,7 @@ class _ItemTile extends StatelessWidget {
   final String label;
   final Color? swatch;
   final ThumbZoom zoom;
+  final bool useModelArtwork;
   final PetLook look;
   final bool selected;
   final bool owned;
@@ -621,6 +687,17 @@ class _ItemTile extends StatelessWidget {
 
   /// De la versión completa y no poseído: se prueba, no se compra.
   final bool locked;
+
+  Widget _thumbnail() {
+    final fallback = PetThumb(look: look, zoom: zoom);
+    if (!useModelArtwork) return fallback;
+    return Image.asset(
+      'assets/images/wardrobe_thumbs/${item.id}.webp',
+      fit: BoxFit.contain,
+      excludeFromSemantics: true,
+      errorBuilder: (context, error, stackTrace) => fallback,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -654,7 +731,7 @@ class _ItemTile extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      PetThumb(look: look, zoom: zoom),
+                      _thumbnail(),
                       if (locked)
                         const Positioned(
                           top: 0,

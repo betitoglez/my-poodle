@@ -31,6 +31,7 @@ class PetComponent extends PositionComponent {
   int? hygiene;
   double airborne = 0;
   bool facingLeft = false;
+  bool showSprite = true;
 
   double _t = 0;
   PetAnim? _reaction;
@@ -132,6 +133,7 @@ class PetComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    if (!showSprite) return;
     if (facingLeft) {
       canvas.save();
       canvas.scale(-1, 1);

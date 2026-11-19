@@ -10,11 +10,14 @@ class Platform {
   final double top;
 }
 
+enum FruitKind { apple, pear, orange, strawberry, blueberry, banana }
+
 class Apple {
-  const Apple(this.id, this.x, this.y);
+  const Apple(this.id, this.x, this.y, [this.kind = FruitKind.apple]);
   final String id; // tramo/índice
   final double x;
   final double y;
+  final FruitKind kind;
 }
 
 class OrchardLevel {
@@ -30,7 +33,7 @@ class OrchardLevel {
   final double goalX;
   final double startX;
 
-  /// Tres tramos manuales de 20 unidades con cuatro manzanas cada uno:
+  /// Tres tramos manuales de 20 unidades con cuatro frutas cada uno:
   /// suelo continuo, dos bancales y plataformas con meta.
   static const OrchardLevel v1 = OrchardLevel(
     startX: 1,
@@ -51,17 +54,17 @@ class OrchardLevel {
     ],
     apples: [
       Apple('t1-0', 4, 0.45),
-      Apple('t1-1', 7.5, 1.45),
-      Apple('t1-2', 11, 0.45),
-      Apple('t1-3', 15.5, 1.45),
-      Apple('t2-0', 21.4, 1.2),
-      Apple('t2-1', 24, 0.8),
+      Apple('t1-1', 7.5, 1.45, FruitKind.pear),
+      Apple('t1-2', 11, 0.45, FruitKind.orange),
+      Apple('t1-3', 15.5, 1.45, FruitKind.strawberry),
+      Apple('t2-0', 21.4, 1.2, FruitKind.blueberry),
+      Apple('t2-1', 24, 0.8, FruitKind.banana),
       Apple('t2-2', 26.8, 1.45),
-      Apple('t2-3', 33, 0.8),
-      Apple('t3-0', 43.2, 1.2),
-      Apple('t3-1', 45.3, 1.45),
-      Apple('t3-2', 48.8, 1.8),
-      Apple('t3-3', 56, 0.45),
+      Apple('t2-3', 33, 0.8, FruitKind.pear),
+      Apple('t3-0', 43.2, 1.2, FruitKind.orange),
+      Apple('t3-1', 45.3, 1.45, FruitKind.strawberry),
+      Apple('t3-2', 48.8, 1.8, FruitKind.blueberry),
+      Apple('t3-3', 56, 0.45, FruitKind.banana),
     ],
   );
 }
@@ -87,6 +90,7 @@ class OrchardSim {
   static const double fallLimit = -3;
   static const double respawnPause = 0.5;
   static const double maxFrame = 0.25;
+  static const int fallPenaltySeconds = 5;
 
   final OrchardLevel level;
   final double timeLimit;
@@ -220,7 +224,7 @@ class OrchardSim {
       }
     }
 
-    // Manzanas: una sola vez por ID.
+    // Frutas: una sola vez por ID.
     for (final a in level.apples) {
       if (collected.contains(a.id)) continue;
       final cx = a.x.clamp(x - halfWidth, x + halfWidth);
@@ -240,8 +244,7 @@ class OrchardSim {
       _respawnLeft = respawnPause;
       _bufferedJump = -1;
       falls++;
-      time +=
-          5; // Penalización única por caída, además del tiempo de recuperación.
+      time += fallPenaltySeconds;
     }
   }
 

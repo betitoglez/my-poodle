@@ -36,13 +36,19 @@ OrchardSim play(double fps, {bool pilot = true, double pauseAt = -1}) {
 }
 
 void main() {
-  test('A03 el piloto llega a la meta y recoge las 12 manzanas', () {
-    final s = play(60);
-    expect(s.end, OrchardEnd.goal);
-    expect(s.score, 12);
-    expect(s.falls, 0);
-    expect(s.time, lessThan(30));
-  });
+  test(
+    'A03 el piloto llega a la meta y recoge las 12 frutas de seis tipos',
+    () {
+      final s = play(60);
+      expect(s.end, OrchardEnd.goal);
+      expect(s.score, 12);
+      expect(s.falls, 0);
+      expect(s.time, lessThan(30));
+      expect({
+        for (final fruit in s.level.apples) fruit.kind,
+      }, FruitKind.values.toSet());
+    },
+  );
 
   test('A03 misma entrada a 30 y 60 fps: misma trayectoria y premio', () {
     final a = play(30), b = play(60);

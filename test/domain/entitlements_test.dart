@@ -13,9 +13,9 @@ void main() {
   PetState adopt() =>
       PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance);
 
-  test('catálogo: 18 artículos gratis, 24 completos, Frisbee gratis', () {
+  test('catálogo: 19 artículos del modo gratuito, 24 completos', () {
     final free = balance.styles.where((s) => s.tier == Tier.free).toList();
-    expect(free.length, 18);
+    expect(free.length, 19);
     expect(balance.styles.length - free.length, 24);
     expect(rules.gameTier(GameId.frisbee), Tier.free);
     expect(rules.gameTier(GameId.fruit), Tier.full);

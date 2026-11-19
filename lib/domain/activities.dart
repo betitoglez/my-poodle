@@ -96,7 +96,7 @@ class BathActivity extends StepActivity {
   }
 }
 
-enum WalkPhase { waiting, moving, sniffing }
+enum WalkPhase { waiting, moving, atStop, sniffing }
 
 /// Paseo: tres paradas en orden; olfatear antes de habilitar la siguiente.
 class WalkActivity extends StepActivity {
@@ -122,7 +122,13 @@ class WalkActivity extends StepActivity {
   }
 
   void arrived() {
-    if (_phase == WalkPhase.moving) _phase = WalkPhase.sniffing;
+    if (_phase == WalkPhase.moving) _phase = WalkPhase.atStop;
+  }
+
+  bool beginSniff() {
+    if (_phase != WalkPhase.atStop) return false;
+    _phase = WalkPhase.sniffing;
+    return true;
   }
 
   void sniffDone() {
@@ -143,7 +149,9 @@ class GroomActivity extends StepActivity {
     for (final t in GroomTool.values) t: {for (final s in Strand.values) s: 0},
   };
   GroomTool get tool => _tool;
-  double brushed(Strand s) => _progress[_tool]![s]!;
+  double strandProgress(GroomTool tool, Strand strand) =>
+      _progress[tool]![strand]!;
+  double brushed(Strand s) => strandProgress(_tool, s);
   bool strandDone(Strand s) => brushed(s) >= 1;
   @override
   int get done => _progress.values.fold(

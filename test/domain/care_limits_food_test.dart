@@ -118,6 +118,35 @@ void main() {
     expect(r.after.bestFrisbee, 5);
   });
 
+  test('peluquería guarda un corte adquirido junto al cuidado', () {
+    final before = pet();
+    final owned = before.copyWith(owned: {...before.owned, 'hair.pom'});
+    final after = rules
+        .finishCare(
+          owned,
+          CareKind.groom,
+          'groom-pom',
+          t0,
+          groomingHair: 'hair.pom',
+        )
+        .after;
+    expect(after.appearance.hair, 'hair.pom');
+    expect(after.careCompletedUtc['groom'], t0);
+    expect(after.coins, owned.coins);
+
+    final preview = rules
+        .finishCare(
+          before,
+          CareKind.groom,
+          'groom-preview',
+          t0,
+          groomingHair: 'hair.pom',
+        )
+        .after;
+    expect(preview.appearance, before.appearance);
+    expect(preview.owned, before.owned);
+  });
+
   test('higiene: cinco fases distintas y umbral exacto en 65', () {
     expect(const PetFx(hygiene: 65).dirtStage, 0);
     expect(

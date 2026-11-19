@@ -12,6 +12,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 import '../widgets/status_bubbles.dart';
 import '../widgets/turn_control.dart';
@@ -30,6 +31,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   HomeGame? _game;
+  final _live = LivePoodleController();
   final _texts = Texts();
   String? _suggestion;
   Object? _suggestedFor;
@@ -123,6 +125,14 @@ class _HomeScreenState extends State<HomeScreen> {
           : _texts.pick(Texts.suggestions[lowest]!, name: pet.name);
     }
     final resting = _game!.resting;
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(pet.appearance);
+    final live =
+        showModel && _live.ready && LivePoodleView.supports(pet.appearance);
+    _game!.pet.showSprite = !showModel;
+    _game!.useLiveBed = showModel;
     final showHint = !pet.prefs.seenHints.contains('home.pet');
     final actionNeed = urgent?.need ?? lowest;
     final actionLabel =
@@ -154,10 +164,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 game: _game!,
                 semanticsLabel:
                     '${pet.name} en el salón, ${_view.label.toLowerCase()}. Toca para hacerle una caricia.',
-                onTap: (p) => setState(() => _game!.tapAt(p)),
+                onTap: (p) => setState(() {
+                  if (live && _game!.pet.hits(p)) _live.pet();
+                  _game!.tapAt(p);
+                }),
+                onDragUpdate: live
+                    ? (start, _, delta) {
+                        if (_game!.pet.hits(start)) _live.rotate(delta.dx);
+                      }
+                    : null,
                 overlay: Stack(
                   fit: StackFit.expand,
                   children: [
+                    if (showModel)
+                      Positioned.fill(
+                        child: LivePoodleView(
+                          controller: _live,
+                          appearance: pet.appearance,
+                          resting: resting,
+                          passiveBed: true,
+                          idle: true,
+                          hygiene: pet.needPoints(Need.hygiene),
+                          mood: pet.needPoints(Need.mood),
+                          energy: pet.needPoints(Need.energy),
+                          sick: pet.isSick,
+                          reducedMotion: c.reducedMotion,
+                          wardrobe: false,
+                          onStatusChanged: () => setState(() {}),
+                        ),
+                      ),
                     Positioned(
                       left: AppSpace.s,
                       top: AppSpace.s,
@@ -177,11 +212,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: 64,
                         child: HintBubble(
                           icon: Icons.touch_app_rounded,
-                          text: 'Toca a ${pet.name} para hacerle una caricia.',
+                          text: live
+                              ? 'Toca a ${pet.name} para acariciarlo. Arrastra para girar.'
+                              : 'Toca a ${pet.name} para hacerle una caricia.',
                           onClose: () => c.markHintSeen('home.pet'),
                         ),
                       ),
-                    if (!resting)
+                    if (live)
+                      Positioned(
+                        right: AppSpace.s,
+                        bottom: AppSpace.s,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton.filledTonal(
+                              tooltip: 'Volver de frente',
+                              onPressed: _live.front,
+                              icon: const Icon(Icons.restart_alt_rounded),
+                            ),
+                            const SizedBox(width: 6),
+                            FilledButton.tonal(
+                              onPressed: () => _setResting(!resting),
+                              child: Text(resting ? 'Levantarse' : 'Tumbarse'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (!resting)
                       Positioned(
                         right: AppSpace.s,
                         bottom: AppSpace.s,

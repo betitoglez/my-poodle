@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:my_poodle/app/app_root.dart';
+import 'package:my_poodle/app/app_scope.dart';
 import 'package:my_poodle/data/save_codec.dart';
 import 'package:my_poodle/data/save_store.dart';
 import 'package:my_poodle/data/storage_backend.dart';
@@ -209,6 +210,30 @@ void main() {
     },
   );
 
+  testWidgets('Frisbee termina con un acierto al agotar los 20 segundos', (
+    t,
+  ) async {
+    final backend = MemoryBackend();
+    await boot(t, backend);
+    await adopt(t, 'Miel');
+    await tapText(t, 'Juegos');
+    await t.ensureVisible(find.text('Frisbee en el prado'));
+    await idle(t);
+    await tapText(t, 'Frisbee en el prado');
+    await tapText(t, 'Jugar');
+    await tapText(t, 'Lanzar al aro');
+    await frames(t, seconds: 21);
+    await idle(t);
+    final score = find.text('1 de 5 capturas · ¡nuevo récord!');
+    expect(score, findsOneWidget);
+    final controller = AppScope.read(t.element(score));
+    await t.runAsync(() => controller.markHintSeen('test.result'));
+    await idle(t);
+    expect(t.takeException(), isNull);
+    expect(score, findsOneWidget);
+    expect(saved(backend).coins, 6);
+  });
+
   testWidgets(
     '3 a 7 · frisbee 18 monedas, pañuelo, quitar/poner, vista previa cancelada',
     (t) async {
@@ -219,7 +244,10 @@ void main() {
       await t.ensureVisible(find.text('Frisbee en el prado'));
       await idle(t);
       await tapText(t, 'Frisbee en el prado');
-      expect(find.text('Duración: 5 lanzamientos.'), findsOneWidget);
+      expect(
+        find.text('Duración: 20 segundos · 5 lanzamientos.'),
+        findsOneWidget,
+      );
       await tapText(t, 'Jugar');
       for (var i = 0; i < 5; i++) {
         await tapText(t, 'Lanzar al aro');

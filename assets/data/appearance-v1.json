@@ -54,6 +54,10 @@
     "hair.puppy": {
       "label": "Corte cachorro",
       "style": "natural"
+    },
+    "hair.show": {
+      "label": "Corte de concurso",
+      "style": "pom"
     }
   },
   "outfits": {

@@ -13,6 +13,7 @@ import '../../game/scenes/stage_game.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 import 'games_screen.dart';
 import 'wardrobe_screen.dart';
@@ -27,6 +28,7 @@ class _CelebrationScene extends StatefulWidget {
 
 class _CelebrationSceneState extends State<_CelebrationScene> {
   StageGame? _game;
+  final _live = LivePoodleController();
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -42,11 +44,34 @@ class _CelebrationSceneState extends State<_CelebrationScene> {
   }
 
   @override
-  Widget build(BuildContext context) => SceneView(
-    game: _game!,
-    semanticsLabel: 'Tu caniche celebra contento',
-    onTap: (_) => _game!.pet.react(PetAnim.happy),
-  );
+  Widget build(BuildContext context) {
+    final c = AppScope.of(context);
+    final hasModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(c.pet.appearance);
+    _game!.pet.showSprite = !hasModel;
+    return SceneView(
+      game: _game!,
+      semanticsLabel: 'Tu caniche celebra contento',
+      onTap: (_) => hasModel ? _live.pet() : _game!.pet.react(PetAnim.happy),
+      overlay: hasModel
+          ? LivePoodleView(
+              controller: _live,
+              appearance: c.pet.appearance,
+              resting: false,
+              wardrobe: false,
+              reducedMotion: c.reducedMotion,
+              idle: true,
+              hygiene: c.pet.needPoints(Need.hygiene),
+              mood: c.pet.needPoints(Need.mood),
+              energy: c.pet.needPoints(Need.energy),
+              sick: c.pet.isSick,
+              onStatusChanged: () => setState(() {}),
+            )
+          : null,
+    );
+  }
 }
 
 class _ResultLayout extends StatelessWidget {
@@ -186,16 +211,12 @@ class CareResultScreen extends StatefulWidget {
 }
 
 class _CareResultScreenState extends State<CareResultScreen> {
-  late final String _message;
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final cured = widget.kind == CareKind.vet && widget.receipt.before.isSick;
-    _message = Texts().pick(
-      cured ? Texts.curedMessages : Texts.careDone[widget.kind]!,
-      name: AppScope.read(context).pet.name,
-    );
-  }
+  late final String _message = Texts().pick(
+    widget.kind == CareKind.vet && widget.receipt.before.isSick
+        ? Texts.curedMessages
+        : Texts.careDone[widget.kind]!,
+    name: widget.receipt.after.name,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -259,21 +280,18 @@ class GameResultScreen extends StatefulWidget {
 }
 
 class _GameResultScreenState extends State<GameResultScreen> {
-  late final String _title;
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _title = Texts().pick(
-      Texts.gameDone,
-      name: AppScope.read(context).pet.name,
-    );
-  }
+  late final String _title = Texts().pick(
+    Texts.gameDone,
+    name: widget.receipt.after.name,
+  );
 
   @override
   Widget build(BuildContext context) {
     final r = widget.receipt;
     final def = GameCatalog.of(widget.game);
-    final max = widget.game == GameId.fruit ? 12 : 3;
+    final max = widget.game == GameId.fruit
+        ? 12
+        : AppScope.read(context).balance.frisbee.targetsField.length;
     return _ResultLayout(
       room: RoomKind.living,
       kicker: def.title,

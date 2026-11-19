@@ -224,6 +224,7 @@ class HomeGame extends StageGame {
 
   final void Function()? onPetTapped;
   bool resting = false;
+  bool useLiveBed = false;
 
   final bed = BedProp();
 
@@ -247,11 +248,11 @@ class HomeGame extends StageGame {
   Rect get _bedRect => bed.rect(pet.position.toOffset(), pet.petSize);
 
   void _bedBack(Canvas c) {
-    if (resting) bed.paintBack(c, _bedRect);
+    if (resting && !useLiveBed) bed.paintBack(c, _bedRect);
   }
 
   void _bedFront(Canvas c) {
-    if (resting) bed.paintFront(c, _bedRect);
+    if (resting && !useLiveBed) bed.paintFront(c, _bedRect);
   }
 
   void _zzz(Canvas c) {

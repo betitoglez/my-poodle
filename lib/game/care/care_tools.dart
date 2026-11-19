@@ -18,8 +18,19 @@ void paintCareTool(
   CareTool tool,
   Offset at,
   double size,
-  double time,
-) {
+  double time, [
+  Image? atlas,
+]) {
+  if (atlas != null) {
+    final tile = atlas.width / 3;
+    c.drawImageRect(
+      atlas,
+      Rect.fromLTWH(tool.index % 3 * tile, tool.index ~/ 3 * tile, tile, tile),
+      Rect.fromCenter(center: at, width: size * 1.20, height: size * 1.20),
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+    return;
+  }
   c.save();
   c.translate(at.dx, at.dy);
   c.scale(size / 48);

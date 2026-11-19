@@ -297,6 +297,7 @@ class AppController extends ChangeNotifier {
     String sessionId,
     CareKind kind, {
     Food food = Food.basic,
+    String? groomingHair,
   }) async {
     final previous = sessions.receiptOf<Receipt>(sessionId);
     if (previous != null) return Done(previous);
@@ -317,6 +318,7 @@ class AppController extends ChangeNotifier {
       clock.nowUtcSeconds(),
       food: food,
       fullVersion: fullVersion,
+      groomingHair: groomingHair,
     );
     return _commit(
       receipt.after,

@@ -10,6 +10,7 @@ import '../../game/scenes/stage_game.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 
 /// P02 · Adopción: caniche inicial, nombre, sugerencias y Adoptar.
@@ -23,6 +24,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
   final _name = TextEditingController();
   final _focus = FocusNode();
   StageGame? _game;
+  final _live = LivePoodleController();
   int _suggestion = 0;
   String? _error;
   bool _adopting = false;
@@ -60,7 +62,15 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
     _name.text = PetName.suggestions[_suggestion % PetName.suggestions.length];
     _name.selection = TextSelection.collapsed(offset: _name.text.length);
     _suggestion++;
-    _game?.pet.react(PetAnim.happy, seconds: 1.2);
+    _react();
+  }
+
+  void _react() {
+    if (_live.ready) {
+      _live.pet();
+    } else {
+      _game?.pet.react(PetAnim.happy, seconds: 1.2);
+    }
   }
 
   Future<void> _adopt() async {
@@ -86,6 +96,13 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppScope.of(context);
+    final appearance = c.balance.initialAppearance;
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(appearance);
+    _game!.pet.showSprite = !showModel;
     final l = Layout.of(context);
     final count = PetName.graphemeCount(_name.text);
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
@@ -106,7 +123,18 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                     game: _game!,
                     semanticsLabel:
                         'Cachorro de caniche albaricoque sobre un cojín',
-                    onTap: (_) => _game!.pet.react(PetAnim.happy, seconds: 1.2),
+                    onTap: (_) => _react(),
+                    overlay: showModel
+                        ? LivePoodleView(
+                            controller: _live,
+                            appearance: appearance,
+                            resting: false,
+                            reducedMotion: c.reducedMotion,
+                            wardrobe: false,
+                            idle: true,
+                            onStatusChanged: () => setState(() {}),
+                          )
+                        : null,
                   ),
                 ),
                 Expanded(
@@ -170,10 +198,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                                         label: Text(n),
                                         onPressed: () {
                                           _name.text = n;
-                                          _game?.pet.react(
-                                            PetAnim.happy,
-                                            seconds: 1.2,
-                                          );
+                                          _react();
                                         },
                                         materialTapTargetSize:
                                             MaterialTapTargetSize.padded,

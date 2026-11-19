@@ -42,12 +42,19 @@ void main() {
     expect(w.tapStop(1), isFalse);
     expect(w.tapStop(0), isTrue);
     expect(w.tapStop(1), isFalse); // en movimiento
+    expect(w.beginSniff(), isFalse);
     w.arrived();
+    w.sniffDone();
+    expect(w.done, 0);
+    expect(w.tapStop(1), isFalse); // espera que el jugador le indique olfatear
+    expect(w.beginSniff(), isTrue);
+    expect(w.beginSniff(), isFalse);
     expect(w.tapStop(1), isFalse); // olfateando
     w.sniffDone();
     for (final i in [1, 2]) {
       expect(w.tapStop(i), isTrue);
       w.arrived();
+      expect(w.beginSniff(), isTrue);
       w.sniffDone();
     }
     expect(w.completed, isTrue);

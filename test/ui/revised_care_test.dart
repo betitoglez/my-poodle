@@ -65,14 +65,30 @@ void main() {
       final before = g.activity.toolProgress;
       await frames(t, seconds: 2);
       expect(g.activity.toolProgress, before);
-      await hold(t, find.text('Mantén: ducha'), 3.2);
+      final head =
+          t.getTopLeft(find.byType(SceneView)) +
+          g.pet.landmarkScene('headTop') +
+          Offset(0, g.pet.petSize * 0.1);
+      final shower = await t.startGesture(head);
+      await frames(t, seconds: 3.2);
+      await shower.up();
+      await idle(t);
       expect(g.activity.phase, BathPhase.soap);
-      for (final label in ['Lomo', 'Patas', 'Pecho', 'Cabeza']) {
+      expect(g.activity.foam(BathZone.head), 0);
+      for (final label in ['Lomo', 'Patas', 'Pecho']) {
         for (var i = 0; i < 7; i++) {
           await t.tap(find.text(label));
           await t.pump();
         }
       }
+      expect(g.activity.phase, BathPhase.soap);
+      final sponge = await t.startGesture(head);
+      final scrub = Offset(g.pet.petSize * 0.1, 0);
+      for (var i = 0; i < 9; i++) {
+        await sponge.moveTo(head + scrub);
+        await sponge.moveTo(head - scrub);
+      }
+      await sponge.up();
       await idle(t);
       expect(g.activity.phase, BathPhase.rinse);
       expect(saved(backend).revision, 1);
@@ -84,6 +100,36 @@ void main() {
       expect(saved(backend).careCompletedUtc['bath'], isNotNull);
     },
   );
+
+  testWidgets('paseo: cada parada espera una indicación de olfatear', (
+    t,
+  ) async {
+    final backend = backendWith((s) => s);
+    await boot(t, backend);
+    await tapText(t, 'Cuidados');
+    await tapText(t, 'Pasear');
+    final g = sceneGame<WalkGame>(t);
+    await waitScene(t, g);
+    for (final (i, label) in [
+      (0, 'Ir a las flores'),
+      (1, 'Ir al banco'),
+      (2, 'Ir a la fuente'),
+    ]) {
+      await tapText(t, label);
+      await frames(t, seconds: 2.5);
+      expect(g.activity.phase, WalkPhase.atStop);
+      await frames(t, seconds: 1.55);
+      expect(g.activity.done, i);
+      expect(saved(backend).revision, 1);
+      await tapText(t, 'Olfatear');
+      await frames(t, seconds: 1.55);
+      expect(g.activity.done, i + 1);
+    }
+    await idle(t);
+    expect(saved(backend).careCompletedUtc['walk'], isNotNull);
+    expect(saved(backend).needPoints(Need.mood), 90);
+    expect(saved(backend).needPoints(Need.energy), 75);
+  });
 
   testWidgets(
     'peluquería: requiere peine, tijeras y secador antes de guardar',

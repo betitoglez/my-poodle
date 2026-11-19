@@ -236,7 +236,7 @@ void main() {
         painted++;
       }
     }
-    expect(painted, 5 * 4);
+    expect(painted, 5 * 5);
     expect(
       painter.sprites!.stateLayer('messy', 'hair.pom', 'front'),
       isNotNull,

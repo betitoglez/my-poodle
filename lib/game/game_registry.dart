@@ -48,7 +48,7 @@ abstract final class GameCatalog {
     tagline: 'Lanza el disco hacia el aro.',
     objective: 'Que tu caniche atrape el disco dentro del aro.',
     gesture: 'Arrastra hacia arriba y suelta. También puedes usar el lanzamiento asistido.',
-    limitLabel: '5 lanzamientos',
+    limitLabel: '20 segundos · 5 lanzamientos',
     scoreLabel: 'capturas',
     rewardLabel: '3 monedas + 3 por captura',
   );
