@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
@@ -49,7 +50,7 @@ class AppButton extends StatelessWidget {
         Icon(icon, size: big ? 28 : 22),
         const SizedBox(width: AppSpace.s),
         Flexible(
-          child: Text(
+          child: LText(
             label,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
@@ -69,7 +70,7 @@ class AppButton extends StatelessWidget {
             style: FilledButton.styleFrom(minimumSize: size),
             child: child,
           );
-    return Semantics(hint: semanticsHint, child: button);
+    return LSemantics(hint: semanticsHint, child: button);
   }
 }
 
@@ -81,7 +82,7 @@ class CoinBalance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       label: '$coins monedas',
       excludeSemantics: true,
       child: Container(
@@ -99,7 +100,7 @@ class CoinBalance extends StatelessWidget {
           children: [
             CoinIcon(size: large ? 24 : 20),
             const SizedBox(width: 6),
-            Text(
+            LText(
               '$coins',
               style: AppText.number.copyWith(fontSize: large ? 20 : 17),
             ),
@@ -123,7 +124,7 @@ class CoinIcon extends StatelessWidget {
       border: Border.all(color: AppColors.coinDeep, width: size * 0.12),
     ),
     alignment: Alignment.center,
-    child: Text(
+    child: LText(
       'm',
       style: TextStyle(
         fontSize: size * 0.5,
@@ -171,7 +172,7 @@ class NeedMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final low = value < 30;
-    return Semantics(
+    return LSemantics(
       button: onTap != null,
       onTap: onTap,
       label: '$label: $value de 100${low ? ', bajo' : ''}',
@@ -197,7 +198,7 @@ class NeedMeter extends StatelessWidget {
                   Icon(need.icon, size: 18, color: need.color),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text(
+                    child: LText(
                       label,
                       style: AppText.small.copyWith(color: AppColors.ink),
                       overflow: TextOverflow.ellipsis,
@@ -209,7 +210,7 @@ class NeedMeter extends StatelessWidget {
                       size: 16,
                       color: AppColors.coral,
                     ),
-                  Text('$value', style: AppText.number.copyWith(fontSize: 15)),
+                  LText('$value', style: AppText.number.copyWith(fontSize: 15)),
                 ],
               ),
               const SizedBox(height: 6),
@@ -279,7 +280,7 @@ class StepMarks extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dotSize = total > 7 ? 17.0 : 22.0;
-    return Semantics(
+    return LSemantics(
       label: 'Progreso $done de $total',
       excludeSemantics: true,
       child: Row(
@@ -307,7 +308,7 @@ class StepMarks extends StatelessWidget {
               ),
             ),
           const SizedBox(width: 8),
-          Text('$done / $total', style: AppText.number.copyWith(fontSize: 15)),
+          LText('$done / $total', style: AppText.number.copyWith(fontSize: 15)),
         ],
       ),
     );
@@ -334,7 +335,7 @@ class LockBadge extends StatelessWidget {
         Icon(Icons.lock_rounded, size: compact ? 12 : 16, color: Colors.white),
         if (!compact) ...[
           const SizedBox(width: 4),
-          const Text(
+          const LText(
             'Versión completa',
             style: TextStyle(
               color: Colors.white,
@@ -358,7 +359,7 @@ class DemoBadge extends StatelessWidget {
       color: AppColors.coral,
       borderRadius: BorderRadius.circular(AppRadii.pill),
     ),
-    child: const Text(
+    child: const LText(
       'DEMO',
       style: TextStyle(
         color: Colors.white,
@@ -386,7 +387,7 @@ class HealthMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = sick ? AppColors.coral : AppColors.leaf;
-    return Semantics(
+    return LSemantics(
       button: onTap != null,
       onTap: onTap,
       label: 'Salud: ${sick ? 'malito' : 'sano'}, $points de 100',
@@ -415,7 +416,7 @@ class HealthMeter extends StatelessWidget {
                   ),
                   const SizedBox(width: 5),
                   Expanded(
-                    child: Text(
+                    child: LText(
                       'Salud',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -423,7 +424,7 @@ class HealthMeter extends StatelessWidget {
                     ),
                   ),
                   Flexible(
-                    child: Text(
+                    child: LText(
                       sick ? 'Malito' : 'Sano',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

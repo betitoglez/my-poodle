@@ -26,6 +26,7 @@ class SaveCodec {
     'schemaVersion': PetState.schemaVersion,
     'careCompletedUtc': s.careCompletedUtc,
     'gameStartedUtc': s.gameStartedUtc,
+    'premiumTrialStartedUtc': s.premiumTrialStartedUtc,
     'revision': s.revision,
     'lastCommitId': s.lastCommitId,
     'name': s.name,
@@ -47,6 +48,7 @@ class SaveCodec {
     'effects': s.prefs.effects,
     'reducedMotion': s.prefs.reducedMotion,
     'seenHints': (s.prefs.seenHints.toList()..sort()),
+    'language': s.prefs.language,
     'sickSinceUtc': s.sickSinceUtc,
     'lastSickUtc': s.lastSickUtc,
     'sickSeed': s.sickSeed,
@@ -122,6 +124,11 @@ class SaveCodec {
     final hints = j['seenHints'];
     final careTimes = j['careCompletedUtc'] ?? <String, dynamic>{};
     final gameTimes = j['gameStartedUtc'] ?? <dynamic>[];
+    final trialTimes = j['premiumTrialStartedUtc'] ?? <String, dynamic>{};
+    if (trialTimes is! Map<String, dynamic> ||
+        trialTimes.values.any((v) => v is! int || v < 0)) {
+      throw SaveFormatException('Pruebas premium inválidas');
+    }
     final restStart = j['restingSinceUtc'];
     final restCursor = j['restEnergyCursorUtc'];
     if (careTimes is! Map<String, dynamic> ||
@@ -137,6 +144,7 @@ class SaveCodec {
           : null,
       careCompletedUtc: careTimes.cast<String, int>(),
       gameStartedUtc: gameTimes.cast<int>(),
+      premiumTrialStartedUtc: Map.unmodifiable(trialTimes.cast<String, int>()),
       revision: revision,
       lastCommitId: req<String>('lastCommitId'),
       name: (nameResult).value,
@@ -156,6 +164,7 @@ class SaveCodec {
       bestFruit: (j['bestFruit'] as int?) ?? 0,
       bestFrisbee: (j['bestFrisbee'] as int?) ?? 0,
       prefs: Preferences(
+        language: j['language'] is String ? j['language'] as String : null,
         music: optBool('music', !muted),
         effects: optBool('effects', !muted),
         reducedMotion: optBool('reducedMotion', false),

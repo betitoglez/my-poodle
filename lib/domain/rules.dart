@@ -160,10 +160,30 @@ class Rules {
     return null;
   }
 
-  PetState startGame(PetState s, String opId, int nowUtc) {
+  static const premiumTrialWindow = 24 * 60 * 60;
+
+  int premiumTrialRemaining(PetState s, GameId game, int nowUtc) {
+    if (gameTier(game) != Tier.full) return 0;
+    final last = s.premiumTrialStartedUtc[game.name];
+    if (last == null) return 0;
+    final remaining = premiumTrialWindow - (nowUtc - last);
+    return remaining > 0 ? remaining : 0;
+  }
+
+  PetState startGame(
+    PetState s,
+    String opId,
+    int nowUtc, {
+    required GameId game,
+    bool fullVersion = false,
+  }) {
     final before = clock.advance(s, nowUtc);
     final blocked = gameBlocked(before, nowUtc);
     if (blocked != null) throw RuleException(blocked);
+    final trial = gameTier(game) == Tier.full && !fullVersion;
+    if (trial && premiumTrialRemaining(before, game, nowUtc) > 0) {
+      throw RuleException('La prueba gratuita se renueva cada 24 horas.');
+    }
     return _commit(
       before.copyWith(
         wake: true,
@@ -171,6 +191,9 @@ class Rules {
           ...before.gameStartedUtc.where((t) => nowUtc - t < activityWindow),
           nowUtc,
         ],
+        premiumTrialStartedUtc: trial
+            ? {...before.premiumTrialStartedUtc, game.name: nowUtc}
+            : before.premiumTrialStartedUtc,
       ),
       opId,
     );

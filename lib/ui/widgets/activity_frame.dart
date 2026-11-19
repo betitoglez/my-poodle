@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:flame/game.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -140,13 +141,16 @@ class ActivityFrameState extends State<ActivityFrame>
                 child: Row(
                   children: [
                     IconButton(
-                      tooltip: 'Salir de ${widget.activityName}',
+                      tooltip: localizeNullable(
+                        context,
+                        'Salir de ${widget.activityName}',
+                      ),
                       onPressed: requestExit,
                       icon: const Icon(Icons.close_rounded, size: 28),
                     ),
                     const SizedBox(width: AppSpace.xs),
                     Expanded(
-                      child: Text(
+                      child: LText(
                         widget.title,
                         style: AppText.title,
                         maxLines: 1,
@@ -161,7 +165,7 @@ class ActivityFrameState extends State<ActivityFrame>
                     ?widget.status,
                     if (widget.showPauseButton)
                       IconButton(
-                        tooltip: 'Pausa',
+                        tooltip: localizeNullable(context, 'Pausa'),
                         onPressed: pause,
                         icon: const Icon(
                           Icons.pause_circle_rounded,

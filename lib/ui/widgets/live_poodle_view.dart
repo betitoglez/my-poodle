@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -17,7 +18,8 @@ class LivePoodleController {
   bool ready = false;
   bool failed = false;
 
-  void rotate(double delta) => _send('rotate', delta);
+  /// Desplazamiento horizontal en píxeles lógicos, como el gesto de arrastre.
+  void rotate(double deltaPixels) => _send('rotate', deltaPixels);
   void pet() => _send('pet');
   Future<LivePetTap> petAt(Offset point) async {
     if (_viewport.isEmpty) return LivePetTap.missed;
@@ -30,6 +32,14 @@ class LivePoodleController {
       1 => LivePetTap.touched,
       _ => LivePetTap.missed,
     };
+  }
+
+  Future<Uint8List?> snapshot() async {
+    if (!ready || failed) return null;
+    final encoded = await _channel?.invokeMethod<String>('snapshot');
+    const prefix = 'data:image/png;base64,';
+    if (encoded == null || !encoded.startsWith(prefix)) return null;
+    return base64Decode(encoded.substring(prefix.length));
   }
 
   void front() => _send('front');

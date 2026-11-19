@@ -125,6 +125,17 @@ private final class PoodleView: NSObject, FlutterPlatformView, WKNavigationDeleg
 
   private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
+    case "snapshot":
+      guard ready else {
+        result(FlutterError(code: "not_ready", message: "The scene is loading", details: nil))
+        return
+      }
+      web.evaluateJavaScript("window.poodle.snapshot()") { value, error in
+        if error != nil || !(value is String) {
+          result(FlutterError(code: "snapshot_failed", message: "Unable to capture scene", details: nil))
+        } else { result(value as? String) }
+      }
+      return
     case "configure":
       if let value = json(call.arguments) {
         configuration = value

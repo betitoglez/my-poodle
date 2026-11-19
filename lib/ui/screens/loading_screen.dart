@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
@@ -40,7 +41,7 @@ class LoadingScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpace.m),
-                  const Text('Cargando la partida…', style: AppText.body),
+                  const LText('Cargando la partida…', style: AppText.body),
                 ] else ...[
                   const Icon(
                     Icons.info_outline_rounded,
@@ -48,7 +49,7 @@ class LoadingScreen extends StatelessWidget {
                     color: AppColors.plum,
                   ),
                   const SizedBox(height: AppSpace.s),
-                  Text(
+                  LText(
                     error!,
                     style: AppText.body,
                     textAlign: TextAlign.center,
@@ -89,7 +90,7 @@ class _Logo extends StatelessWidget {
   const _Logo();
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       header: true,
       label: 'My Poodle',
       excludeSemantics: true,
@@ -109,8 +110,8 @@ class _Logo extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpace.m),
-          const Text('My Poodle', style: AppText.display),
-          const Text('Tu caniche toy', style: AppText.kicker),
+          const LText('My Poodle', style: AppText.display),
+          const LText('Tu caniche toy', style: AppText.kicker),
         ],
       ),
     );

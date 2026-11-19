@@ -1,6 +1,11 @@
 # Producto y economía de la primera versión
 
-Juego móvil completamente 2D con Flutter + Flame: caniche, ropa, cortes, escenarios y minijuegos. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni publicidad. La descarga es gratuita y una única compra integrada desbloquea la versión completa (ver [Versión gratuita y versión completa](#versión-gratuita-y-versión-completa)).
+## Alcance MVP vigente · 19-11-2026
+
+Primera beta TestFlight con es/en/fr/de/pt-BR/it/ru/ko/ja/zh-Hans/zh-Hant, selector persistente y nombre localizado (Mi Caniche en español; My Poodle en inglés/respaldo). Modo foto con captura 3D y álbum privado local. Cada juego premium permite una partida gratuita cada 24 h por juego sin compra; el cupo se confirma al iniciar, se conserva al cerrar y no se consume si falla el guardado. La compra elimina el cupo de prueba; se mantienen energía y límites generales. Parejas, Simón de perritos y laberinto son propuestas por definir. Estas decisiones prevalecen sobre referencias históricas contradictorias.
+
+
+Juego móvil con Flutter + Flame, caniche y vestuario 3D locales en iOS/Android, escenarios 2D y respaldo ilustrado. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni publicidad. La descarga es gratuita y una única compra integrada desbloquea la versión completa (ver [Versión gratuita y versión completa](#versión-gratuita-y-versión-completa)).
 
 ## La primera sesión
 

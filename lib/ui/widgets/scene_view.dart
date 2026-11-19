@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
@@ -104,7 +105,7 @@ class _SceneViewState extends State<SceneView> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       label: widget.semanticsLabel,
       child: Listener(
         behavior: HitTestBehavior.opaque,

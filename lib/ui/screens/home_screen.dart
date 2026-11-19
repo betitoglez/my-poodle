@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_root.dart';
@@ -20,6 +21,7 @@ import '../widgets/turn_control.dart';
 import 'care_activity_screens.dart';
 import 'main_shell.dart';
 import 'settings_screens.dart';
+import 'photo_screen.dart';
 
 /// P03 · Casa: salón, caniche, nombre, saldo, iconos de estado tipo
 /// tamagotchi, cuatro indicadores y salud, sugerencia de lo más urgente,
@@ -158,10 +160,28 @@ class _HomeScreenState extends State<HomeScreen> {
             TabHeader(
               kicker: 'En casa',
               title: pet.name,
-              trailing: IconButton(
-                tooltip: 'Ajustes',
-                onPressed: () => pushScreen(context, const SettingsScreen()),
-                icon: const Icon(Icons.settings_rounded, color: AppColors.plum),
+              literalTitle: true,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: localizeNullable(context, 'Modo foto'),
+                    onPressed: () => pushScreen(context, const PhotoScreen()),
+                    icon: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: AppColors.plum,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: localizeNullable(context, 'Ajustes'),
+                    onPressed: () =>
+                        pushScreen(context, const SettingsScreen()),
+                    icon: const Icon(
+                      Icons.settings_rounded,
+                      color: AppColors.plum,
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -265,14 +285,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton.filledTonal(
-                              tooltip: 'Volver de frente',
+                              tooltip: localizeNullable(
+                                context,
+                                'Volver de frente',
+                              ),
                               onPressed: _live.front,
                               icon: const Icon(Icons.restart_alt_rounded),
                             ),
                             const SizedBox(width: 6),
                             FilledButton.tonal(
                               onPressed: () => _setResting(!resting),
-                              child: Text(resting ? 'Levantarse' : 'Tumbarse'),
+                              child: LText(resting ? 'Levantarse' : 'Tumbarse'),
                             ),
                           ],
                         ),
@@ -306,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: AppSpace.s),
                           Expanded(
-                            child: Text(
+                            child: LText(
                               resting
                                   ? '${pet.name} descansa en su cama. La energía sube con el tiempo en casa.'
                                   : _suggestion!,
@@ -386,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ? Icons.wb_sunny_rounded
                                   : Icons.bedtime_rounded,
                             ),
-                            label: Text(
+                            label: LText(
                               resting ? 'Despertar' : 'Descansar en su cama',
                             ),
                           ),

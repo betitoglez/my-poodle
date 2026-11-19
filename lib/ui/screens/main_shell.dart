@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
@@ -52,19 +53,19 @@ class _MainShellState extends State<MainShell> {
                   }
                 },
                 destinations: const [
-                  NavigationDestination(
+                  LNavigationDestination(
                     icon: Icon(Icons.home_rounded),
                     label: 'Casa',
                   ),
-                  NavigationDestination(
+                  LNavigationDestination(
                     icon: Icon(Icons.volunteer_activism_rounded),
                     label: 'Cuidados',
                   ),
-                  NavigationDestination(
+                  LNavigationDestination(
                     icon: Icon(Icons.sports_esports_rounded),
                     label: 'Juegos',
                   ),
-                  NavigationDestination(
+                  LNavigationDestination(
                     icon: Icon(Icons.checkroom_rounded),
                     label: 'Armario',
                   ),
@@ -85,10 +86,12 @@ class TabHeader extends StatelessWidget {
     required this.kicker,
     required this.title,
     this.trailing,
+    this.literalTitle = false,
   });
   final String kicker;
   final String title;
   final Widget? trailing;
+  final bool literalTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +104,7 @@ class TabHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                LText(
                   kicker.toUpperCase(),
                   style: const TextStyle(
                     fontSize: 12,
@@ -110,8 +113,9 @@ class TabHeader extends StatelessWidget {
                     color: Color(0xFF375E50),
                   ),
                 ),
-                Text(
+                LText(
                   title,
+                  verbatim: literalTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.headlineMedium!

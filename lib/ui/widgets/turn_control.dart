@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../game/pet/pet_painter.dart';
@@ -27,17 +28,17 @@ class TurnControl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            tooltip: 'Girar a la izquierda',
+            tooltip: localizeNullable(context, 'Girar a la izquierda'),
             onPressed: () => onTurn(view.previous),
             icon: const Icon(Icons.rotate_left_rounded, color: AppColors.plum),
           ),
           if (!compact)
-            Text(
+            LText(
               view.label,
               style: AppText.small.copyWith(color: AppColors.ink),
             ),
           IconButton(
-            tooltip: 'Girar a la derecha',
+            tooltip: localizeNullable(context, 'Girar a la derecha'),
             onPressed: () => onTurn(view.next),
             icon: const Icon(Icons.rotate_right_rounded, color: AppColors.plum),
           ),

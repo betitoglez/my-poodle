@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -399,12 +401,12 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                     ),
                   ),
                 if (dirty)
-                  Positioned(
+                  const Positioned(
                     right: AppSpace.s,
                     top: AppSpace.s,
                     child: Chip(
-                      avatar: const Icon(Icons.visibility_rounded, size: 18),
-                      label: const Text('Probando'),
+                      avatar: Icon(Icons.visibility_rounded, size: 18),
+                      label: LText('Probando'),
                       backgroundColor: AppColors.cream,
                     ),
                   ),
@@ -416,7 +418,10 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton.filledTonal(
-                              tooltip: 'Volver de frente',
+                              tooltip: localizeNullable(
+                                context,
+                                'Volver de frente',
+                              ),
                               onPressed: _live.front,
                               icon: const Icon(Icons.restart_alt_rounded),
                             ),
@@ -424,7 +429,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                             FilledButton.tonal(
                               onPressed: () =>
                                   setState(() => _resting3D = !_resting3D),
-                              child: Text(
+                              child: LText(
                                 _resting3D ? 'Levantarse' : 'Tumbarse',
                               ),
                             ),
@@ -474,7 +479,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                             padding: const EdgeInsets.only(right: AppSpace.s),
                             child: ChoiceChip(
                               avatar: Icon(s.icon, size: 18),
-                              label: Text(s.label),
+                              label: LText(s.label),
                               selected: s == _slot,
                               showCheckmark: false,
                               onSelected: (_) => setState(() => _slot = s),
@@ -497,7 +502,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                               padding: const EdgeInsets.fromLTRB(2, 6, 2, 6),
                               child: Row(
                                 children: [
-                                  Text(
+                                  LText(
                                     c.looks.varietyLabel(sec.variety!),
                                     style: AppText.subtitle,
                                   ),
@@ -505,7 +510,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                                   const CoinIcon(size: 16),
                                   const SizedBox(width: 4),
                                   Flexible(
-                                    child: Text(
+                                    child: LText(
                                       '${sec.items.first.cost} · todos los colores',
                                       style: AppText.small,
                                       overflow: TextOverflow.ellipsis,
@@ -573,7 +578,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                 if (!owned && dirty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(
+                    child: LText(
                       locked
                           ? 'Probar es gratis. Para tenerlo, pide ayuda a un adulto.'
                           : 'Probar es gratis. Solo pagas al confirmar.',
@@ -596,7 +601,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Armario'),
+          title: const LText('Armario'),
           actions: [
             if (c.demo) const DemoBadge(),
             Padding(
@@ -631,7 +636,7 @@ class _CategoryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       button: true,
       selected: selected,
       label: label,
@@ -652,7 +657,7 @@ class _CategoryTab extends StatelessWidget {
                   size: 20,
                   color: selected ? AppColors.cream : AppColors.plum,
                 ),
-                Text(
+                LText(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -717,7 +722,7 @@ class _ItemTile extends StatelessWidget {
         : (owned
               ? 'En propiedad'
               : (locked ? 'Versión completa' : '${item.cost} monedas'));
-    return Semantics(
+    return LSemantics(
       button: true,
       selected: selected,
       label: '$label. $state',
@@ -768,7 +773,7 @@ class _ItemTile extends StatelessWidget {
                       const SizedBox(width: 6),
                     ],
                     Flexible(
-                      child: Text(
+                      child: LText(
                         label,
                         style: AppText.subtitle.copyWith(fontSize: 15),
                         maxLines: 1,
@@ -802,7 +807,7 @@ class _ItemTile extends StatelessWidget {
                       const CoinIcon(size: 16),
                     const SizedBox(width: 4),
                     Flexible(
-                      child: Text(
+                      child: LText(
                         state,
                         style: AppText.small,
                         overflow: TextOverflow.ellipsis,

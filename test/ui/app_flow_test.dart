@@ -1,3 +1,5 @@
+import 'package:my_poodle/domain/rules.dart';
+import 'package:my_poodle/ui/widgets/status_bubbles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -47,6 +49,10 @@ Future<void> boot(
   EffectPlayback? effectPlayback,
   BackgroundMusic? music,
 }) async {
+  t.platformDispatcher.localeTestValue = const Locale('es');
+  t.platformDispatcher.localesTestValue = const [Locale('es')];
+  addTearDown(t.platformDispatcher.clearLocalesTestValue);
+  addTearDown(t.platformDispatcher.clearLocaleTestValue);
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
@@ -549,7 +555,13 @@ void main() {
         expect(find.textContaining('Desbloquear'), findsNothing);
         expect(find.textContaining('Pide ayuda'), findsNothing);
 
-        // Huerto con candado: abre «Pide ayuda a un adulto» y Volver regresa.
+        // La prueba inicial ya se usó; el candado conserva el flujo adulto.
+        final controller = AppScope.read(t.element(find.byType(StatusBubbles)));
+        final trial = await controller.beginGame(GameId.fruit);
+        expect(trial, isNotNull);
+        controller.cancelActivity(trial!);
+        await idle(t);
+
         await tapText(t, 'Juegos');
         expect(find.text('Versión completa'), findsOneWidget);
         await tapText(t, 'Ver');

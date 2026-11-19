@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:material_ui/material_ui.dart';
 
@@ -186,7 +187,7 @@ Widget _instruction(String text, {IconData icon = Icons.touch_app_rounded}) =>
         Icon(icon, color: AppColors.leaf),
         const SizedBox(width: AppSpace.s),
         Expanded(
-          child: Text(
+          child: LText(
             text,
             style: AppText.body.copyWith(fontWeight: FontWeight.w700),
           ),
@@ -320,7 +321,7 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
             )
           else
             _instruction(
-              '${option.label}. $text',
+              '${localize(context, option.label)}. ${localize(context, text)}',
               icon: Icons.restaurant_rounded,
             ),
           const SizedBox(height: AppSpace.m),
@@ -417,7 +418,7 @@ class _CareOptionTile extends StatelessWidget {
     );
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Semantics(
+      child: LSemantics(
         button: true,
         selected: selected,
         child: Material(
@@ -444,7 +445,7 @@ class _CareOptionTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        LText(
                           choice.cost == 0
                               ? '${choice.label} · Gratis'
                               : choice.label,
@@ -456,9 +457,9 @@ class _CareOptionTile extends StatelessWidget {
                           runSpacing: 3,
                           children: [
                             for (final effect in choice.delta.entries)
-                              Semantics(
+                              LSemantics(
                                 label:
-                                    '${Texts.needLabels[effect.key]} '
+                                    '${localize(context, Texts.needLabels[effect.key]!)} '
                                     '${effect.value >= 0 ? '+' : ''}${effect.value}',
                                 excludeSemantics: true,
                                 child: Row(
@@ -470,7 +471,7 @@ class _CareOptionTile extends StatelessWidget {
                                       color: effect.key.color,
                                     ),
                                     const SizedBox(width: 3),
-                                    Text(
+                                    LText(
                                       '${effect.value >= 0 ? '+' : ''}${effect.value}',
                                       style: AppText.number.copyWith(
                                         fontSize: 13,
@@ -485,24 +486,27 @@ class _CareOptionTile extends StatelessWidget {
                     ),
                   ),
                   if (choice.cost > 0)
-                    Semantics(
+                    LSemantics(
                       label: '${choice.cost} monedas',
                       excludeSemantics: true,
                       child: Row(
                         children: [
                           const CoinIcon(size: 16),
                           const SizedBox(width: 4),
-                          Text('${choice.cost}', style: AppText.number),
+                          LText('${choice.cost}', style: AppText.number),
                         ],
                       ),
                     ),
                   if (locked)
-                    const Padding(
-                      padding: EdgeInsets.only(left: 6),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
                       child: Icon(
                         Icons.lock_rounded,
                         size: 15,
-                        semanticLabel: 'Versión completa',
+                        semanticLabel: localizeNullable(
+                          context,
+                          'Versión completa',
+                        ),
                       ),
                     ),
                   if (selected)
@@ -946,7 +950,7 @@ class _ZoneButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       button: true,
       label: '$label${done ? ', enjabonado' : ''}',
       excludeSemantics: true,
@@ -964,7 +968,7 @@ class _ZoneButton extends StatelessWidget {
               done ? Icons.check_circle_rounded : Icons.bubble_chart_outlined,
               color: done ? AppColors.leaf : AppColors.plum,
             ),
-            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            LText(label, maxLines: 1, overflow: TextOverflow.ellipsis),
             if (!done && progress > 0)
               SizedBox(
                 width: 40,
@@ -1199,12 +1203,12 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Elegir corte'),
+        title: const LText('Elegir corte'),
         children: [
           for (final item in c.balance.itemsFor(Slot.hair))
             ListTile(
-              title: Text(c.looks.labels[item.id]!),
-              subtitle: Text(
+              title: LText(c.looks.labels[item.id]!),
+              subtitle: LText(
                 c.pet.owned.contains(item.id)
                     ? 'Se puede guardar'
                     : 'Vista previa · Disponible en el armario',
@@ -1305,7 +1309,7 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
           ),
           if (live) ...[
             const SizedBox(height: 4),
-            Text(
+            LText(
               '${c.looks.labels[target]}${preview ? ' · Vista previa' : ''}',
               style: AppText.small,
             ),
@@ -1479,7 +1483,10 @@ class _SleepScreenState extends CareActivityState<SleepScreen, SleepGame> {
                         shape: const CircleBorder(),
                         color: AppColors.cream,
                         child: IconButton(
-                          tooltip: 'Interruptor de la sala',
+                          tooltip: localizeNullable(
+                            context,
+                            'Interruptor de la sala',
+                          ),
                           icon: const Icon(Icons.lightbulb_rounded),
                           color: AppColors.plum,
                           onPressed: g.canLightsOff ? g.lightsOff : null,

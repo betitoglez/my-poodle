@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show listEquals;
@@ -50,7 +52,7 @@ mixin _GameSession<W extends StatefulWidget> on State<W> {
           AppScope.feedbackOf(nav.context).play(Sfx.blocked);
           ScaffoldMessenger.of(nav.context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: LText(
                 c.gameBlocked ?? 'No se pudo guardar el inicio de la partida.',
               ),
             ),
@@ -236,7 +238,7 @@ class _OrchardScreenState extends State<OrchardScreen>
       controls: Row(
         children: [
           Expanded(
-            child: Text(
+            child: LText(
               _game!.showPenalty
                   ? _game!.lastPenaltyWasFall
                         ? 'Caída −${OrchardSim.fallPenaltySeconds} s. Vuelves al último apoyo.'
@@ -484,7 +486,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
       controls: Row(
         children: [
           Expanded(
-            child: Text(
+            child: LText(
               status,
               style: AppText.body.copyWith(fontWeight: FontWeight.w700),
             ),

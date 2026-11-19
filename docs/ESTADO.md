@@ -1,8 +1,37 @@
 # Estado de la implementación
 
+## Revisión de la candidata 0.5.0 (33) · 20-11-2026
+
+- Codex #6 detectó tres P2: giro de foto expresado en radianes frente a píxeles, etiquetas sin traducir al comprar varios artículos y colisión entre colas de escritura de dos pantallas del álbum. Corregidos: giro visible por toque, traducción individual y cola compartida por backend mediante referencias débiles.
+- La carrera se reproduce antes de la corrección (`photos-v1.json.tmp` ausente); la regresión pasa después. **221/221 pruebas** correctas y análisis sin incidencias.
+- Prueba nativa iOS con un simulador aislado **My Poodle Photo QA**, sin compras y con partida/álbum en memoria: PNG nativo 542×639, 37.709 píxeles de modelo visibles, cambio medio 16,08 por canal al girar, foto compuesta de 1.085.332 bytes y dos fotos (de pie y tumbado). Inspección visual correcta; [foto](reviews/testflight-20261120/photo.png), [tumbado](reviews/testflight-20261120/resting-photo.png) y [métricas](reviews/testflight-20261120/results.json). No sustituye aceptación en el iPhone físico.
+- La exportación automática encontró `No Accounts`; se creó el perfil explícito My Poodle App Store 20261120 y se exportó la IPA (32) con el certificado local existente. Firma de distribución estricta, 3D y 11 catálogos/nombres nativos verificados. Se prepara la (33) con las correcciones anteriores; el registro de la IPA concreta se genera localmente con su SHA-256.
+- App Store Connect: producto no consumible con 11 idiomas y grupo interno MVP Sandbox preparado, distribución manual. Ninguna build subida/distribuida todavía. El Mac está bloqueado y Xcode sin sesión, por lo que se ha solicitado desbloqueo/inicio de sesión; siguen pendientes precio autorizado y variante de nombre español de ficha.
+- Se solicita segunda revisión de Codex antes de fusionar; el resultado autoritativo de revisión/fusión está en [PR #6](https://github.com/betitoglez/my-poodle/pull/6).
+
+## Candidata MVP 0.5.0 (32) · 20-11-2026
+
+- Rama `codex/mvp-testflight-purchases` rebasada sobre main `f08fb2d`.
+- Interfaz de 11 variantes y nombres nativos implementados: 559 mensajes por idioma, selector persistente, inglés de respaldo y ambos scripts chinos. La traducción inicial requiere revisión lingüística humana antes de producción.
+- Modo foto con composición Flutter + PNG del visor nativo y álbum privado de 24 fotos; cupo premium de 24 h por juego, confirmado antes de entregar la sesión. Casos de fallo, concurrencia y reinicio probados.
+- Análisis y validadores de contenido/idiomas correctos; **218/218 pruebas**. Los 11 recorridos de pantalla 320×568 cubren nombre literal, foto/álbum, juegos y pregunta adulta. Compilación iOS Release sin firma correcta con 3D activo; aún no acredita captura nativa en iPhone.
+- Ficha Apple e IAP no consumible creados; IAP `6837002992` con 11 nombres/descripciones localizados. Precio real bloqueado por revisión automática hasta autorización explícita de 1,99 €. La variante del nombre español de ficha espera elección por colisión de «Mi Caniche».
+- En preparación: Archive/IPA firmado, revisión de Codex, subida/procesamiento y aceptación Sandbox/3D física. No se consideran completados por este registro.
+
+## Actualización de integración · 19-11-2026
+
+- Compras: PR #5 fusionada en main (`f08fb2d`), 193 pruebas y revisión Codex sin incidencias. Esto no acredita compra física iPhone.
+- App ID explícito registrado con In-App Purchase y ficha App Store Connect creada: Apple ID `6836995483`, Bundle ID `com.betitoglez.mypoodle`, SKU `mypoodle-ios`, inglés principal.
+- Apple rechaza el nombre exacto de ficha «Mi Caniche» por estar ocupado; se espera elección del propietario para una variante. El nombre nativo español sigue siendo Mi Caniche.
+- En desarrollo y validación: 11 idiomas, nombre nativo localizado, modo foto y cupo gratuito de juegos premium. La primera beta no se publica sin estos requisitos.
+
 Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (smoke test en iPhone; ver última sesión).
 
-**Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
+**Resumen histórico, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
+
+## Sesión 2026-11-19 · MVP y preparación de TestFlight
+
+Nuevo alcance confirmado: primera beta TestFlight con 11 idiomas, ambos chinos, nombres localizados, modo foto y un intento gratuito de cada juego premium cada 24 h. Inglés es respaldo y español usa Mi Caniche. Parejas, Simón de perritos y laberinto quedan en TODO por definir. Se integran las correcciones locales de compra conservando los avances del main; implementación y aceptación aún en curso. El alta y compra Apple, la subida de una build y su procesamiento no se declaran completados por tener código local.
 
 ## Sesión 2026-11-19 · Correcciones pendientes de compras
 
