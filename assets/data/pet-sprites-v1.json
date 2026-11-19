@@ -1,6 +1,9 @@
 {
  "schemaVersion": 1,
  "unitHeightPx": 520,
+ "hairAliases": {
+  "hair.show": "hair.pom"
+ },
  "poses": {
   "front": {
    "size": [

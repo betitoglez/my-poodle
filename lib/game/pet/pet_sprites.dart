@@ -73,6 +73,7 @@ class PetSprites {
     this.unitHeightPx,
     this.poses,
     this._hair,
+    this._hairAliases,
     this._items,
     this._expressions,
     this._states,
@@ -85,6 +86,7 @@ class PetSprites {
   final double unitHeightPx;
   final Map<String, SpritePose> poses;
   final Map<String, Map<String, _Entry>> _hair;
+  final Map<String, String> _hairAliases;
 
   /// artículo → pose → capa (null = «no se ve en esa pose»).
   final Map<String, Map<String, _Entry?>> _items;
@@ -165,7 +167,7 @@ class PetSprites {
 
   String _layerId(String id) => _variants[id]?.of ?? id;
   // The continental silhouette has a dedicated mesh in the 3D viewer.
-  String _hairLayerId(String id) => id == 'hair.show' ? 'hair.pom' : id;
+  String _hairLayerId(String id) => _hairAliases[id] ?? id;
 
   /// ¿Se conoce el artículo en el atlas (directo o como variante)?
   bool knowsItem(String id) => _items.containsKey(_layerId(id));
@@ -347,6 +349,8 @@ class PetSprites {
       (j['unitHeightPx'] as num).toDouble(),
       poses,
       nonNull('hair'),
+      (j['hairAliases'] as Map<String, dynamic>?)?.cast<String, String>() ??
+          const {},
       group('items'),
       nonNull('expressions'),
       states,

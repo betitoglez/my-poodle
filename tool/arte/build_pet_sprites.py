@@ -178,7 +178,8 @@ def main():
             os.remove(os.path.join(out_dir, f))
     ref_hair = spec['referenceHair']
     meta = {'schemaVersion': 1, 'unitHeightPx': spec['unitHeightPx'], 'poses': {}, 'hair': {}, 'items': {},
-            'expressions': {}, 'coats': spec['coats'], 'variants': spec.get('variants', {})}
+            'expressions': {}, 'coats': spec['coats'], 'variants': spec.get('variants', {}),
+            'hairAliases': spec.get('hairAliases', {})}
 
     # Unidad por pose de origen: altura del caniche de referencia (pies a cabeza).
     unit_src = {}

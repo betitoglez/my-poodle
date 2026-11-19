@@ -5,6 +5,9 @@
  "metaOut": "assets/data/pet-sprites-v1.json",
  "unitHeightPx": 520,
  "referenceHair": "hair.natural",
+ "hairAliases": {
+  "hair.show": "hair.pom"
+ },
  "poses": {
   "front": {
    "anchor": "feet",

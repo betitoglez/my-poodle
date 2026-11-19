@@ -48,10 +48,12 @@ final assets = [
   'assets/images/rooms/living.jpg',
   'assets/images/rooms/kitchen.jpg',
   'assets/images/rooms/bath.jpg',
+  'assets/images/rooms/bath_spa.jpg',
   'assets/images/rooms/salon.jpg',
   'assets/images/rooms/wardrobe.jpg',
   'assets/images/rooms/nursery.jpg',
   'assets/images/props/tub.webp',
+  'assets/images/props/bath_extras.webp',
   'assets/images/props/foam.webp',
   'assets/images/props/bowl_full.webp',
   'assets/images/props/bowl_empty.webp',
@@ -63,6 +65,21 @@ final assets = [
   'assets/images/icons/sick.webp',
   'assets/images/icons/tired.webp',
   'assets/images/rooms/vet.jpg',
+  for (final name in [
+    'basic',
+    'premium',
+    'salmon',
+    'vegan',
+    'cake',
+    'bone',
+    'bath_premium',
+    'bath_massage',
+    'drink_water',
+    'drink_bottled',
+    'drink_vitamins',
+    'drink_juice',
+  ])
+    'assets/images/food/$name.webp',
   'assets/images/materials/beanie-front-v1.png',
   'assets/images/materials/beanie-side-v1.png',
   'assets/images/materials/beanie-back-v1.png',
@@ -173,6 +190,15 @@ void main() {
   }
   if (balance != null) {
     final variants = group('variants');
+    final hair = group('hair');
+    final hairAliases = group('hairAliases');
+    for (final entry in hairAliases.entries) {
+      if (entry.value is! String || !hair.containsKey(entry.value)) {
+        errors.add(
+          'pet-sprites: el peinado ${entry.key} usa una base inexistente',
+        );
+      }
+    }
     for (final item in balance.styles) {
       if (item.slot == Slot.coat) {
         if (!group('coats').containsKey(item.id)) {
@@ -181,7 +207,8 @@ void main() {
         continue;
       }
       if (item.slot == Slot.hair) {
-        final entry = group('hair')[item.id] as Map<String, dynamic>?;
+        final entry =
+            hair[hairAliases[item.id] ?? item.id] as Map<String, dynamic>?;
         for (final pose in mainPoses) {
           if (entry == null || !entry.containsKey(pose)) {
             errors.add('pet-sprites: falta ${item.id} en la pose $pose');
