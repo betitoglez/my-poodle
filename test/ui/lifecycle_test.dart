@@ -5,6 +5,7 @@ import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/needs_clock.dart';
 import 'package:my_poodle/domain/rules.dart';
 import 'package:my_poodle/game/frisbee_game.dart';
+import 'package:my_poodle/ui/widgets/common.dart';
 import 'package:my_poodle/ui/widgets/scene_view.dart';
 import 'package:my_poodle/ui/widgets/status_bubbles.dart';
 
@@ -39,6 +40,26 @@ void main() {
       );
     },
   );
+
+  testWidgets('Casa recupera energía al volver del segundo plano', (t) async {
+    final backend = backendWith((s) => s);
+    final clock = FakeClock(t0);
+    await boot(t, backend, clock: clock);
+    await tapText(t, 'Descansar en su cama');
+    expect(saved(backend).restingSinceUtc, t0);
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    clock.advance(16 * 60 + 45);
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await t.pump();
+    final energy = t
+        .widgetList<NeedMeter>(find.byType(NeedMeter))
+        .singleWhere((meter) => meter.need == Need.energy);
+    expect(energy.value, 96);
+    await tapText(t, 'Despertar');
+    expect(saved(backend).restingSinceUtc, isNull);
+    expect(saved(backend).needPoints(Need.energy), 96);
+  });
 
   testWidgets('frisbee se congela en segundo plano hasta Continuar', (t) async {
     final backend = backendWith((s) => s);

@@ -314,6 +314,7 @@ void main() {
         PetCondition.dirty: Need.hygiene,
         PetCondition.sad: Need.mood,
         PetCondition.tired: Need.energy,
+        PetCondition.thirsty: Need.hydration,
         PetCondition.sick: null,
       },
     );

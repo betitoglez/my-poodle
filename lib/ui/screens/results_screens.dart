@@ -223,7 +223,7 @@ class _CareResultScreenState extends State<CareResultScreen> {
     final r = widget.receipt;
     final delta = AppScope.read(context).balance.care[widget.kind.name]!.delta;
     final room = switch (widget.kind) {
-      CareKind.feed => RoomKind.kitchen,
+      CareKind.feed || CareKind.drink => RoomKind.kitchen,
       CareKind.bath => RoomKind.bath,
       CareKind.groom => RoomKind.salon,
       CareKind.vet => RoomKind.vet,

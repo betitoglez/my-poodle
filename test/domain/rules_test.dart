@@ -59,7 +59,10 @@ void main() {
       'neck.none',
       'paws.none',
     });
-    expect([for (final n in Need.values) s.needPoints(n)], [65, 70, 75, 80]);
+    expect(
+      [for (final n in Need.values) s.needPoints(n)],
+      [65, 70, 75, 80, 90],
+    );
   });
 
   group('E02/E03 reloj', () {
@@ -123,7 +126,7 @@ void main() {
             .finishCare(s, CareKind.bath, 'b', t0)
             .after
             .needPoints(Need.hygiene),
-        95,
+        100,
       );
       expect(
         rules
@@ -220,9 +223,9 @@ void main() {
 
   group('E08/E09 premios y sesiones', () {
     test('fórmulas y rango', () {
-      expect([0, 7, 12].map(rules.fruitCoins), [2, 9, 14]);
+      expect([0, 7, 24].map(rules.fruitCoins), [2, 16, 50]);
       expect([0, 1, 2, 3].map(rules.frisbeeCoins), [3, 6, 9, 12]);
-      expect(() => rules.fruitCoins(13), throwsA(isA<RuleException>()));
+      expect(() => rules.fruitCoins(25), throwsA(isA<RuleException>()));
       expect(() => rules.frisbeeCoins(-1), throwsA(isA<RuleException>()));
     });
     test('juego terminado: +8 ánimo, −20 energía y −10 saciedad, récord', () {
@@ -249,7 +252,7 @@ void main() {
       expect(reg.receiptOf<String>(b), 'recibo');
       expect(reg.isOpen(b), isFalse);
     });
-    test('recorrido de control: 0 → 12 → 2 → 11', () {
+    test('recorrido de control: 0 → 12 → 2 → 18', () {
       var s = adopt();
       s = rules.finishGame(s, GameId.frisbee, 3, 'f1', t0).after;
       expect(s.coins, 12);
@@ -262,7 +265,7 @@ void main() {
       ) as Purchased).receipt.after;
       expect(s.coins, 2);
       s = rules.finishGame(s, GameId.fruit, 7, 'o1', t0).after;
-      expect(s.coins, 11);
+      expect(s.coins, 18);
       s = (rules.applyLook(
         s,
         s.appearance.withSlot(Slot.neck, 'neck.coral'),
@@ -270,7 +273,7 @@ void main() {
         t0,
         fullVersion: true,
       ) as Purchased).receipt.after;
-      expect(s.coins, 11);
+      expect(s.coins, 18);
     });
   });
 

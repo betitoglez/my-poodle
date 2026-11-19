@@ -72,7 +72,7 @@ class PetFx {
 
   /// 65 limpio; 64..52, 51..39, 38..26, 25..13, 12..0.
   int get dirtStage =>
-      hygiene >= 65 ? 0 : ((64 - hygiene.clamp(0, 64)) ~/ 13 + 1).clamp(1, 5);
+      hygiene >= 65 ? 0 : (((65 - hygiene.clamp(0, 65)) * 6 + 64) ~/ 65);
   PetFx withHygiene(int value) =>
       PetFx(wet: wet, foam: foam, messy: messy, sick: sick, hygiene: value);
 

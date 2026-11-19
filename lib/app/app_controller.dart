@@ -8,7 +8,7 @@ import '../data/storage_backend.dart';
 import '../domain/appearance.dart';
 import '../domain/balance.dart';
 import '../domain/entitlements.dart';
-import '../domain/food.dart';
+import '../domain/care_options.dart';
 import '../domain/needs_clock.dart';
 import '../domain/pet_name.dart';
 import '../domain/pet_state.dart';
@@ -169,24 +169,28 @@ class AppController extends ChangeNotifier {
     PetState candidate,
     T value, {
     void Function()? onCommitted,
-  }) {
-    return _serial(() async {
-      saving = true;
+  }) => _serial(() => _write(candidate, value, onCommitted: onCommitted));
+
+  Future<ActionResult<T>> _write<T>(
+    PetState candidate,
+    T value, {
+    void Function()? onCommitted,
+  }) async {
+    saving = true;
+    notifyListeners();
+    try {
+      await _store.write(candidate);
+      _confirmed = candidate;
+      _pending = null;
+      onCommitted?.call();
+      return Done<T>(value);
+    } catch (e) {
+      _pending = _Pending(candidate, onCommitted ?? () {});
+      return SaveFailed<T>(e);
+    } finally {
+      saving = false;
       notifyListeners();
-      try {
-        await _store.write(candidate);
-        _confirmed = candidate;
-        _pending = null;
-        onCommitted?.call();
-        return Done<T>(value);
-      } catch (e) {
-        _pending = _Pending(candidate, onCommitted ?? () {});
-        return SaveFailed<T>(e);
-      } finally {
-        saving = false;
-        notifyListeners();
-      }
-    });
+    }
   }
 
   /// Reintenta el candidato pendiente. Ante un resultado incierto relee el
@@ -246,15 +250,41 @@ class AppController extends ChangeNotifier {
     return r;
   }
 
-  String? careBlocked(CareKind kind, {Food food = Food.basic}) =>
-      rules.careBlocked(
-        pet,
-        kind,
-        clock.nowUtcSeconds(),
-        food: food,
-        fullVersion: fullVersion,
-      );
+  String? careBlocked(CareKind kind, {CareOption? option}) => rules.careBlocked(
+    pet,
+    kind,
+    clock.nowUtcSeconds(),
+    option: option,
+    fullVersion: fullVersion,
+  );
   String? get gameBlocked => rules.gameBlocked(pet, clock.nowUtcSeconds());
+
+  int careWaitSeconds(CareKind kind) => rules.careWaitSeconds(
+    pet,
+    kind,
+    clock.nowUtcSeconds(),
+    fullVersion: fullVersion,
+  );
+
+  Future<void> setHomeResting(bool resting) => _serial(() async {
+    final state = _confirmed;
+    if (state == null ||
+        hasPending ||
+        (state.restingSinceUtc != null) == resting) {
+      return;
+    }
+    final now = clock.nowUtcSeconds();
+    final next = rules.clock
+        .advance(state, now)
+        .copyWith(
+          restingSinceUtc: resting ? now : null,
+          restEnergyCursorUtc: resting ? now : null,
+          wake: !resting,
+          revision: state.revision + 1,
+          lastCommitId: 'home-rest-$now-${state.revision}',
+        );
+    await _write(next, next);
+  });
 
   String beginActivity(String activityId) {
     final kind = CareKind.values.where((k) => k.name == activityId).firstOrNull;
@@ -293,10 +323,22 @@ class AppController extends ChangeNotifier {
 
   void cancelActivity(String sessionId) => sessions.cancel(sessionId);
 
+  Future<void> rewardGreeting() => _serial(() async {
+    final state = _confirmed;
+    if (state == null || hasPending) return;
+    final now = clock.nowUtcSeconds();
+    final next = rules.rewardGreeting(
+      state,
+      'greeting-$now-${state.revision}',
+      now,
+    );
+    if (next != null) await _write(next, next);
+  });
+
   Future<ActionResult<Receipt>> finishCare(
     String sessionId,
     CareKind kind, {
-    Food food = Food.basic,
+    CareOption? option,
     String? groomingHair,
   }) async {
     final previous = sessions.receiptOf<Receipt>(sessionId);
@@ -308,7 +350,7 @@ class AppController extends ChangeNotifier {
       return const Ignored();
     }
     if (sessions.activityOf(sessionId) != kind.name ||
-        careBlocked(kind, food: food) != null) {
+        careBlocked(kind, option: option) != null) {
       return const Ignored();
     }
     final receipt = rules.finishCare(
@@ -316,7 +358,7 @@ class AppController extends ChangeNotifier {
       kind,
       sessionId,
       clock.nowUtcSeconds(),
-      food: food,
+      option: option,
       fullVersion: fullVersion,
       groomingHair: groomingHair,
     );
@@ -390,10 +432,21 @@ class AppController extends ChangeNotifier {
     return _commit(next, p);
   }
 
-  Future<void> markHintSeen(String key) async {
-    if (_confirmed == null || prefs.seenHints.contains(key)) return;
-    await updatePrefs(prefs.copyWith(seenHints: {...prefs.seenHints, key}));
-  }
+  Future<void> markHintSeen(String key) => _serial(() async {
+    final state = _confirmed;
+    if (state == null || hasPending || state.prefs.seenHints.contains(key)) {
+      return;
+    }
+    final preferences = state.prefs.copyWith(
+      seenHints: {...state.prefs.seenHints, key},
+    );
+    final next = state.copyWith(
+      prefs: preferences,
+      revision: state.revision + 1,
+      lastCommitId: 'hint-${clock.nowUtcSeconds()}-${state.revision}',
+    );
+    await _write(next, preferences);
+  });
 
   /// Reinicio confirmado desde la zona adulta.
   Future<void> resetGame() => _serial(() async {
@@ -468,6 +521,7 @@ class AppController extends ChangeNotifier {
         Need.hygiene: 1800,
         Need.mood: 2500,
         Need.energy: 900,
+        Need.hydration: 1000,
       },
     ),
   );

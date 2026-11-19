@@ -45,12 +45,14 @@ class OrchardGame extends FlameGame {
   double camX = 0;
   double time = 0;
   double _penaltyLeft = 0;
+  bool lastPenaltyWasFall = false;
   int _fruitMask = 0;
   Image? _bg;
   final List<(Offset, double)> _sparkles = [];
 
   /// Escala: píxeles por unidad de juego, ajustada para ver el siguiente salto.
-  double get scale => math.min(size.x / 4.8, size.y / 3.4);
+  double get _zoom => 1 / (1 + sim.routeProgress * .45);
+  double get scale => math.min(size.x / 4.8, size.y / 3.4) * _zoom;
   double get groundScreenY => size.y * 0.8;
   bool get showPenalty => _penaltyLeft > 0;
 
@@ -68,6 +70,7 @@ class OrchardGame extends FlameGame {
     sim.respawning || sim.blocked || waitForStart ? 0 : (sim.grounded ? 1 : 2),
     _fruitMask,
     time,
+    _zoom,
   ];
 
   void start() => waitForStart = false;
@@ -127,7 +130,8 @@ class OrchardGame extends FlameGame {
     time += dt;
     final secondsBefore = sim.remaining.ceil(), scoreBefore = sim.score;
     final penaltyBefore = showPenalty;
-    final jumpsBefore = sim.jumpsStarted, fallsBefore = sim.falls;
+    final jumpsBefore = sim.jumpsStarted;
+    final fallsBefore = sim.falls, hitsBefore = sim.collisions;
     _penaltyLeft = math.max(0, _penaltyLeft - dt);
     sim.advance(dt);
     for (final id in sim.justCollected) {
@@ -138,8 +142,9 @@ class OrchardGame extends FlameGame {
       onEvent?.call('apple');
     }
     if (sim.jumpsStarted != jumpsBefore) onEvent?.call('jump');
-    if (sim.falls != fallsBefore) {
+    if (sim.falls != fallsBefore || sim.collisions != hitsBefore) {
       _penaltyLeft = 1.3;
+      lastPenaltyWasFall = sim.falls != fallsBefore;
       onEvent?.call('fall');
     }
     for (var i = _sparkles.length - 1; i >= 0; i--) {
@@ -201,6 +206,44 @@ class OrchardGame extends FlameGame {
   }
 
   void _world(Canvas c) {
+    for (final barrier in sim.level.barriers) {
+      final center = toScreen(barrier.x, barrier.ground);
+      final height = scale * barrier.height, width = scale * barrier.width;
+      if (center.dx < -width || center.dx > size.x + width) continue;
+      final bounds = Rect.fromLTWH(
+        center.dx - width / 2,
+        center.dy - height,
+        width,
+        height,
+      );
+      if (barrier.kind == BarrierKind.hedge) {
+        c.drawRRect(
+          RRect.fromRectAndRadius(bounds, Radius.circular(height * .3)),
+          Paint()..color = const Color(0xFF47713D),
+        );
+        for (var i = 0; i < 6; i++) {
+          c.drawCircle(
+            Offset(
+              bounds.left + width * (.16 + .14 * i),
+              bounds.top + height * (.3 + .12 * (i % 3)),
+            ),
+            width * .19,
+            Paint()..color = const Color(0xFF699955),
+          );
+        }
+      } else {
+        final wood = Paint()
+          ..color = const Color(0xFF967147)
+          ..strokeWidth = scale * .053;
+        for (final x in [bounds.left, bounds.right]) {
+          c.drawLine(Offset(x, bounds.top), Offset(x, bounds.bottom), wood);
+        }
+        for (final h in [.3, .68]) {
+          final y = bounds.top + height * h;
+          c.drawLine(Offset(bounds.left, y), Offset(bounds.right, y), wood);
+        }
+      }
+    }
     for (final p in sim.level.platforms) {
       final a = toScreen(p.x0, p.top), b = toScreen(p.x1, -4);
       if (b.dx < -10 || a.dx > size.x + 10) continue;

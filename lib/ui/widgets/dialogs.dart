@@ -4,8 +4,41 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_controller.dart';
 import '../../app/app_scope.dart';
+import '../../domain/rules.dart';
+import '../ask_adult_view.dart';
 import '../theme.dart';
 import 'common.dart';
+
+void showCareBlocked(BuildContext context, CareKind kind, String reason) {
+  final controller = AppScope.read(context);
+  final cooldown =
+      reason.startsWith('Podrás repetir') &&
+      controller.careWaitSeconds(kind) > 0;
+  final vetPrice =
+      kind == CareKind.vet &&
+      controller.pet.coins < Rules.vetCost &&
+      reason.startsWith('Necesitas');
+  final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      content: vetPrice
+          ? Row(
+              children: [
+                const CoinIcon(size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(reason)),
+              ],
+            )
+          : Text(reason),
+      action: cooldown
+          ? SnackBarAction(
+              label: 'Versión completa',
+              onPressed: () => showAskAdult(context),
+            )
+          : null,
+    ),
+  );
+}
 
 class _DialogFrame extends StatelessWidget {
   const _DialogFrame({
@@ -129,12 +162,15 @@ Future<bool> showPurchaseDialog(
   required List<String> items,
   required int price,
   required int balance,
+  String title = 'Comprar y usar',
+  String confirmLabel = 'Confirmar',
+  String? note,
 }) async {
   final r = await showDialog<bool>(
     context: context,
     builder: (c) => _DialogFrame(
       icon: Icons.shopping_bag_rounded,
-      title: 'Comprar y usar',
+      title: title,
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -148,6 +184,10 @@ Future<bool> showPurchaseDialog(
           _row('Saldo actual', balance),
           const Divider(),
           _row('Saldo restante', balance - price, bold: true),
+          if (note != null) ...[
+            const SizedBox(height: AppSpace.s),
+            Text(note, textAlign: TextAlign.center),
+          ],
         ],
       ),
       actions: [
@@ -158,7 +198,7 @@ Future<bool> showPurchaseDialog(
           onPressed: () => Navigator.pop(c, false),
         ),
         AppButton(
-          label: 'Confirmar',
+          label: confirmLabel,
           icon: Icons.check_rounded,
           onPressed: () => Navigator.pop(c, true),
         ),

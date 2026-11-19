@@ -2,6 +2,8 @@
 /// representa y los widgets emiten intenciones; aquí se decide qué cuenta.
 library;
 
+import 'care_options.dart';
+
 abstract class StepActivity {
   int get done;
   int get total;
@@ -36,53 +38,177 @@ class FeedActivity extends StepActivity {
   void chewDone() => _chewing = false;
 }
 
-enum BathPhase { wet, soap, rinse, dry, done }
+enum BathPhase { wet, soap, rinse, dry, done, salts, massage, nails, curl }
 
 enum BathZone { back, paws, chest, head }
 
 /// Cinco segundos de ducha y aclarado; frotar todo el cuerpo y secar.
 class BathActivity extends StepActivity {
+  static const toolSeconds = 5.0;
+  static const _zoneOrder = [
+    BathZone.head,
+    BathZone.back,
+    BathZone.chest,
+    BathZone.paws,
+  ];
+
   BathPhase _phase = BathPhase.wet;
+  BathPlan _plan = BathPlan.standard;
+  bool _selected = false;
+  List<double> _extra = [];
+
+  void select(BathPlan plan) {
+    if (_selected || _phase != BathPhase.wet || toolProgress > 0) return;
+    _selected = true;
+    _plan = plan;
+    if (plan == BathPlan.massage) _extraPhase(BathPhase.salts, 1);
+  }
+
   final Map<BathZone, double> _foam = {for (final z in BathZone.values) z: 0};
-  double _seconds = 0;
+  final Map<BathZone, double> _exposure = {
+    for (final z in BathZone.values) z: 0,
+  };
+  double get _secondsPerZone => toolSeconds / BathZone.values.length;
   BathPhase get phase => _phase;
-  double get toolProgress => (_seconds / 5).clamp(0, 1);
+  double get toolProgress =>
+      _exposure.values.fold(0.0, (total, seconds) => total + seconds) /
+      toolSeconds;
+  double _zoneProgress(BathZone z) => _exposure[z]! / _secondsPerZone;
+  double wetness(BathZone z) => switch (_phase) {
+    BathPhase.wet => _zoneProgress(z),
+    BathPhase.soap || BathPhase.rinse || BathPhase.massage => 1,
+    BathPhase.dry => 1 - _zoneProgress(z),
+    _ => 0,
+  };
   double foam(BathZone z) => _foam[z]!;
+  double visibleFoam(BathZone z) =>
+      _phase == BathPhase.rinse ? foam(z) * (1 - _zoneProgress(z)) : foam(z);
+
+  BathZone? toolZone([BathZone? preferred]) {
+    if (_phase != BathPhase.wet &&
+        _phase != BathPhase.rinse &&
+        _phase != BathPhase.dry) {
+      return null;
+    }
+    if (preferred != null && _zoneProgress(preferred) < 1) return preferred;
+    return _zoneOrder.where((z) => _zoneProgress(z) < 1).firstOrNull;
+  }
+
   bool zoneDone(BathZone z) => _foam[z]! >= 1;
   int get zonesDone => BathZone.values.where(zoneDone).length;
+  int get _saltStep => _plan == BathPlan.massage ? 1 : 0;
   @override
   int get done => switch (_phase) {
-    BathPhase.wet => 0,
-    BathPhase.soap => 1 + zonesDone,
-    BathPhase.rinse => 5,
-    BathPhase.dry => 6,
-    BathPhase.done => 7,
+    BathPhase.salts => 0,
+    BathPhase.wet => _saltStep,
+    BathPhase.soap => 1 + zonesDone + _saltStep,
+    BathPhase.rinse => 5 + _saltStep,
+    BathPhase.massage || BathPhase.nails => 7,
+    BathPhase.dry => _plan == BathPlan.massage ? 8 : 6,
+    BathPhase.curl => 8,
+    BathPhase.done => total,
   };
   @override
-  int get total => 7;
+  int get total => _plan == BathPlan.standard ? 7 : 9;
   @override
   bool get completed => _phase == BathPhase.done;
-  bool _hold(BathPhase from, BathPhase to, double seconds) {
+  bool _hold(
+    BathPhase from,
+    BathPhase to,
+    double seconds,
+    BathZone? preferred,
+  ) {
     if (_phase != from || !seconds.isFinite || seconds <= 0) return false;
-    _seconds = (_seconds + seconds).clamp(0, 5);
-    if (_seconds >= 5 - 1e-6) {
+    var remaining = seconds;
+    while (remaining > 0) {
+      final zone = toolZone(preferred);
+      if (zone == null) break;
+      final needed = _secondsPerZone - _exposure[zone]!;
+      if (remaining + 1e-6 >= needed) {
+        _exposure[zone] = _secondsPerZone;
+        remaining -= needed;
+      } else {
+        _exposure[zone] = _exposure[zone]! + remaining;
+        remaining = 0;
+      }
+    }
+    if (toolZone() == null) {
       _phase = to;
-      _seconds = 0;
-      if (from == BathPhase.rinse) {
-        for (final z in BathZone.values) {
-          _foam[z] = 0;
-        }
+      for (final z in BathZone.values) {
+        _exposure[z] = 0;
+        if (from == BathPhase.rinse) _foam[z] = 0;
+      }
+      if (to == BathPhase.massage) _extraPhase(to, 3);
+      if (to == BathPhase.nails) _extraPhase(to, 4);
+    }
+    return true;
+  }
+
+  bool wet([double seconds = 0.1, BathZone? zone]) =>
+      _hold(BathPhase.wet, BathPhase.soap, seconds, zone);
+  bool rinse([double seconds = 0.1, BathZone? zone]) => _hold(
+    BathPhase.rinse,
+    _plan == BathPlan.massage ? BathPhase.massage : BathPhase.dry,
+    seconds,
+    zone,
+  );
+  bool dry([double seconds = 0.1, BathZone? zone]) => _hold(
+    BathPhase.dry,
+    _plan == BathPlan.premium ? BathPhase.nails : BathPhase.done,
+    seconds,
+    zone,
+  );
+
+  void _extraPhase(BathPhase phase, int targets) {
+    _phase = phase;
+    _extra = List.filled(targets, 0);
+  }
+
+  int get extraTargets => _extra.length;
+  double extraTargetProgress(int index) => _extra[index];
+  double get extraProgress => _extra.isEmpty
+      ? 0
+      : _extra.fold(0.0, (sum, value) => sum + value) / _extra.length;
+  double get curlProgress => _phase == BathPhase.curl
+      ? extraProgress
+      : (_plan == BathPlan.premium && completed ? 1 : 0);
+  int? get nextExtraTarget =>
+      _extra.indexed.where((entry) => entry.$2 < 1).firstOrNull?.$1;
+
+  bool applyExtra(double seconds, int index) {
+    if (!seconds.isFinite ||
+        seconds <= 0 ||
+        index < 0 ||
+        index >= _extra.length ||
+        _extra[index] >= 1) {
+      return false;
+    }
+    final duration = switch (_phase) {
+      BathPhase.salts => 1.2,
+      BathPhase.massage => 1.5,
+      BathPhase.nails => .4,
+      BathPhase.curl => 1.3,
+      _ => throw StateError('La fase no usa herramientas adicionales'),
+    };
+    final progress = _extra[index] + seconds / duration;
+    _extra[index] = progress >= 1 - 1e-6 ? 1 : progress;
+    if (nextExtraTarget == null) {
+      switch (_phase) {
+        case BathPhase.salts:
+          _extraPhase(BathPhase.wet, 0);
+        case BathPhase.massage:
+          _extraPhase(BathPhase.dry, 0);
+        case BathPhase.nails:
+          _extraPhase(BathPhase.curl, 2);
+        case BathPhase.curl:
+          _extraPhase(BathPhase.done, 0);
+        default:
+          break;
       }
     }
     return true;
   }
 
-  bool wet([double seconds = 0.1]) =>
-      _hold(BathPhase.wet, BathPhase.soap, seconds);
-  bool rinse([double seconds = 0.1]) =>
-      _hold(BathPhase.rinse, BathPhase.dry, seconds);
-  bool dry([double seconds = 0.1]) =>
-      _hold(BathPhase.dry, BathPhase.done, seconds);
   bool soap(BathZone z, [double amount = 0.15]) {
     if (_phase != BathPhase.soap ||
         zoneDone(z) ||

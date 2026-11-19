@@ -238,12 +238,48 @@ function finishGate(x) {
   return marker;
 }
 
+function barrierModel([x, ground, width, height, kind]) {
+  const group = new THREE.Group();
+  group.position.set(x, ground, 0);
+  if (kind === 0) {
+    const posts = material('#946741'), rails = material('#c49867');
+    group.rotation.y = -.48;
+    for (const z of [-.47, .47]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(width, height, .105), posts);
+      post.position.set(0, height / 2, z);
+      group.add(post);
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(width * .54, .08, 4), rails);
+      cap.position.set(0, height + .015, z);
+      cap.rotation.y = Math.PI / 4;
+      group.add(cap);
+    }
+    for (const position of [.35, .76]) {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(width * .53, .084, .98), rails);
+      rail.position.y = height * position;
+      group.add(rail);
+    }
+  } else {
+    const foliage = new THREE.IcosahedronGeometry(1, 1);
+    const tones = ['#4d7337', '#688c43', '#729747'].map(color => material(color));
+    for (let i = 0; i < 12; i++) {
+      const tuft = new THREE.Mesh(foliage, tones[i % tones.length]);
+      tuft.position.set((i % 2 ? -.11 : .11) * width, height * (.47 + (i % 3) * .063),
+        -.55 + i * .1);
+      tuft.scale.set(width * .40, height * .42, .23);
+      group.add(tuft);
+    }
+  }
+  return group;
+}
+
 export function makeOrchard(level) {
   const group = new THREE.Group();
   const soil = soilTexture(false), brick = soilTexture(true), turf = turfTexture();
   const blade = new THREE.ConeGeometry(1,1,3), grass = material('#ffffff');
   const platforms = level.platforms.map(p => slab(...p, soil, brick, turf, blade, grass));
   for (const platform of platforms) group.add(platform.group);
+  const barriers = (level.barriers ?? []).map(barrierModel);
+  group.add(...barriers);
   const fruit = level.fruit.map(([x,y,kind]) => {
     const mesh = fruitModel(kind);
     mesh.position.set(x,y,.12);
@@ -267,9 +303,10 @@ export function makeOrchard(level) {
     g.addColorStop(.40,'#372921'); g.addColorStop(1,'#211c1b');
     ctx.fillStyle = g; ctx.fillRect(0,0,32,256);
   });
-  const undergrowth = new THREE.Mesh(new THREE.PlaneGeometry(85,3.6),
+  const [first, last] = [platforms[0], platforms.at(-1)];
+  const undergrowth = new THREE.Mesh(new THREE.PlaneGeometry(last.x1 - first.x0 + 16,3.6),
     new THREE.MeshBasicMaterial({map:pit,transparent:true,depthWrite:false}));
-  undergrowth.position.set(26,-1.92,-.76);
+  undergrowth.position.set((first.x0 + last.x1) * .5,-1.92,-.76);
   undergrowth.renderOrder = -1;
   group.add(undergrowth);
 
@@ -277,6 +314,9 @@ export function makeOrchard(level) {
     group.position.x = -camera;
     for (const platform of platforms) {
       platform.group.visible = platform.x1 >= camera - 1 && platform.x0 <= camera + width + 1;
+    }
+    for (const barrier of barriers) {
+      barrier.visible = barrier.position.x >= camera - 1 && barrier.position.x <= camera + width + 1;
     }
     for (const [i, entry] of fruit.entries()) {
       const { mesh } = entry;
@@ -339,7 +379,7 @@ export function makeOrchardPose(body, bones) {
       const a = gallop[end-1], b = gallop[end];
       const t = THREE.MathUtils.smoothstep(phase,a[0],b[0]);
       const mix = (left,right) => THREE.MathUtils.lerp(left,right,t);
-      body.position.y = mix(a[1],b[1]);
+      body.position.y = mix(a[1], b[1]) * .32;
       pitch = mix(a[2],b[2]); nod = mix(a[3],b[3]);
       swing = a[4].map((n,i) => mix(n,b[4][i]));
       bend = a[5].map((n,i) => mix(n,b[5][i]));

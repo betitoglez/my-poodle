@@ -23,7 +23,7 @@ class PoodleViewFactory(private val messenger: BinaryMessenger) :
 
 private class PoodleView(context: Context, private val channel: MethodChannel) : PlatformView {
     private val web = WebView(context)
-    private var configuration = "{}"
+    private var configuration: String? = null
     private var ready = false
     private var disposed = false
 
@@ -70,6 +70,18 @@ private class PoodleView(context: Context, private val channel: MethodChannel) :
                     if (delta.isFinite()) execute("rotate($delta)")
                 }
                 "pet" -> execute("pet()")
+                "petAt" -> {
+                    val point = (call.arguments as List<*>).map { (it as Number).toDouble() }
+                    if (ready && !disposed && point.size == 2 &&
+                        point.all { it.isFinite() && it in 0.0..1.0 }) {
+                        web.evaluateJavascript("window.poodle.petAt(${JSONArray(point)})") {
+                            result.success(it.toIntOrNull() ?: 0)
+                        }
+                    } else {
+                        result.success(0)
+                    }
+                    return@setMethodCallHandler
+                }
                 "front" -> execute("front()")
                 "feed" -> execute("feed(${JSONArray(call.arguments as List<*>)})")
                 "bath" -> execute("bath(${JSONArray(call.arguments as List<*>)})")
@@ -99,9 +111,14 @@ private class PoodleView(context: Context, private val channel: MethodChannel) :
             web.post {
                 if (!disposed) {
                     ready = true
-                    execute("configure($configuration)")
-                    channel.invokeMethod("ready", null)
+                    configuration?.let { execute("configure($it)") }
                 }
+            }
+        }
+        @JavascriptInterface
+        fun rendered() {
+            web.post {
+                if (!disposed) channel.invokeMethod("ready", null)
             }
         }
         @JavascriptInterface

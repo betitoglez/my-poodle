@@ -172,6 +172,21 @@ export function makeSleep() {
   group.add(piping(0.694, 0.183, 0.0065, '#deb29d'));
   group.add(piping(0.737, 0.064, 0.005, '#80554c'));
 
+  const materials = group.children.map(mesh => [mesh.material, mesh.material.transparent]);
+  let previousReveal = -1;
+  function reveal(opacity) {
+    if (opacity === previousReveal) return;
+    previousReveal = opacity;
+    for (const [material, transparent] of materials) {
+      material.opacity = opacity;
+      const blending = transparent || opacity < 1;
+      if (material.transparent !== blending) {
+        material.transparent = blending;
+        material.needsUpdate = true;
+      }
+    }
+  }
+
   const throwCloth = makeBlanket();
   group.add(throwCloth.mesh);
 
@@ -189,7 +204,7 @@ export function makeSleep() {
     return [bounds.min.x - 0.015, bounds.min.y - 0.044, bounds.max.x + 0.015, bounds.max.y + 0.015];
   }
 
-  return { group, screenBounds, blanket: throwCloth.update };
+  return { group, screenBounds, reveal, blanket: throwCloth.update };
 }
 
 // The rig uses bone-local axes. Convert the lateral axis of the dog into that space.
@@ -220,7 +235,8 @@ export function makeSleepPose(body, bones) {
     body.scale.setScalar(fromBeside ? 0.79 + approach * 0.21 : 1);
     body.rotation.y = fromBeside ? -0.30 * (1 - approach) : 0;
     body.position.set(fromBeside ? -0.34 * (1 - approach) : 0,
-      0.205 * (fromBeside ? approach : curl) + (fromBeside && !reduced ? Math.abs(gait) * 0.032 : 0),
+      0.205 * (fromBeside ? approach : smooth(arrival, 0.10, 0.58)) +
+        (fromBeside && !reduced ? Math.abs(gait) * 0.032 : 0),
       fromBeside ? -0.54 * (1 - approach) : 0);
     if (fromBeside && !reduced && approach < 1) {
       for (const side of ['der', 'izq']) {
@@ -235,4 +251,40 @@ export function makeSleepPose(body, bones) {
   }
 
   return { reset, update };
+}
+
+export function makeSleepGlyphs(head, parent) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 64;
+  const context = canvas.getContext('2d');
+  context.font = 'bold 50px sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.strokeStyle = '#fff8ef';
+  context.lineWidth = 6;
+  context.strokeText('z', 32, 30);
+  context.fillStyle = '#694867';
+  context.fillText('z', 32, 30);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const point = new THREE.Vector3();
+  const glyphs = Array.from({ length: 3 }, () => {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: texture, transparent: true, depthWrite: false, toneMapped: false,
+    }));
+    sprite.visible = false;
+    parent.add(sprite);
+    return sprite;
+  });
+  return (visible, time, reduced) => {
+    if (visible) parent.worldToLocal(head.getWorldPosition(point));
+    for (const [index, glyph] of glyphs.entries()) {
+      glyph.visible = visible;
+      if (!visible) continue;
+      const t = ((reduced ? .15 : time * .00045) + index / 3) % 1;
+      glyph.position.copy(point).add(new THREE.Vector3(.07 + t * .15, .18 + t * .24, .12));
+      glyph.scale.setScalar(.095 + t * .066);
+      glyph.material.opacity = .94 - t * .72;
+    }
+  };
 }

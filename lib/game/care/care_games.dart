@@ -26,6 +26,7 @@ Future<Image?> _prop(StageGame g, String path) async {
 
 mixin _CareToolArt on StageGame {
   Image? _toolAtlas;
+  Image? _bathExtrasAtlas;
 
   @override
   Future<void> onLoad() async {
@@ -39,7 +40,14 @@ mixin _CareToolArt on StageGame {
     Offset at,
     double size,
     double time,
-  ) => paintCareTool(canvas, tool, at, size, time, _toolAtlas);
+  ) => paintCareTool(
+    canvas,
+    tool,
+    at,
+    size * 2,
+    time,
+    tool.index >= CareTool.nailClippers.index ? _bathExtrasAtlas : _toolAtlas,
+  );
 }
 
 void _drawImage(
@@ -71,9 +79,24 @@ class FeedGame extends StageGame {
     super.reducedMotion,
     super.onChanged,
     required this.activity,
+    this.drinking = false,
   }) : super(room: RoomKind.kitchen, floorY: 0.66, petScale: 0.56);
 
   final FeedActivity activity;
+  final bool drinking;
+  Color waterColor = const Color(0xFF83C6E7);
+  bool hasWater = false;
+  double _pourLeft = 0;
+  bool get pouring => _pourLeft > 0;
+  double get _pourSeconds => reducedMotion ? .3 : .8;
+  void fillWater() {
+    if (!drinking || hasWater) return;
+    hasWater = true;
+    _pourLeft = _pourSeconds;
+    onChewFrame?.call();
+    notify();
+  }
+
   double _chewLeft = 0;
   double _visualElapsed = 0;
   bool _useLiveModel = false;
@@ -86,9 +109,15 @@ class FeedGame extends StageGame {
   double get biteProgress =>
       _chewLeft > 0 ? (1 - _chewLeft / chewSeconds).clamp(0.0, 1.0) : 0;
 
-  double get liveBowlFill => activity.chewing && biteProgress < 0.45
-      ? activity.bowlFill + 1 / activity.total
-      : activity.bowlFill;
+  double get liveBowlFill {
+    if (drinking) {
+      if (!hasWater) return 0;
+      if (pouring) return 1 - _pourLeft / _pourSeconds;
+    }
+    return activity.chewing && biteProgress < 0.45
+        ? activity.bowlFill + 1 / activity.total
+        : activity.bowlFill;
+  }
 
   set useLiveModel(bool value) {
     _useLiveModel = value;
@@ -145,7 +174,7 @@ class FeedGame extends StageGame {
   void _bowl(Canvas c) {
     final r = bowlRect;
     final full = _bowlFull, empty = _bowlEmpty;
-    if (full != null && empty != null) {
+    if (!drinking && full != null && empty != null) {
       c.drawOval(
         Rect.fromCenter(
           center: r.bottomCenter - Offset(0, r.height * 0.06),
@@ -176,7 +205,7 @@ class FeedGame extends StageGame {
       r.translate(0, r.height * 0.3),
       Paint()..color = const Color(0x2234283B),
     );
-    final fill = activity.bowlFill;
+    final fill = liveBowlFill;
     if (fill > 0) {
       final mound = Rect.fromCenter(
         center:
@@ -184,7 +213,10 @@ class FeedGame extends StageGame {
         width: r.width * (0.55 + 0.3 * fill),
         height: r.height * (0.25 + 0.55 * fill),
       );
-      c.drawOval(mound, Paint()..color = const Color(0xFF9C6A3C));
+      c.drawOval(
+        drinking ? mound.deflate(mound.height * .17) : mound,
+        Paint()..color = drinking ? waterColor : const Color(0xFF9C6A3C),
+      );
     }
     final body = Path()
       ..moveTo(r.left, r.top + r.height * 0.2)
@@ -207,6 +239,7 @@ class FeedGame extends StageGame {
 
   /// Intento de bocado (botón o toque en el cuenco).
   bool bite() {
+    if (drinking && (!hasWater || pouring)) return false;
     if (!activity.bite()) return false;
     _chewLeft = chewSeconds;
     _visualElapsed = 0;
@@ -220,6 +253,11 @@ class FeedGame extends StageGame {
   @override
   void update(double dt) {
     super.update(dt);
+    if (pouring) {
+      _pourLeft = math.max(0, _pourLeft - dt);
+      onChewFrame?.call();
+      if (!pouring) notify();
+    }
     if (_chewLeft > 0) {
       _chewLeft -= dt;
       if (_chewLeft <= 0) {
@@ -239,7 +277,12 @@ class FeedGame extends StageGame {
 
   @override
   void tapAt(Offset p) {
-    if (bowlRect.inflate(16).contains(p)) bite();
+    if (!bowlRect.inflate(16).contains(p)) return;
+    if (drinking && !hasWater) {
+      fillWater();
+    } else {
+      bite();
+    }
   }
 }
 
@@ -257,12 +300,23 @@ class BathGame extends StageGame with _CareToolArt {
   }) : super(room: RoomKind.bath, floorY: 0.7, petScale: 0.56);
 
   final BathActivity activity;
-  double _waterLeft = 0;
   bool _holding = false;
   bool _awaitFreshGesture = false;
   bool _useLiveModel = false;
   Offset? _toolAt;
   List<Offset>? _liveTargets;
+  bool spaRoom = false;
+
+  Future<void> setSpa() async {
+    final image = await _prop(this, 'rooms/bath_spa.jpg');
+    if (image != null) {
+      roomImage = image;
+      roomArt = RoomArt.of[RoomKind.bath];
+      spaRoom = true;
+      layoutPet();
+      notify();
+    }
+  }
 
   set useLiveModel(bool value) {
     _useLiveModel = value;
@@ -289,9 +343,19 @@ class BathGame extends StageGame with _CareToolArt {
 
   void pressAt(Offset p) {
     _awaitFreshGesture = false;
-    _toolAt = p;
-    _holding = _insidePet(p);
+    _aimTool(p);
     if (_useLiveModel) notify();
+  }
+
+  void _aimTool(Offset p) {
+    // A hold on the scene works like the button. Over the dog, aim at the finger.
+    _toolAt =
+        activity.extraTargets > 0 ||
+            activity.phase == BathPhase.soap ||
+            _insidePet(p)
+        ? p
+        : null;
+    _holding = activity.phase != BathPhase.done;
   }
 
   bool _insidePet(Offset p) => _useLiveModel
@@ -308,23 +372,32 @@ class BathGame extends StageGame with _CareToolArt {
   /// Altura (fracción) del labio delantero en la imagen de la bañera.
   static const double _rim = 0.17;
 
+  bool get _afterTub =>
+      activity.phase == BathPhase.nails ||
+      activity.phase == BathPhase.curl ||
+      activity.curlProgress > 0;
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
     // Sin bloquear la escena: mientras llegan, bañera y espuma vectoriales.
     _prop(this, 'props/tub.webp').then((i) => _tubImg = i);
+    _prop(this, 'props/bath_extras.webp').then((i) => _bathExtrasAtlas = i);
     _prop(this, 'props/foam.webp').then((i) {
       _foamImg = i;
       _refreshFx();
     });
     add(
       Painted((c) {
-        if (!_useLiveModel) _tubBack(c);
+        if (!_useLiveModel && !_afterTub) _tubBack(c);
       }, priority: 5),
     );
     add(
       Painted((c) {
-        if (!_useLiveModel) _foreground(c);
+        if (!_useLiveModel) {
+          if (!_afterTub) _foreground(c);
+          paintLiveOverlay(c);
+        }
       }, priority: 15),
     );
     _refreshFx();
@@ -374,15 +447,36 @@ class BathGame extends StageGame with _CareToolArt {
       );
       c.drawRRect(front, Paint()..color = const Color(0xFFFBF7F2));
     }
+    final bubble = Paint()..color = const Color(0xBDF0FAFF);
+    final glint = Paint()..color = const Color(0xF5FFFFFF);
+    final lather = BathZone.values
+        .map(activity.visibleFoam)
+        .fold(0.0, (sum, zone) => sum + zone);
+    for (var i = 0; i < 14 + (lather * 5).round(); i++) {
+      final radius = r.width * (0.011 + (i % 5) * 0.003);
+      final center = Offset(
+        r.left + r.width * (0.13 + (i * 37 % 71) / 100),
+        _rimY - (i % 4) * radius * 0.8,
+      );
+      c.drawCircle(center, radius, bubble);
+      c.drawCircle(
+        center - Offset(radius * 0.28, radius * 0.32),
+        radius * 0.25,
+        glint,
+      );
+    }
+
     // Espuma ilustrada estampada en cada zona enjabonada.
     final foam = _foamImg;
     if (foam != null) {
       for (final z in BathZone.values) {
-        final f = activity.foam(z);
+        final f = activity.visibleFoam(z);
         if (f <= 0) continue;
         for (final (i, center) in _zoneCenters(z).indexed) {
           final w =
-              pet.petSize * (z == BathZone.paws ? 0.32 : 0.2) * (0.6 + 0.4 * f);
+              pet.petSize *
+              (z == BathZone.paws ? 0.37 : 0.26) *
+              (0.6 + 0.4 * f);
           final h = w * foam.height / foam.width;
           final jitter = Offset((i.isEven ? -1 : 1) * w * 0.08, 0);
           _drawImage(
@@ -394,77 +488,50 @@ class BathGame extends StageGame with _CareToolArt {
         }
       }
     }
-    if (_holding || _toolAt != null) {
-      final at = _toolAt ?? pet.landmarkScene('headTop');
-      final dry = activity.phase == BathPhase.dry;
-      paintTool(
-        c,
-        activity.phase == BathPhase.soap
-            ? CareTool.sponge
-            : dry
-            ? CareTool.dryer
-            : CareTool.shower,
-        at,
-        38,
-        time,
-      );
-      if (dry) {
-        for (var i = 0; i < 4; i++) {
-          final y = at.dy + i * 9;
-          c.drawArc(
-            Rect.fromLTWH(at.dx - 30, y, 60, 12),
-            0,
-            math.pi,
-            false,
-            Paint()
-              ..color = const Color(0xAFFFF2CE)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 3,
-          );
-        }
-      }
-    }
-    // Agua de la ducha al mojar o aclarar: trazos translúcidos.
-    if (_waterLeft > 0) {
-      final top = Offset(
-        pet.position.x + pet.petSize * 0.28,
-        pet.position.y - pet.petSize * 1.25,
-      );
-      final k = (_waterLeft).clamp(0.0, 1.0);
-      for (var i = 0; i < 12; i++) {
-        final phase = (time * 1.8 + i * 0.17) % 1;
-        final x = top.dx - pet.petSize * (0.05 + i * 0.03);
-        final y0 = top.dy + phase * pet.petSize * 0.9;
-        c.drawLine(
-          Offset(x, y0),
-          Offset(x - pet.petSize * 0.02, y0 + pet.petSize * 0.12),
-          Paint()
-            ..color = Color.fromARGB((120 * k).round(), 220, 238, 250)
-            ..strokeWidth = 2.5
-            ..strokeCap = StrokeCap.round,
-        );
-      }
-    }
-    _paintZoneMarkers(c);
   }
 
   void paintLiveOverlay(Canvas c) {
     _paintZoneMarkers(c);
+    _paintHeldTool(c);
+  }
+
+  void _paintHeldTool(Canvas c) {
     if (!_holding && _toolAt == null) return;
     final phase = activity.phase;
     if (phase == BathPhase.done) return;
-    final at = _toolAt ?? _markerCenter(BathZone.back);
+    if (activity.extraTargets > 0) {
+      _paintExtraTool(c);
+      return;
+    }
+    final preferred = _aimedZone;
+    final target = activity.toolZone(preferred);
+    final at = target != null && target != preferred
+        ? _markerCenter(target)
+        : _toolAt ?? _markerCenter(BathZone.back);
     if (phase == BathPhase.soap) {
       paintTool(c, CareTool.sponge, at + const Offset(10, -13), 46, time);
       return;
     }
     final dry = phase == BathPhase.dry;
-    final source = dry ? at - const Offset(68, 4) : at + const Offset(12, -65);
+    final source = Offset(
+      (at.dx + (dry ? (_toolAtlas == null ? -86 : 86) : 37)).clamp(
+        52.0,
+        math.max(52.0, size.x - 52.0),
+      ),
+      math.max(dry ? 38.0 : 45.0, at.dy - (dry ? 4 : 58)),
+    );
     paintTool(c, dry ? CareTool.dryer : CareTool.shower, source, 48, time);
     if (!_holding) return;
     for (var i = 0; i < (dry ? 7 : 15); i++) {
       final t = (time * 2.5 + i * 0.17) % 1;
-      final start = source + (dry ? const Offset(27, 0) : const Offset(8, 12));
+      final start =
+          source +
+          (dry
+              ? Offset(_toolAtlas == null ? 48 : -47, -16 + (i % 3) * 5.0)
+              // The disk occupies the upper-left part of the shower sprite.
+              : _toolAtlas == null
+              ? Offset(i % 5 * 7.0, 6)
+              : Offset(-23 + (i % 5) * 5.0, -20 + (i % 3) * 5.0));
       final end = at + Offset((i % 5 - 2) * (dry ? 3 : 8), (i % 3 - 1) * 7);
       final p = Offset.lerp(start, end, t)!;
       c.drawLine(
@@ -480,6 +547,31 @@ class BathGame extends StageGame with _CareToolArt {
 
   // Marcas de zona durante el enjabonado (forma + texto, no solo color).
   void _paintZoneMarkers(Canvas c) {
+    if (activity.extraTargets > 0) {
+      for (final (index, center) in _extraCenters.indexed) {
+        final progress = activity.extraTargetProgress(index);
+        final ring = Rect.fromCircle(center: center, radius: 13);
+        c.drawOval(ring, Paint()..color = const Color(0x59FFF8ED));
+        c.drawOval(
+          ring,
+          Paint()
+            ..color = const Color(0xFF775F86)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2,
+        );
+        c.drawArc(
+          ring,
+          -math.pi / 2,
+          math.pi * 2 * progress,
+          false,
+          Paint()
+            ..color = const Color(0xFF397E66)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 4,
+        );
+      }
+      return;
+    }
     if (activity.phase == BathPhase.soap) {
       for (final z in BathZone.values) {
         final done = activity.zoneDone(z);
@@ -524,9 +616,97 @@ class BathGame extends StageGame with _CareToolArt {
 
   Offset _markerCenter(BathZone z) => _zoneCenters(z).last;
 
-  BathZone? zoneAt(Offset p) {
+  List<Offset> get _extraCenters => switch (activity.phase) {
+    BathPhase.salts => [
+      _useLiveModel
+          ? _markerCenter(BathZone.paws) + const Offset(-34, 5)
+          : Offset(_tub.center.dx - _tub.width * .28, _rimY),
+    ],
+    BathPhase.massage => [
+      _markerCenter(BathZone.back),
+      _markerCenter(BathZone.chest),
+      _markerCenter(BathZone.head),
+    ],
+    BathPhase.curl => [
+      _markerCenter(BathZone.head),
+      _markerCenter(BathZone.back),
+    ],
+    BathPhase.nails => _nailCenters,
+    _ => [],
+  };
+
+  List<Offset> get _nailCenters {
+    final targets = _liveTargets;
+    if (_useLiveModel && targets != null && targets.length >= 8) {
+      return [
+        for (final p in targets.skip(4)) Offset(p.dx * size.x, p.dy * size.y),
+      ];
+    }
+    final paws = pet.landmarkScene('paws');
+    return [
+      for (final x in [-.19, -.063, .063, .19])
+        paws + Offset(pet.petSize * x, 0),
+    ];
+  }
+
+  int? get _activeExtraTarget {
+    final point = _toolAt;
+    if (point == null) return activity.nextExtraTarget;
+    var reach = math.max(17.0, pet.petSize * .15);
+    int? closest;
+    for (final (index, center) in _extraCenters.indexed) {
+      final distance = (point - center).distance;
+      if (distance < reach && activity.extraTargetProgress(index) < 1) {
+        reach = distance;
+        closest = index;
+      }
+    }
+    return closest;
+  }
+
+  void _paintExtraTool(Canvas c) {
+    final index = _activeExtraTarget;
+    final point = index == null ? _toolAt : _extraCenters[index];
+    if (point == null) return;
+    final tool = switch (activity.phase) {
+      BathPhase.salts => CareTool.salts,
+      BathPhase.massage => CareTool.massage,
+      BathPhase.nails => CareTool.nailClippers,
+      _ => CareTool.curler,
+    };
+    final toolOffset = switch (tool) {
+      CareTool.nailClippers => const Offset(0, 31),
+      CareTool.curler => const Offset(27, 28),
+      _ => const Offset(38, -28),
+    };
+    final at = Offset(
+      (point.dx + toolOffset.dx).clamp(43.0, math.max(43.0, size.x - 43)),
+      (point.dy + toolOffset.dy).clamp(38.0, math.max(38.0, size.y - 40)),
+    );
+    paintTool(c, tool, at, 40, time);
+    if (index == null || reducedMotion) return;
+    for (var i = 0; i < 6; i++) {
+      final wave = (time * 1.4 + i / 6) % 1;
+      final center = activity.phase == BathPhase.salts
+          ? Offset.lerp(at, point, wave)!
+          : point + Offset(math.sin(i * 2.4) * wave * 22, -wave * 27);
+      c.drawCircle(
+        center,
+        1.5 + i % 3,
+        Paint()
+          ..color = const Color(0xFFFFE4C3).withValues(alpha: .8 - .55 * wave),
+      );
+    }
+  }
+
+  BathZone? get _aimedZone {
+    final point = _toolAt;
+    return point == null ? null : zoneAt(point, reach: .23);
+  }
+
+  BathZone? zoneAt(Offset p, {double reach = .17}) {
     BathZone? best;
-    var bestD = pet.petSize * 0.17;
+    var bestD = pet.petSize * reach;
     for (final z in BathZone.values) {
       for (final c in _zoneCenters(z)) {
         final d = (p - c).distance;
@@ -546,18 +726,18 @@ class BathGame extends StageGame with _CareToolArt {
       wet:
           activity.phase == BathPhase.soap ||
           activity.phase == BathPhase.rinse ||
+          activity.phase == BathPhase.massage ||
           activity.phase == BathPhase.dry,
       // Con espuma ilustrada la estampa la escena; si no, el pintor.
       foam: _foamImg != null
           ? const [0, 0, 0]
-          : [for (final z in BathZone.values) activity.foam(z)],
+          : [for (final z in BathZone.values) activity.visibleFoam(z)],
     );
     onBathFrame?.call();
   }
 
   bool wet([double seconds = 0.1]) {
-    if (!activity.wet(seconds)) return false;
-    _waterLeft = reducedMotion ? 0.5 : 1.0;
+    if (!activity.wet(seconds, _aimedZone)) return false;
     _refreshFx();
     notify();
     return true;
@@ -573,8 +753,7 @@ class BathGame extends StageGame with _CareToolArt {
   }
 
   bool rinse([double seconds = 0.1]) {
-    if (!activity.rinse(seconds)) return false;
-    _waterLeft = reducedMotion ? 0.5 : 1.0;
+    if (!activity.rinse(seconds, _aimedZone)) return false;
     pet.react(PetAnim.bath, seconds: 1.2);
     _refreshFx();
     notify();
@@ -584,7 +763,6 @@ class BathGame extends StageGame with _CareToolArt {
   @override
   void update(double dt) {
     super.update(dt);
-    if (_waterLeft > 0) _waterLeft -= dt;
     if (_holding) {
       final phase = activity.phase;
       switch (phase) {
@@ -593,9 +771,18 @@ class BathGame extends StageGame with _CareToolArt {
         case BathPhase.rinse:
           rinse(dt);
         case BathPhase.dry:
-          activity.dry(dt);
+          activity.dry(dt, _aimedZone);
           _refreshFx();
           notify();
+        case BathPhase.salts ||
+            BathPhase.massage ||
+            BathPhase.nails ||
+            BathPhase.curl:
+          final target = _activeExtraTarget;
+          if (target != null && activity.applyExtra(dt, target)) {
+            _refreshFx();
+            notify();
+          }
         case BathPhase.soap || BathPhase.done:
           break;
       }
@@ -622,8 +809,7 @@ class BathGame extends StageGame with _CareToolArt {
   @override
   void dragAt(Offset p, Offset delta) {
     if (_awaitFreshGesture) return;
-    _toolAt = p;
-    _holding = _insidePet(p);
+    _aimTool(p);
     if (_useLiveModel) notify();
     if (activity.phase != BathPhase.soap) return;
     final z = zoneAt(p);
@@ -1600,10 +1786,14 @@ class VetGame extends StageGame with _CareToolArt {
   }
 
   void pressAt(Offset p) {
-    if (!_toolSelected || busy || _target == null) return;
-    _toolPoint = p;
-    _holding = (p - _at(_target!)).distance < pet.petSize * 0.2;
-    onVetFrame?.call();
+    if (busy || _target == null) return;
+    if (!_toolSelected) selectTool();
+    if (activity.phase == VetPhase.pill) {
+      _toolPoint = p;
+      onVetFrame?.call();
+      return;
+    }
+    dragAt(p, Offset.zero);
   }
 
   void releaseTool() {
@@ -1725,7 +1915,12 @@ class VetGame extends StageGame with _CareToolArt {
         VetPhase.paws => CareTool.magnifier,
         _ => CareTool.pill,
       };
-      paintTool(c, tool, point, 40, time);
+      final activeSize = switch (activity.phase) {
+        VetPhase.heart => 69.0,
+        VetPhase.paws => 61.0,
+        _ => 40.0,
+      };
+      paintTool(c, tool, point, _toolPoint == null ? 40 : activeSize, time);
       if (_holding) {
         c.drawArc(
           Rect.fromCircle(center: point, radius: 26),

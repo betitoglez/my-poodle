@@ -120,6 +120,10 @@ function shadow(map, x, z, width, depth, y = 0.015) {
   return mesh;
 }
 
+export function makePetShadow() {
+  return shadow(shadowTexture(), 0, -.035, .59, 1.13, .004);
+}
+
 function flowers(group, random) {
   const greenery = material('#608a52'), stem = material('#456b43');
   const center = material('#dca64e');
@@ -301,6 +305,9 @@ export function makeWalkPose(body, bones) {
   const localRotation = new THREE.Quaternion();
   const smooth = THREE.MathUtils.smoothstep;
   let cadenceOrigin = null;
+  const trunk = bones.get('tronco');
+  const pivot = body.worldToLocal(trunk.getWorldPosition(new THREE.Vector3()));
+  const raisedHip = new THREE.Vector3();
 
   const across = bone => axis.clone().applyQuaternion(body.getWorldQuaternion(bodyRotation))
     .applyQuaternion(bone.getWorldQuaternion(localRotation).invert());
@@ -316,30 +323,36 @@ export function makeWalkPose(body, bones) {
     if (!(hip && knee && paw)) return;
     const [a, b, c] = [hip, knee, paw].map(bone => body.worldToLocal(bone.getWorldPosition(new THREE.Vector3())));
     const direction = Math.sign((b.z - a.z) * (c.y - a.y) - (b.y - a.y) * (c.z - a.z));
-    legs.push({ hip, knee, paw, a, c, direction, offset, axes: [hip, knee, paw].map(across),
+    legs.push({ hip, knee, paw, a, c, direction, offset, front: place === 'del',
+      axes: [hip, knee, paw].map(across),
       top: Math.hypot(b.y-a.y, b.z-a.z), bottom: Math.hypot(c.y-b.y, c.z-b.z),
       first: angle(b.y-a.y, b.z-a.z), second: angle(c.y-b.y, c.z-b.z) });
   }
+  prepareLeg('tras', 'der', 0);
+  prepareLeg('del', 'der', 0.27);
+  prepareLeg('tras', 'izq', 0.5);
+  prepareLeg('del', 'izq', 0.77);
+  const [trunkAxis, neckAxis, headAxis] = [trunk, bones.get('cuello'), bones.get('cabeza')].map(across);
   function reset() {
     for (const [bone, saved] of originals) bone.quaternion.copy(saved);
     originals.clear();
   }
-  function applyLeg(leg, stride, lift, bodyLift) {
-    const dy = leg.c.y - leg.a.y + lift - bodyLift;
-    const dz = leg.c.z - leg.a.z + stride;
+  function applyLeg(leg, stride, lift, bodyLift, root = leg.a, pitch = 0) {
+    const dy = leg.c.y - root.y + lift - bodyLift;
+    const dz = leg.c.z - root.z + stride;
     const hypotenuse = Math.hypot(dy, dz);
     const length = Math.min(hypotenuse, leg.top + leg.bottom - 0.001);
     const y = dy / hypotenuse, z = dz / hypotenuse;
     const along = (leg.top ** 2 - leg.bottom ** 2 + length ** 2) / (2 * length);
     const bend = leg.direction * Math.sqrt(Math.max(0, leg.top ** 2 - along ** 2));
     const kneeY = along * y - bend * z, kneeZ = along * z + bend * y;
-    const hipTurn = angle(kneeY, kneeZ) - leg.first;
+    const hipTurn = angle(kneeY, kneeZ) - leg.first - pitch;
     const shinTurn = angle(y * length - kneeY, z * length - kneeZ) - leg.second;
     turn(leg.hip, leg.axes[0], hipTurn);
-    turn(leg.knee, leg.axes[1], shinTurn - hipTurn);
+    turn(leg.knee, leg.axes[1], shinTurn - hipTurn - pitch);
     turn(leg.paw, leg.axes[2], -shinTurn + lift * 1.35);
   }
-  function update(distance, moving, sniff, reduced) {
+  function update(distance, moving, sniff, reduced, settle = 1) {
     if (!moving || reduced) {
       cadenceOrigin = null;
       body.position.y = 0;
@@ -350,15 +363,9 @@ export function makeWalkPose(body, bones) {
       }
       return;
     }
-    if (legs.length === 0) {
-      prepareLeg('tras', 'der', 0);
-      prepareLeg('del', 'der', 0.27);
-      prepareLeg('tras', 'izq', 0.5);
-      prepareLeg('del', 'izq', 0.77);
-    }
     cadenceOrigin ??= distance;
     const traveled = Math.max(0, distance - cadenceOrigin);
-    const mix = smooth(traveled, 0, 0.20);
+    const mix = smooth(traveled, 0, 0.20) * settle;
     const cycleLength = 0.67;
     const cycle = distance / cycleLength;
     // Keep the supporting paws at ground height while the torso shifts weight.
@@ -373,5 +380,26 @@ export function makeWalkPose(body, bones) {
       applyLeg(leg, path * cycleLength * duty * mix, Math.sin(Math.PI * swing) * 0.133 * mix, bodyLift);
     }
   }
-  return { reset, update };
+
+  function rear(amount, sway) {
+    cadenceOrigin = null;
+    const pitch = (-1.13 + sway * .018) * amount;
+    const lift = -.052 * amount;
+    body.position.y = lift;
+    turn(trunk, trunkAxis, pitch);
+    turn(bones.get('cuello'), neckAxis, .54 * amount);
+    turn(bones.get('cabeza'), headAxis, .42 * amount);
+    for (const leg of legs) {
+      if (leg.front) {
+        turn(leg.hip, leg.axes[0], .43 * amount);
+        turn(leg.knee, leg.axes[1], .93 * amount);
+        turn(leg.paw, leg.axes[2], -.54 * amount);
+      } else {
+        // Counter the torso rotation by solving back to the planted hind paws.
+        raisedHip.copy(leg.a).sub(pivot).applyAxisAngle(axis, pitch).add(pivot);
+        applyLeg(leg, 0, 0, lift, raisedHip, pitch);
+      }
+    }
+  }
+  return { reset, update, rear };
 }

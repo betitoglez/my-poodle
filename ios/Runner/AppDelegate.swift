@@ -15,6 +15,9 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodleStorage") {
       StorageChannel.register(messenger: registrar.messenger())
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodle3D") {
+      registrar.register(PoodleViewFactory(registrar: registrar), withId: "my_poodle/poodle_3d")
+    }
   }
 }
 

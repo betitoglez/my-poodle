@@ -54,12 +54,49 @@ export function makeFeedingBowl() {
   );
   food.frustumCulled = false;
   group.add(food);
+  const liquid = new THREE.Mesh(
+    new THREE.CircleGeometry(1, 48),
+    new THREE.MeshStandardMaterial({ color: '#88bdd8', roughness: .15, metalness: .12 }),
+  );
+  liquid.rotation.x = -Math.PI / 2;
+  liquid.visible = false;
+  group.add(liquid);
+  const ripple = new THREE.Mesh(
+    new THREE.RingGeometry(.86, 1, 40),
+    new THREE.MeshBasicMaterial({ color: '#d5f3fa', transparent: true, opacity: 0, depthWrite: false }),
+  );
+  ripple.rotation.x = -Math.PI / 2;
+  ripple.visible = false;
+  group.add(ripple);
   const sample = new THREE.Object3D();
   const shades = ['#765031', '#a47146', '#95613a', '#b27d50', '#825337'].map(value => new THREE.Color(value));
   for (let i = 0; i < count; i++) food.setColorAt(i, shades[i % shades.length]);
-  let lastFill;
+  let lastFill, waterMode = false;
 
-  function fill(amount) {
+  function fill(amount, drinking = false, sip = 0, drinkColor = 0x88bdd8) {
+    if (drinking) {
+      dish.material.color.set('#548ba4');
+      lip.material.color.set('#b5dbe7');
+      food.visible = false;
+      liquid.visible = amount > .01;
+      liquid.material.color.set(drinkColor ?? 0x88bdd8);
+      const height = .049 + amount * .082;
+      liquid.position.y = height;
+      liquid.scale.setScalar(.110 + .027 * amount);
+      ripple.visible = liquid.visible && sip > .42 && sip < .88;
+      ripple.position.y = height + .002;
+      ripple.scale.setScalar(.025 + .12 * (sip - .42));
+      ripple.material.opacity = .55 * (1 - (sip - .42) / .46);
+      waterMode = true;
+      return;
+    }
+    if (waterMode) {
+      liquid.visible = ripple.visible = false;
+      food.visible = true;
+      dish.material.color.set('#be754d');
+      lip.material.color.set('#e6bb8d');
+      waterMode = false;
+    }
     if (amount === lastFill) return;
     lastFill = amount;
     food.count = Math.round(count * amount);

@@ -4,11 +4,12 @@ import { makeFeedingBowl } from './feeding.js';
 import { makeBath } from './bathing.js';
 import { makeVet, vetTableHeight } from './veterinary.js';
 import { makeGroom } from './grooming.js';
-import { makeSleep, makeSleepPose } from './sleeping.js';
-import { makeWalk, makeWalkPose, walkWidth } from './walking.js';
+import { makeSleep, makeSleepGlyphs, makeSleepPose } from './sleeping.js';
+import { makePetShadow, makeWalk, makeWalkPose, walkWidth } from './walking.js';
 import { makeOrchard, makeOrchardPose } from './orchard.js';
 import { makeFrisbee } from './frisbee.js';
-import { patchCoat, fitCollar, makeIdle } from './appearance.js';
+import { bindTail, patchCoat, fitCollar, makeIdle } from './appearance.js';
+import { makePetHitTest, makeRoomMotion } from './room_motion.js';
 
 // Colourways share one fitted mesh and its baked fabric maps.
 const colourways = {
@@ -41,6 +42,7 @@ const rim = new THREE.DirectionalLight(0xd8e7ff, 0.9);
 rim.position.set(2, 2, -1);
 scene.add(rim);
 const turntable = new THREE.Group();
+turntable.visible = false;
 scene.add(turntable);
 const bowl = makeFeedingBowl();
 turntable.add(bowl.group);
@@ -76,8 +78,15 @@ gltf.scene.traverse(object => {
   if (cuff !== undefined) bootCuffs.push([object, cuff]);
 });
 const sleepPose = makeSleepPose(gltf.scene, bones);
-const walkPose = makeWalkPose(gltf.scene, bones);
-const orchardPose = makeOrchardPose(gltf.scene, bones);
+// Three strips the dots from joint names, but the gait uses the names from Blender.
+const walkingBones = new Map([...bones.values()].map(bone => [bone.userData.name ?? bone.name, bone]));
+const walkPose = makeWalkPose(gltf.scene, walkingBones);
+const roomMotion = makeRoomMotion(turntable, walkPose);
+const hitPet = makePetHitTest(gltf.scene, walkingBones);
+const roomShadow = makePetShadow();
+roomShadow.visible = false;
+turntable.add(roomShadow);
+const orchardPose = makeOrchardPose(gltf.scene, walkingBones);
 const idle = makeIdle(gltf.scene, bones);
 const idleOrigin = performance.now();
 for (const item of items) {
@@ -113,7 +122,8 @@ for (const item of items.filter(item => item.userData.wear !== 'base')) {
   });
 }
 const tailRest = tail?.quaternion.clone();
-const tailAxis = new THREE.Vector3(0, 0, 1);
+const tailOrientation = new THREE.Quaternion(), bodyOrientation = new THREE.Quaternion();
+const tailAxis = new THREE.Vector3(), acrossBody = new THREE.Vector3();
 const headPose = new THREE.Quaternion();
 let resetHead = false;
 const clip = THREE.AnimationClip.findByName(gltf.animations, 'Tumbarse');
@@ -127,11 +137,23 @@ const action = mixer.clipAction(clip).play();
 const rainAction = mixer.clipAction(rainClip).play();
 const eatAction = mixer.clipAction(eatClip).play();
 const poses = [action, rainAction, eatAction];
+const updateSleepGlyphs = makeSleepGlyphs(head, turntable);
+
+function wagTail(angle) {
+  tail.getWorldQuaternion(tailOrientation);
+  gltf.scene.getWorldQuaternion(bodyOrientation);
+  acrossBody.set(1, 0, 0).applyQuaternion(bodyOrientation);
+  // Move the pom-pom laterally from the root, even with the trunk raised.
+  tailAxis.set(0, 1, 0).applyQuaternion(tailOrientation).cross(acrossBody)
+    .normalize().applyQuaternion(tailOrientation.invert());
+  tail.rotateOnAxis(tailAxis, angle);
+}
 
 const shade = { silver: '#9693a1', lightgray: '#b6b3bf', white: '#e4ded4', black: '#586078' };
 const furColor = { value: new THREE.Color(1, 1, 1) };
 const recolor = { value: 0 };
-const wetness = { value: 0 };
+const wetness = { value: new THREE.Vector4() };
+const extraCurl = { value: 0 };
 const coatDirt = { value: 0 };
 let dailyDirt = 0;
 const cuts = { value: new THREE.Vector2() };
@@ -145,9 +167,10 @@ for (const root of items) {
       collars.push(object);
     }
     if (wear !== 'base') return;
+    bindTail(object, bones.get('tronco'), tail);
     for (const material of [object.material].flat()) {
       patchCoat(material, {poodleFur: furColor, poodleRecolor: recolor,
-        poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts,
+        poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts, poodleExtraCurl: extraCurl,
         poodleMouthOpen: idle.mouthOpen});
     }
   });
@@ -166,6 +189,7 @@ let configuration = {x: 0.5, y: 0.8, size: 0.55};
 let wear = new Set();
 let shoeClearance = false;
 let target = 0, phase = 0, wagUntil = 0, last = 0, pending = false;
+let bedStartX = 0, bedYaw = 0, previousBedFrame = 0;
 let biteProgress = 0, bowlBoundsSent = false, bathTargetsSent = false;
 let vetTargetsSent = false;
 let groomTargetsSent = false;
@@ -175,23 +199,33 @@ let walkState = [0.22, 0, 0, -1];
 let orchardState = [1, 0, 0, -0.344, 0, 0, 0];
 let frisbeeState = [];
 let vetState = [0, 0, 0.85, 0.55, 0, -1, 0];
+let postTub = false;
 let renderWidth = 0, renderHeight = 0;
+let configured = false, firstFrameRendered = false;
 function draw() {
   const width = innerWidth;
   const height = innerHeight;
-  if (!width || !height) return;
+  if (!configured || !width || !height) return;
   if (width !== renderWidth || height !== renderHeight) {
     renderer.setSize(width, height, false);
     renderWidth = width;
     renderHeight = height;
   }
-  const unit = Math.max(1, configuration.size * height);
+  // Pan to make room above the head without changing the model's scale.
+  const floor = configuration.y + roomMotion.lift *
+    Math.max(0, configuration.size * 1.58 + .04 - configuration.y);
+  const orchardZoom = configuration.orchardLevel ? (orchardState[7] ?? 1) : 1;
+  const unit = Math.max(1, configuration.size * height * orchardZoom);
   camera.left = -configuration.x * width / unit;
   camera.right = (1 - configuration.x) * width / unit;
-  camera.top = configuration.y * height / unit;
-  camera.bottom = -(1 - configuration.y) * height / unit;
+  camera.top = floor * height / unit;
+  camera.bottom = -(1 - floor) * height / unit;
   camera.updateProjectionMatrix();
   if (configuration.frisbee) frisbee.update(frisbeeState,camera,gltf.scene,turntable,configuration.reduced);
+  if (configuration.frisbee) {
+    roomShadow.visible = frisbeeState.length >= 13;
+    roomShadow.scale.setScalar(gltf.scene.scale.x);
+  }
   if (configuration.orchardLevel) {
     orchard.update(orchardState, camera.right - camera.left, configuration.reduced);
   }
@@ -200,6 +234,10 @@ function draw() {
     vet.tools.visible = false; // The illustrated instrument is rendered by Flutter.
   }
   renderer.render(scene, camera);
+  if (!firstFrameRendered) {
+    firstFrameRendered = true;
+    PoodleHost.rendered?.();
+  }
   if (configuration.feeding && !bowlBoundsSent) {
     bowlBoundsSent = true;
     PoodleHost.bowlBounds?.(...bowl.screenBounds(camera));
@@ -222,6 +260,21 @@ function draw() {
   }
 }
 
+function canStand() {
+  return target === 0 && phase < .025 && !configuration.sick && (configuration.energy ?? 100) > 0;
+}
+
+function frameHomeBed() {
+  const framing = THREE.MathUtils.smoothstep(phase, 0, .80);
+  if (framing === previousBedFrame) return;
+  turntable.position.x = bedStartX * (1 - framing);
+  turntable.rotation.y += bedYaw * (framing - previousBedFrame);
+  camera.position.y = THREE.MathUtils.lerp(.85, 2.52, framing);
+  camera.lookAt(0, 0, 0);
+  camera.updateMatrixWorld();
+  previousBedFrame = framing;
+}
+
 function tick(now) {
   pending = false;
   if (configuration.idle && !configuration.reduced && last && now-last < 35 &&
@@ -231,7 +284,9 @@ function tick(now) {
   }
   const delta = last ? Math.min((now - last) / 1000, 0.05) : 1 / 60;
   last = now;
-  phase += Math.sign(target - phase) * Math.min(Math.abs(target - phase), delta * 1.35);
+  const poseSpeed = target > phase ? .74 : .92;
+  phase += Math.sign(target - phase) * Math.min(Math.abs(target - phase), delta * poseSpeed);
+  if (configuration.passiveBed) frameHomeBed();
   sleepPose.reset();
   walkPose.reset();
   orchardPose.reset();
@@ -247,7 +302,8 @@ function tick(now) {
   const passive = configuration.passiveBed && (phase > 0 || target > 0);
   const [arrival, blanket, dark] = passive ? [phase, 0, 0] : sleepState;
   const restingInBed = configuration.sleeping || passive;
-  const poseProgress = configuration.sleeping ? THREE.MathUtils.smoothstep(arrival, 0.38, 1) : phase;
+  const poseProgress = configuration.sleeping ? THREE.MathUtils.smoothstep(arrival, .38, 1) :
+    passive ? THREE.MathUtils.clamp((phase - .12) / .88, 0, 1) : phase;
   for (const pose of poses) {
     pose.setEffectiveWeight(pose === activePose ? 1 : 0);
     const duration = pose.getClip().duration;
@@ -272,9 +328,26 @@ function tick(now) {
     turntable.rotation.y = 1.22 + 0.30 * investigate;
     trail.update(walkX * walkWidth, walkPan * walkWidth, now * 0.001);
     walkPose.update(walkX * walkWidth, traveling, sniff, configuration.reduced);
+    if (!configuration.reduced && (traveling || sniffing)) {
+      wagTail(Math.sin(now * .017) * (sniffing ? .55 : .72));
+    }
   }
+  if (configuration.roaming || roomMotion.active || roomMotion.wagging) {
+    const width = innerWidth / Math.max(1, configuration.size * innerHeight);
+    roomMotion.update(now, delta, configuration, Math.min(.52, width * .17), canStand());
+  }
+  const bedReveal = configuration.sleeping ? 1 : THREE.MathUtils.smoothstep(phase, .03, .42);
+  roomShadow.visible = (!configuration.bathing || postTub) && !configuration.walking &&
+    !configuration.orchardLevel && !configuration.frisbee && !configuration.sleeping &&
+    (!passive || bedReveal < 1);
+  roomShadow.material.opacity = passive ? 1 - bedReveal : .84;
+  roomShadow.position.y = configuration.veterinary ? vetTableHeight + .004 : .004;
+  roomShadow.scale.x = roomShadow.scale.z = 1;
+  roomShadow.position.z = THREE.MathUtils.lerp(-.035, -.34, roomMotion.lift);
+  roomShadow.scale.y = 1 - .36 * roomMotion.lift;
   const asleep = (configuration.sleeping && dark > 0 || passive && phase >= .99) && !configuration.reduced;
   bed.group.visible = restingInBed;
+  bed.reveal(bedReveal);
   if (restingInBed) {
     const breath = asleep ? 0.004 * Math.sin(now / 425) : 0;
     sleepPose.update(arrival, breath, configuration.reduced,!passive);
@@ -284,7 +357,9 @@ function tick(now) {
     key.intensity = THREE.MathUtils.lerp(2.35, 0.35, dark);
     rim.intensity = THREE.MathUtils.lerp(0.9, 0.69, dark);
   }
-  idle.update(configuration, (now-idleOrigin)*.001,configuration.reduced,restingInBed || phase>.04);
+  updateSleepGlyphs(passive && phase >= .99, now, configuration.reduced);
+  idle.update(configuration, (now-idleOrigin)*.001,configuration.reduced,
+    restingInBed || phase > .04 || roomMotion.active, roomMotion.wagging);
   if (configuration.veterinary && !configuration.reduced && vetState[0] === 2 &&
       vetState[5] >= 0 && head) {
     headPose.copy(head.quaternion);
@@ -306,11 +381,14 @@ function tick(now) {
   const remaining = Math.max(0, wagUntil - now);
   if (remaining) {
     const strength = Math.min(remaining / 420, 1) * (configuration.reduced ? 0.20 : 0.58);
-    tail.rotateOnAxis(tailAxis, Math.sin(now * 0.024) * strength);
+    wagTail(Math.sin(now * .013) * strength);
   }
+  if (roomMotion.wag) wagTail(roomMotion.wag);
   draw();
   const flowing = configuration.walking && walkX > 1.4 && !configuration.reduced;
-  if (phase !== target || remaining || asleep || flowing || (configuration.idle && !configuration.reduced)) schedule();
+  if (phase !== target || roomMotion.active || roomMotion.wagging || remaining || asleep || flowing ||
+      (configuration.walking && !configuration.reduced && (traveling || sniffing)) ||
+      (configuration.idle && !configuration.reduced)) schedule();
   else last = 0;
 }
 
@@ -325,6 +403,7 @@ const nightBlue = new THREE.Color(0x7985cf);
 window.poodle = {
   configure(newConfiguration) {
     const wasFeeding = configuration.feeding;
+    const wasDrinking = configuration.drinking;
     const wasBathing = configuration.bathing;
     const wasVeterinary = configuration.veterinary;
     const wasGrooming = configuration.grooming;
@@ -333,24 +412,41 @@ window.poodle = {
     const wasOrchard = Boolean(configuration.orchardLevel);
     const wasFrisbee = configuration.frisbee;
     const wasBed = configuration.passiveBed && configuration.resting;
+    const wasRoaming = configuration.roaming;
+    const wasReduced = configuration.reduced;
     configuration = { ...configuration, ...newConfiguration };
+    configured = true;
     const inOrchard = Boolean(configuration.orchardLevel);
     const atHomeInBed = configuration.passiveBed && configuration.resting;
+    if (atHomeInBed && !wasBed && phase === 0) {
+      bedStartX = turntable.position.x;
+      const change = .93 - turntable.rotation.y;
+      bedYaw = Math.atan2(Math.sin(change), Math.cos(change));
+    }
+    if (Boolean(wasRoaming) !== Boolean(configuration.roaming) ||
+        (configuration.roaming && (wasReduced !== configuration.reduced || wasBed !== atHomeInBed))) {
+      const position = turntable.position.x;
+      roomMotion.reset(performance.now());
+      if (wasBed !== atHomeInBed) turntable.position.x = position;
+    }
     if (configuration.feeding !== wasFeeding || configuration.bathing !== wasBathing ||
         configuration.veterinary !== wasVeterinary || configuration.grooming !== wasGrooming ||
         configuration.sleeping !== wasSleeping || configuration.walking !== wasWalking ||
-        inOrchard !== wasOrchard || configuration.frisbee !== wasFrisbee || wasBed !== atHomeInBed) {
+        inOrchard !== wasOrchard || configuration.frisbee !== wasFrisbee) {
       turntable.rotation.y = configuration.feeding ? 1.10 : configuration.bathing ? 0.91 :
         configuration.veterinary ? 0.70 : configuration.grooming ? 0.72 :
-        configuration.sleeping || atHomeInBed ? 0.93 : configuration.walking || inOrchard ? 1.26 : 0;
+        configuration.sleeping ? 0.93 : configuration.walking || inOrchard ? 1.26 : 0;
       camera.position.y = configuration.feeding ? 2.22 : configuration.bathing ? 1.50 :
         configuration.veterinary ? 1.38 : configuration.grooming ? 1.26 :
-        configuration.sleeping || atHomeInBed ? 2.52 : configuration.walking ? 2.22 : inOrchard ? 1.05 :
+        configuration.sleeping ? 2.52 : configuration.walking ? 2.22 : inOrchard ? 1.05 :
         configuration.frisbee ? 2.05 : 0.85;
       camera.lookAt(0, 0, 0);
       camera.updateMatrixWorld();
     }
     bowl.group.visible = Boolean(configuration.feeding);
+    if (configuration.feeding !== wasFeeding || configuration.drinking !== wasDrinking) {
+      bowl.fill(configuration.drinking ? 0 : 1, configuration.drinking);
+    }
     bath.group.visible = Boolean(configuration.bathing);
     vet.table.visible = Boolean(configuration.veterinary);
     bed.group.visible = Boolean(configuration.sleeping);
@@ -390,7 +486,11 @@ window.poodle = {
     if (!configuration.veterinary) vet.tools.visible = false;
     gltf.scene.position.y = configuration.bathing ? 0.042 :
       configuration.veterinary ? vetTableHeight : 0;
-    if (!configuration.bathing) wetness.value = 0;
+    if (!configuration.bathing) {
+      wetness.value.set(0, 0, 0, 0);
+      extraCurl.value = 0;
+      postTub = false;
+    }
     bowlBoundsSent = false;
     bathTargetsSent = false;
     vetTargetsSent = false;
@@ -412,7 +512,7 @@ window.poodle = {
     const coat = shade[configuration.coat];
     setCuts(Number(Boolean(configuration.teddy)), Number(Boolean(configuration.showCut)));
     const hygiene = configuration.hygiene ?? 100;
-    dailyDirt = hygiene >= 65 ? 0 : Math.min(5,Math.ceil((65-hygiene)/13));
+    dailyDirt = hygiene >= 65 ? 0 : Math.min(6, Math.ceil((65 - hygiene) * 6 / 65));
     coatDirt.value = dailyDirt;
     groom.setSource(configuration.pom, configuration.puppy, configuration.grooming);
     furColor.value.set(coat || '#ffffff');
@@ -452,10 +552,12 @@ window.poodle = {
     schedule();
   },
   rotate(delta) {
+    if (configuration.roaming) roomMotion.pause(performance.now(), 6500);
     turntable.rotation.y -= delta * 0.013;
     schedule();
   },
   front() {
+    if (configuration.roaming) roomMotion.pause(performance.now(), 6500);
     turntable.rotation.y = 0;
     schedule();
   },
@@ -463,15 +565,25 @@ window.poodle = {
     wagUntil = performance.now() + 1800;
     schedule();
   },
+  petAt([x, y]) {
+    if (!firstFrameRendered || !turntable.visible || !hitPet(x, y, camera)) return 0;
+    const greeted = canStand() && roomMotion.react(performance.now(), configuration.roaming);
+    schedule();
+    return greeted ? 2 : 1;
+  },
   feed([progress, fill]) {
     biteProgress = THREE.MathUtils.clamp(progress, 0, 1);
-    bowl.fill(THREE.MathUtils.clamp(fill, 0, 1));
+    bowl.fill(THREE.MathUtils.clamp(fill, 0, 1), configuration.drinking, biteProgress,
+      configuration.drinkColor);
     schedule();
   },
-  bath([phase, progress, ...suds]) {
-    wetness.value = phase === 0 ? progress : phase === 3 ? 1 - progress : phase === 4 ? 0 : 1;
-    coatDirt.value = phase < 2 ? dailyDirt : phase === 2 ? dailyDirt*(1-progress) : 0;
-    bath.update(phase, progress, suds);
+  bath([phase, progress, ...zones]) {
+    wetness.value.fromArray(zones, 4);
+    extraCurl.value = zones[8] ?? 0;
+    postTub = phase === 7 || phase === 8 || (phase === 4 && extraCurl.value > 0);
+    coatDirt.value = phase < 2 || phase === 5 ? dailyDirt :
+      phase === 2 ? dailyDirt*(1-progress) : 0;
+    bath.update(phase, progress, zones.slice(0, 4), zones[9] === 1, zones[10] ?? 0, postTub);
     schedule();
   },
   vet(state) {
@@ -515,5 +627,4 @@ window.addEventListener('resize', () => {
   sleepBoundsSent = false;
   schedule();
 });
-schedule();
 PoodleHost.ready();

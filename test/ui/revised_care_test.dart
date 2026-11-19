@@ -8,7 +8,7 @@ import 'package:my_poodle/ui/widgets/scene_view.dart';
 import 'package:my_poodle/app/app_scope.dart';
 import 'package:my_poodle/domain/rules.dart';
 
-import 'app_flow_test.dart' show boot, frames, idle, saved, tapText;
+import 'app_flow_test.dart' show boot, frames, fullStore, idle, saved, tapText;
 import 'features_test.dart' show backendWith;
 import 'care_composition_review_test.dart' show waitScene;
 
@@ -50,6 +50,56 @@ void main() {
     },
   );
 
+  for (final massage in [false, true]) {
+    final plan = massage ? 'Baño con Masaje' : 'Baño Premium';
+    testWidgets('$plan aplica precio y efectos después de sus pasos propios', (
+      t,
+    ) async {
+      final backend = backendWith(
+        (s) => s.copyWith(
+          coins: 30,
+          needs100: {...s.needs100, Need.hygiene: 2000, Need.mood: 4000},
+        ),
+      );
+      await boot(t, backend, store: massage ? fullStore() : null);
+      await t.tap(find.byType(NeedMeter).at(1));
+      await idle(t);
+      await tapText(t, plan);
+      await tapText(t, 'Empezar el baño');
+      expect(find.text('Confirmar el baño'), findsOneWidget);
+      await tapText(t, 'Aceptar');
+      final game = sceneGame<BathGame>(t);
+      await waitScene(t, game);
+      if (massage) {
+        expect(game.activity.phase, BathPhase.salts);
+        await hold(t, find.text('Añadir sales de baño relajantes'), 1.4);
+        expect(game.activity.phase, BathPhase.wet);
+      }
+      await hold(t, find.text('Mantén: ducha'), 5.3);
+      for (final zone in BathZone.values) {
+        game.soap(zone, 1);
+      }
+      await idle(t);
+      await hold(t, find.text('Mantén: ducha'), 5.3);
+      if (massage) {
+        expect(game.activity.phase, BathPhase.massage);
+        await hold(t, find.text('Masaje perruno'), 4.8);
+      }
+      await hold(t, find.text('Mantén: secador'), 5.3);
+      if (!massage) {
+        expect(game.activity.phase, BathPhase.nails);
+        await hold(t, find.text('Cortador de uñas de perro'), 1.9);
+        expect(game.activity.phase, BathPhase.curl);
+        expect(saved(backend).coins, 30);
+        await hold(t, find.text('Rizado Extra'), 2.9);
+      }
+      expect(saved(backend).coins, 0);
+      expect(saved(backend).needPoints(Need.hygiene), massage ? 70 : 80);
+      expect(saved(backend).needPoints(Need.mood), massage ? 65 : 40);
+      expect(saved(backend).revision, 2);
+    });
+  }
+
   testWidgets(
     'baño: soltar detiene la ducha, cabeza obligatoria y secado final',
     (t) async {
@@ -57,6 +107,8 @@ void main() {
       await boot(t, backend);
       await t.tap(find.byType(NeedMeter).at(1));
       await idle(t);
+      await tapText(t, 'Baño estándar · Gratis');
+      await tapText(t, 'Empezar el baño');
       final g = sceneGame<BathGame>(t);
       await waitScene(t, g);
       await idle(t);
@@ -96,7 +148,7 @@ void main() {
       expect(g.activity.phase, BathPhase.dry);
       expect(saved(backend).revision, 1);
       await hold(t, find.text('Mantén: secador'), 5.2);
-      expect(saved(backend).needPoints(Need.hygiene), 95);
+      expect(saved(backend).needPoints(Need.hygiene), 100);
       expect(saved(backend).careCompletedUtc['bath'], isNotNull);
     },
   );

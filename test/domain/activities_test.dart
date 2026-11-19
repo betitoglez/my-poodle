@@ -37,6 +37,31 @@ void main() {
     expect(b.done, b.total);
   });
 
+  test('baño: mojar, aclarar y secar afectan primero a la zona apuntada', () {
+    final bath = BathActivity();
+    bath.wet(.625, BathZone.chest);
+    expect(bath.wetness(BathZone.chest), .5);
+    expect(bath.wetness(BathZone.head), 0);
+    expect(bath.toolZone(BathZone.chest), BathZone.chest);
+    bath.wet(.625, BathZone.chest);
+    expect(bath.toolZone(BathZone.chest), BathZone.head);
+    bath.wet(3.75);
+    for (final zone in BathZone.values) {
+      bath.soap(zone, 1);
+      expect(bath.wetness(zone), 1);
+    }
+    bath.rinse(1.25, BathZone.paws);
+    expect(bath.visibleFoam(BathZone.paws), 0);
+    expect(bath.visibleFoam(BathZone.back), 1);
+    bath.rinse(3.75);
+    bath.dry(.625, BathZone.head);
+    expect(bath.wetness(BathZone.head), .5);
+    expect(bath.wetness(BathZone.back), 1);
+    bath.dry(4.375);
+    expect(bath.completed, isTrue);
+    expect(BathZone.values.map(bath.wetness), everyElement(0));
+  });
+
   test('paseo: fuera de orden no avanza; olfatear antes de la siguiente', () {
     final w = WalkActivity();
     expect(w.tapStop(1), isFalse);

@@ -68,6 +68,7 @@ flutter:
     - assets/images/rooms/
     - assets/images/pet/
     - assets/images/props/
+    - assets/images/food/
     - assets/images/icons/
     - assets/images/materials/
     - assets/images/wardrobe_preview/

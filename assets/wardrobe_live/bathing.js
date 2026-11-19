@@ -7,12 +7,16 @@ const anchors = [
   [-0.090, 0.528, 0.252],  // Chest
   [-0.065, 0.908, 0.378],  // Head
 ];
+const paws = [
+  [-.145, .12, .30], [.112, .12, .29],
+  [-.15, .12, -.31], [.112, .12, -.31],
+];
 
 const clusters = [
-  [[-0.103, 0.589, -0.238], [-0.119, 0.614, -0.120], [-0.077, 0.668, -0.058], [0.02, 0.664, -0.20]],
-  [[-0.115, 0.252, 0.213], [0.105, 0.249, 0.218], [-0.119, 0.250, -0.275], [0.115, 0.243, -0.284]],
-  [[-0.119, 0.532, 0.206], [-0.096, 0.465, 0.242], [-0.032, 0.501, 0.283], [0.06, 0.510, 0.272]],
-  [[-0.100, 0.955, 0.327], [-0.058, 0.998, 0.316], [0.023, 1.005, 0.299], [-0.115, 0.915, 0.369]],
+  [[-0.103, 0.589, -0.238], [-0.119, 0.614, -0.120], [-0.077, 0.668, -0.058], [0.02, 0.664, -0.20], [0.076, 0.632, -0.13]],
+  [[-0.115, 0.252, 0.213], [0.105, 0.249, 0.218], [-0.119, 0.250, -0.275], [0.115, 0.243, -0.284], [-0.125, 0.306, 0.212]],
+  [[-0.119, 0.532, 0.206], [-0.096, 0.465, 0.242], [-0.032, 0.501, 0.283], [0.06, 0.510, 0.272], [-0.121, 0.573, 0.244]],
+  [[-0.100, 0.955, 0.327], [-0.058, 0.998, 0.316], [0.023, 1.005, 0.299], [-0.115, 0.915, 0.369], [-0.147, 0.887, 0.266]],
 ];
 
 function lathe(profile, material) {
@@ -52,6 +56,7 @@ export function makeBath() {
       color: '#a5d5df', roughness: 0.26, transparent: true, opacity: 0.62, depthWrite: false,
     }),
   );
+  const lavenderWater = new THREE.Color('#bea4df');
   water.rotation.x = -Math.PI / 2;
   water.scale.x = 0.67;
   water.position.y = 0.116;
@@ -63,7 +68,7 @@ export function makeBath() {
     color: '#ffffff', roughness: 0.31, metalness: 0.02,
   });
   const shades = ['#f7eef5', '#d9edf1', '#fff9f1', '#f8f9ff'].map(color => new THREE.Color(color));
-  const n = 58;
+  const n = 96;
   const sample = new THREE.Object3D();
   const foam = clusters.map((sources, zone) => {
     const bubbles = new THREE.InstancedMesh(bubbleShape, bubbleSurface, n);
@@ -74,7 +79,7 @@ export function makeBath() {
       const r = 0.018 + 0.039 * (((i * 71) % n) / n);
       const h = ((i * 23) % 13) / 12 - 0.36;
       sample.position.set(x + Math.cos(a) * r * 0.65, y + h * r, z + Math.sin(a) * r);
-      const size = 0.014 + 0.023 * (((i * 17 + zone * 5) % n) / n);
+      const size = 0.015 + 0.026 * (((i * 17 + zone * 5) % n) / n);
       sample.scale.set(size, size * 0.78, size * 0.95);
       sample.updateMatrix();
       bubbles.setMatrixAt(i, sample.matrix);
@@ -85,17 +90,39 @@ export function makeBath() {
     return bubbles;
   });
 
-  function update(phase, progress, suds) {
+  const surfaceBubbles = new THREE.InstancedMesh(bubbleShape, bubbleSurface, 84);
+  surfaceBubbles.frustumCulled = false;
+  for (let i = 0; i < 84; i++) {
+    const angle = (i % 9) * Math.PI * 2 / 9 + Math.sin(i * 2.4) * .19;
+    const distance = .29 + ((i * 19) % 23) * .005;
+    const size = .014 + ((i * 11) % 19) * .0013;
+    sample.position.set(.67 * Math.cos(angle) * distance, .136 + (i % 3) * .013,
+      Math.sin(angle) * distance);
+    sample.scale.set(size, size * .78, size);
+    sample.updateMatrix();
+    surfaceBubbles.setMatrixAt(i, sample.matrix);
+    surfaceBubbles.setColorAt(i, shades[i % shades.length]);
+  }
+  surfaceBubbles.count = 30;
+  tub.add(surfaceBubbles);
+
+  function update(phase, progress, suds, spa, extra, finishedDry) {
     for (let i = 0; i < foam.length; i++) {
-      const amount = phase === 2 ? suds[i] * (1 - progress) : phase === 1 ? suds[i] : 0;
-      foam[i].count = Math.round(n * amount);
+      foam[i].count = Math.round(n * suds[i]);
     }
+    const amount = suds.reduce((sum, zone) => sum + zone, 0) / foam.length;
+    surfaceBubbles.count = Math.round(phase === 2 ? 84 : phase === 3 ? 80 - 43 * progress :
+      phase === 4 ? 37 : 30 + 54 * (phase === 0 ? progress * .35 : amount));
     water.material.opacity = phase === 3 ? 0.62 - progress * 0.15 : 0.62;
+    ceramic.color.set(spa ? '#aa9abf' : '#b5a4c7');
+    water.material.color.set('#a5d5df');
+    if (spa) water.material.color.lerp(lavenderWater, phase === 5 ? extra : 1);
+    tub.visible = !finishedDry;
   }
 
   function screenTargets(camera) {
     const point = new THREE.Vector3();
-    return anchors.flatMap(anchor => {
+    return [...anchors, ...paws].flatMap(anchor => {
       group.localToWorld(point.fromArray(anchor)).project(camera);
       return [(point.x + 1) / 2, (1 - point.y) / 2];
     });

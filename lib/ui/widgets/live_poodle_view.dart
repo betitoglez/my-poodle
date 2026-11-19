@@ -8,6 +8,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../domain/appearance.dart';
 import '../../domain/games/orchard_sim.dart';
 
+enum LivePetTap { missed, touched, greeted }
+
 class LivePoodleController {
   MethodChannel? _channel;
   Rect? _bowlBounds;
@@ -17,6 +19,19 @@ class LivePoodleController {
 
   void rotate(double delta) => _send('rotate', delta);
   void pet() => _send('pet');
+  Future<LivePetTap> petAt(Offset point) async {
+    if (_viewport.isEmpty) return LivePetTap.missed;
+    final result = await _channel?.invokeMethod<int>('petAt', [
+      point.dx / _viewport.width,
+      point.dy / _viewport.height,
+    ]);
+    return switch (result) {
+      2 => LivePetTap.greeted,
+      1 => LivePetTap.touched,
+      _ => LivePetTap.missed,
+    };
+  }
+
   void front() => _send('front');
   void feed(double progress, double fill) => _send('feed', [progress, fill]);
   void bath(List<double> state) => _send('bath', state);
@@ -53,7 +68,10 @@ class LivePoodleView extends StatefulWidget {
     required this.reducedMotion,
     required this.wardrobe,
     this.feeding = false,
+    this.drinking = false,
+    this.drinkColor,
     this.bathing = false,
+    this.spaBath = false,
     this.onBathTargets,
     this.veterinary = false,
     this.onVetTargets,
@@ -65,6 +83,7 @@ class LivePoodleView extends StatefulWidget {
     this.orchardLevel,
     this.frisbee = false,
     this.idle = false,
+    this.roaming = false,
     this.hygiene = 100,
     this.mood = 100,
     this.energy = 100,
@@ -79,7 +98,10 @@ class LivePoodleView extends StatefulWidget {
   final bool reducedMotion;
   final bool wardrobe;
   final bool feeding;
+  final bool drinking;
+  final Color? drinkColor;
   final bool bathing;
+  final bool spaBath;
   final ValueChanged<List<Offset>>? onBathTargets;
   final bool veterinary;
   final ValueChanged<List<Offset>>? onVetTargets;
@@ -89,13 +111,14 @@ class LivePoodleView extends StatefulWidget {
   final ValueChanged<Rect>? onSleepBounds;
   final bool walking;
   final OrchardLevel? orchardLevel;
-  final bool frisbee, idle, sick, passiveBed;
+  final bool frisbee, idle, roaming, sick, passiveBed;
   final int hygiene, mood, energy;
 
   static bool get enabled =>
       const bool.fromEnvironment('POODLE_LIVE_3D') &&
       !kIsWeb &&
-      defaultTargetPlatform == TargetPlatform.android;
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   static const supportedItems = {
     'outfit.teal',
@@ -168,9 +191,17 @@ class _LivePoodleState extends State<LivePoodleView> {
   void _configure() {
     if (_size.isEmpty) return;
     // Same cover crop and feet landmarks as StageGame/RoomArt.
-    final imageHeight = widget.wardrobe ? 697.0 : 900.0;
-    final scale = math.max(_size.width / 672, _size.height / imageHeight);
-    final artWidth = 672 * scale;
+    final imageWidth = widget.spaBath ? 1200.0 : 672.0;
+    final imageHeight = widget.spaBath
+        ? 675.0
+        : widget.wardrobe
+        ? 697.0
+        : 900.0;
+    final scale = math.max(
+      _size.width / imageWidth,
+      _size.height / imageHeight,
+    );
+    final artWidth = imageWidth * scale;
     final artHeight = imageHeight * scale;
     final floor =
         _size.height -
@@ -185,19 +216,28 @@ class _LivePoodleState extends State<LivePoodleView> {
                 ? 0.14
                 : widget.sleeping
                 ? 0.19
+                : widget.roaming
+                ? 0.17
                 : 0.20);
-    final height = math.min(
-      math.min(
-        artHeight * (widget.wardrobe || widget.grooming ? 0.54 : 0.42),
-        floor * 0.92,
-      ),
-      _size.width *
-          (widget.sleeping
-              ? 0.59
-              : widget.feeding || widget.bathing || widget.veterinary
-              ? 0.68
-              : 0.80),
-    );
+    final height = math
+        .min(
+          math.min(
+            artHeight * (widget.wardrobe || widget.grooming ? 0.54 : 0.42),
+            floor * 0.92,
+          ),
+          _size.width *
+              (widget.sleeping
+                  ? 0.59
+                  : widget.feeding || widget.bathing || widget.veterinary
+                  ? 0.68
+                  : 0.80),
+        )
+        .clamp(
+          0.0,
+          widget.roaming || widget.wardrobe
+              ? _size.height * 0.55
+              : double.infinity,
+        );
     final appearance = widget.appearance;
     final orchard = widget.orchardLevel;
     _channel?.invokeMethod<void>('configure', {
@@ -225,6 +265,10 @@ class _LivePoodleState extends State<LivePoodleView> {
           : height / _size.height,
       'resting': widget.resting,
       'feeding': widget.feeding,
+      'drinking': widget.drinking,
+      'drinkColor': widget.drinkColor == null
+          ? null
+          : widget.drinkColor!.toARGB32() & 0xffffff,
       'bathing': widget.bathing,
       'veterinary': widget.veterinary,
       'grooming': widget.grooming,
@@ -232,6 +276,7 @@ class _LivePoodleState extends State<LivePoodleView> {
       'walking': widget.walking,
       'frisbee': widget.frisbee,
       'idle': widget.idle,
+      'roaming': widget.roaming,
       'hygiene': widget.hygiene,
       'mood': widget.mood,
       'energy': widget.energy,
@@ -245,6 +290,10 @@ class _LivePoodleState extends State<LivePoodleView> {
               ],
               'fruit': [
                 for (final f in orchard.apples) [f.x, f.y, f.kind.index],
+              ],
+              'barriers': [
+                for (final b in orchard.barriers)
+                  [b.x, b.ground, b.width, b.height, b.kind.index],
               ],
               'goal': orchard.goalX,
               'start': orchard.startX,
@@ -308,7 +357,10 @@ class _LivePoodleState extends State<LivePoodleView> {
     if (oldWidget.appearance != widget.appearance ||
         oldWidget.resting != widget.resting ||
         oldWidget.feeding != widget.feeding ||
+        oldWidget.drinking != widget.drinking ||
+        oldWidget.drinkColor != widget.drinkColor ||
         oldWidget.bathing != widget.bathing ||
+        oldWidget.spaBath != widget.spaBath ||
         oldWidget.veterinary != widget.veterinary ||
         oldWidget.grooming != widget.grooming ||
         oldWidget.sleeping != widget.sleeping ||
@@ -316,6 +368,7 @@ class _LivePoodleState extends State<LivePoodleView> {
         oldWidget.orchardLevel != widget.orchardLevel ||
         oldWidget.frisbee != widget.frisbee ||
         oldWidget.idle != widget.idle ||
+        oldWidget.roaming != widget.roaming ||
         oldWidget.hygiene != widget.hygiene ||
         oldWidget.mood != widget.mood ||
         oldWidget.energy != widget.energy ||
@@ -352,10 +405,16 @@ class _LivePoodleState extends State<LivePoodleView> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            AndroidView(
-              viewType: 'my_poodle/poodle_3d',
-              onPlatformViewCreated: _created,
-            ),
+            if (defaultTargetPlatform == TargetPlatform.iOS)
+              UiKitView(
+                viewType: 'my_poodle/poodle_3d',
+                onPlatformViewCreated: _created,
+              )
+            else
+              AndroidView(
+                viewType: 'my_poodle/poodle_3d',
+                onPlatformViewCreated: _created,
+              ),
             if (!widget.controller.ready && !widget.controller.failed)
               const ColoredBox(
                 color: Color(0xFFFFF8E9),

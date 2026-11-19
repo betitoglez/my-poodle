@@ -1,14 +1,34 @@
 import * as THREE from 'three';
 
+export function bindTail(mesh, trunk, tail) {
+  if (!mesh.isSkinnedMesh) return;
+  const trunkIndex = mesh.skeleton.bones.indexOf(trunk);
+  const tailIndex = mesh.skeleton.bones.indexOf(tail);
+  const { position, skinIndex, skinWeight } = mesh.geometry.attributes;
+  const smooth = THREE.MathUtils.smoothstep;
+  for (let i = 0; i < position.count; i++) {
+    // Blend the base into the rump and bind the full pom-pom to the tail joint.
+    const weight = smooth(position.getY(i), .575, .660) *
+      smooth(-position.getZ(i), .326, .382);
+    if (weight === 0) continue;
+    skinIndex.setXYZW(i, trunkIndex, tailIndex, 0, 0);
+    skinWeight.setXYZW(i, 1 - weight, weight, 0, 0);
+  }
+  skinIndex.needsUpdate = true;
+  skinWeight.needsUpdate = true;
+}
+
 export function patchCoat(material, uniforms) {
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = `
       uniform vec2 poodleCuts;
-      uniform float poodleDirt, poodleMouthOpen;
+      uniform vec4 poodleWet;
+      uniform float poodleDirt, poodleMouthOpen, poodleExtraCurl;
       varying vec3 poodleRestPosition;
       varying float poodleShortCoat;
       varying float poodleMouthInterior;
+      varying float poodleDampness;
     ` + shader.vertexShader.replace('#include <morphtarget_vertex>', `
       #include <morphtarget_vertex>
       poodleRestPosition = position;
@@ -37,8 +57,22 @@ export function patchCoat(material, uniforms) {
       contour += (p-legCenter)*vec3(.46,0.0,.15)*cuffs;
       contour += vec3(p.x*.24,.075,0.0)*head;
       transformed += poodleCuts.y * contour;
-      float tousled = clamp((poodleDirt-1.0)*.25,0.0,1.0) * (.014*ear+.012*head);
+      float tousled = clamp((poodleDirt-1.0)*.2,0.0,1.0) * (.023*ear+.019*head);
       transformed += vec3(p.x*3.0,.68,.30) * tousled * sin(p.y*68.0-p.z*53.0);
+
+      // Blend neighbouring bath areas in rest coordinates, even as the rig moves.
+      float faceWet = smoothstep(.64,.76,p.y) * smoothstep(.10,.28,p.z);
+      float pawsWet = 1.0 - smoothstep(.27,.40,p.y);
+      float chestArea = smoothstep(.015,.24,p.z);
+      float bodyArea = 1.0 - faceWet - pawsWet;
+      poodleDampness = dot(poodleWet,
+        vec4(bodyArea*(1.0-chestArea),pawsWet,bodyArea*chestArea,faceWet));
+      transformed -= normal * (.007*poodleDampness);
+      float crownAndBack = max(head, smoothstep(.48,.66,p.y) *
+        (1.0-smoothstep(-.08,.21,p.z)) * (1.0-smoothstep(.68,.76,p.y)));
+      float curlRidges = sin(89.0*p.z + 2.5*sin(p.y*66.0)) *
+        sin(91.0*p.x + 2.5*sin(p.z*73.0));
+      transformed += normal * (.013 + .008*curlRidges) * crownAndBack * poodleExtraCurl;
 
       // Stretch the lip seam while lowering just the jaw in front of the throat.
       float lipWidth = abs(p.x+.008);
@@ -51,10 +85,11 @@ export function patchCoat(material, uniforms) {
     `);
     shader.fragmentShader = `
       uniform vec3 poodleFur;
-      uniform float poodleRecolor, poodleWet, poodleDirt, poodleMouthOpen;
+      uniform float poodleRecolor, poodleDirt, poodleMouthOpen, poodleExtraCurl;
       varying vec3 poodleRestPosition;
       varying float poodleShortCoat;
       varying float poodleMouthInterior;
+      varying float poodleDampness;
     ` + shader.fragmentShader.replace('#include <map_fragment>', `
       #include <map_fragment>
       float tone = dot(diffuseColor.rgb, vec3(.24,.65,.11));
@@ -65,15 +100,17 @@ export function patchCoat(material, uniforms) {
       diffuseColor.rgb *= 1.0-.13*poodleShortCoat*smoothstep(.012,.09,tone);
       vec3 p = poodleRestPosition;
       float patches = sin(p.z*38.0 + p.x*31.0 + sin(p.y*43.0)) * cos(p.x*49.0-p.y*31.0);
-      float onCoat = (1.0-smoothstep(.72,.91,p.y)) * smoothstep(.009,.10,tone);
-      float dirt = smoothstep(.9-poodleDirt*.105,1.0,patches)*onCoat*min(1.0,poodleDirt*.3);
-      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*.46+vec3(.056,.029,.013), dirt*.76);
-      diffuseColor.rgb *= mix(vec3(1.0),vec3(.72,.76,.78),poodleWet);
+      float onCoat = (1.0-smoothstep(.79,1.01,p.y)*.65) * smoothstep(.006,.077,tone);
+      float dirt = smoothstep(.9-poodleDirt*.145,.93,patches)*onCoat*min(1.0,poodleDirt*.27);
+      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*.31+vec3(.084,.043,.017), dirt*.93);
+      diffuseColor.rgb *= mix(vec3(1.0),vec3(.64,.70,.74),poodleDampness);
+      float curlLight = smoothstep(.54,.75,p.y) * smoothstep(.020,.095,tone);
+      diffuseColor.rgb *= 1.0 + (tone-.20) * .32 * curlLight * poodleExtraCurl;
       diffuseColor.rgb = mix(diffuseColor.rgb,vec3(.021,.006,.008),
         poodleMouthInterior*smoothstep(.10,.62,poodleMouthOpen));
     `).replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
-      roughnessFactor *= mix(1.0,.63,poodleWet);
+      roughnessFactor *= mix(1.0,.50,poodleDampness);
     `);
   };
   material.customProgramCacheKey = () => 'poodle-coat';
@@ -155,7 +192,7 @@ export function makeIdle(body, bones) {
     tongue.visible = false;
     for (const drop of drops) drop.visible = false;
   }
-  function update(config, seconds, still, resting) {
+  function update(config, seconds, still, resting, greetingWag) {
     if ((!config.idle && !config.sick) || resting) return;
     still = still || !config.idle;
     const sad = Math.max(0, (42-(config.mood??100))/42);
@@ -165,7 +202,7 @@ export function makeIdle(body, bones) {
     const wave = still ? 0 : Math.sin(seconds*1.9);
     turn('cuello',1,0,0,.21*dejected+wave*.025);
     turn('cabeza',0,1,0,still ? 0 : Math.sin(seconds*.93)*.12*(1-dejected));
-    const wag = still ? 0 : Math.sin(seconds*16)*(.08+.29*Math.max(0,Math.sin(seconds*1.6)))*(1-dejected);
+    const wag = still || greetingWag ? 0 : Math.sin(seconds*16)*(.08+.29*Math.max(0,Math.sin(seconds*1.6)))*(1-dejected);
     turn('cola',0,1,0,wag);
     turn('cola',1,0,0,-.31*dejected);
     const pant = seconds%6.1;

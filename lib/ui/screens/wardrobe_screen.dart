@@ -292,9 +292,12 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     final cost = c.lookCost(_preview);
     final locked = c.lockedIn(_preview).isNotEmpty;
     final zoom = ThumbZoom.of(_slot);
-    final showModel = LivePoodleView.enabled && !_live.failed;
-    final live = showModel && _live.ready && LivePoodleView.supports(_preview);
-    _game!.pet.showSprite = !live;
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(_preview);
+    final live = showModel && _live.ready;
+    _game!.pet.showSprite = !showModel;
 
     // Acción contextual.
     late final Widget action;
@@ -359,15 +362,16 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
             game: _game!,
             semanticsLabel:
                 'Vista previa de ${pet.name} con el aspecto elegido, ${_view.label.toLowerCase()}',
-            onTap: (point) {
-              if (live && _game!.pet.hits(point)) _live.pet();
-              _game!.pet.react(PetAnim.happy);
+            onTap: (point) async {
+              if (live) {
+                if (await _live.petAt(point) == LivePetTap.greeted && mounted) {
+                  await c.rewardGreeting();
+                }
+              } else {
+                _game!.pet.react(PetAnim.happy);
+              }
             },
-            onDragUpdate: live
-                ? (start, _, delta) {
-                    if (_game!.pet.hits(start)) _live.rotate(delta.dx);
-                  }
-                : null,
+            onDragUpdate: live ? (_, _, delta) => _live.rotate(delta.dx) : null,
             overlay: Stack(
               fit: StackFit.expand,
               children: [

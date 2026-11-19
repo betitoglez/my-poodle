@@ -129,12 +129,14 @@ extension NeedVisuals on Need {
     Need.hygiene => Icons.bubble_chart_rounded,
     Need.mood => Icons.favorite_rounded,
     Need.energy => Icons.bolt_rounded,
+    Need.hydration => Icons.water_drop_rounded,
   };
   Color get color => switch (this) {
     Need.satiety => AppColors.satiety,
     Need.hygiene => AppColors.hygiene,
     Need.mood => AppColors.mood,
     Need.energy => AppColors.energy,
+    Need.hydration => const Color(0xFF397CAA),
   };
 }
 
@@ -264,6 +266,7 @@ class StepMarks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dotSize = total > 7 ? 17.0 : 22.0;
     return Semantics(
       label: 'Progreso $done de $total',
       excludeSemantics: true,
@@ -275,8 +278,8 @@ class StepMarks extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 3),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 22,
-                height: 22,
+                width: dotSize,
+                height: dotSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: i < done ? AppColors.leaf : Colors.white,
@@ -388,34 +391,47 @@ class HealthMeter extends StatelessWidget {
               width: sick ? 2 : 1,
             ),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                sick ? Icons.sick_rounded : Icons.favorite_rounded,
-                size: 18,
-                color: color,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Salud',
-                style: AppText.small.copyWith(color: AppColors.ink),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                  child: LinearProgressIndicator(
-                    value: points / 100,
-                    minHeight: 8,
+              Row(
+                children: [
+                  Icon(
+                    sick ? Icons.sick_rounded : Icons.favorite_rounded,
+                    size: 16,
                     color: color,
-                    backgroundColor: color.withValues(alpha: 0.18),
                   ),
-                ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      'Salud',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.small.copyWith(color: AppColors.ink),
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(
+                      sick ? 'Malito' : 'Sano',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.number.copyWith(
+                        fontSize: 13,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              Text(
-                sick ? 'Malito' : 'Sano',
-                style: AppText.number.copyWith(fontSize: 14, color: color),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                child: LinearProgressIndicator(
+                  value: points / 100,
+                  minHeight: 7,
+                  color: color,
+                  backgroundColor: color.withValues(alpha: 0.18),
+                ),
               ),
             ],
           ),

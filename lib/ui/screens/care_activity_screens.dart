@@ -8,6 +8,7 @@ import '../../app/feedback.dart';
 import '../../app/texts.dart';
 import '../../domain/activities.dart';
 import '../../domain/appearance.dart';
+import '../../domain/care_options.dart';
 import '../../domain/food.dart';
 import '../../domain/balance.dart';
 import '../ask_adult_view.dart';
@@ -35,7 +36,8 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
   final hintKey = GlobalKey();
 
   CareKind get kind;
-  Food get food => Food.basic;
+  CareOption? get option => null;
+  bool confirming = false;
   String? get groomingHair => null;
   StepActivity get activity;
   G createGame(AppController c);
@@ -51,9 +53,8 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
             c.careBlocked(kind) ?? 'Espera a que termine el guardado.';
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
+          showCareBlocked(context, kind, reason);
           Navigator.pop(context);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(reason)));
         });
       }
       game = createGame(c)..onChanged = _changed;
@@ -85,22 +86,54 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
     AppScope.feedbackOf(context).play(Sfx.celebrate);
     final receipt = await commitOrRecover<Receipt>(
       context,
-      () => c.finishCare(session, kind, food: food, groomingHair: groomingHair),
+      () => c.finishCare(
+        session,
+        kind,
+        option: option,
+        groomingHair: groomingHair,
+      ),
     );
     if (!mounted) return;
     if (receipt != null) {
       replaceScreen(context, CareResultScreen(kind: kind, receipt: receipt));
     } else {
       finishing = false;
-      final reason = c.careBlocked(kind, food: food);
+      final reason = c.careBlocked(kind, option: option);
       if (reason != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(reason)));
+        showCareBlocked(context, kind, reason);
         Navigator.pop(context);
       } else {
         setState(() {});
       }
     }
+  }
+
+  Future<bool> confirmOption(
+    CareOption selection, {
+    required String title,
+    required String note,
+  }) async {
+    if (confirming || finishing) return false;
+    final c = AppScope.read(context);
+    final reason = c.careBlocked(kind, option: selection);
+    if (reason != null) {
+      showCareBlocked(context, kind, reason);
+      return false;
+    }
+    if (selection.cost == 0) return true;
+    setState(() => confirming = true);
+    final accepted = await showPurchaseDialog(
+      context,
+      items: [selection.label],
+      price: selection.cost,
+      balance: c.pet.coins,
+      title: title,
+      confirmLabel: 'Aceptar',
+      note: note,
+    );
+    if (!mounted) return false;
+    setState(() => confirming = false);
+    return accepted;
   }
 
   void onExit() => AppScope.read(context).cancelActivity(session);
@@ -172,7 +205,7 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
   final _live = LivePoodleController();
   Food? _selected;
   @override
-  Food get food => _selected ?? Food.basic;
+  Food get option => _selected ?? Food.basic;
   @override
   CareKind get kind => CareKind.feed;
   @override
@@ -195,6 +228,26 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
     }
   }
 
+  Future<void> _bite() async {
+    final selection = _selected;
+    if (selection == null || confirming || finishing || !_activity.canBite) {
+      return;
+    }
+    if (_activity.done > 0) {
+      game!.bite();
+      return;
+    }
+    if (await confirmOption(
+          selection,
+          title: 'Confirmar la ración',
+          note:
+              'El cobro y los efectos se aplican al terminar los tres bocados.',
+        ) &&
+        mounted) {
+      game!.bite();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppScope.of(context);
@@ -205,7 +258,10 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
         !_live.failed &&
         LivePoodleView.supports(appearance);
     final live = showModel && _live.ready;
-    final feedingGame = game!..useLiveModel = live;
+    final feedingGame = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
+    final eating = _activity.done > 0;
     final text = _activity.chewing
         ? '$name está masticando…'
         : _activity.completed
@@ -216,7 +272,7 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
       scene: SceneView(
         game: feedingGame,
         semanticsLabel: 'Cocina con el cuenco de comida',
-        onTap: _selected == null
+        onTap: !eating
             ? null
             : (point) {
                 if (live) {
@@ -245,59 +301,25 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
             : null,
       ),
       hintWidget: hint(
-        'Toca el cuenco para darle un bocado.',
+        'Elige una comida y pulsa Dar un bocado para empezar.',
         Icons.restaurant_rounded,
       ),
       controls: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_selected == null) ...[
-            _instruction('Elige su comida', icon: Icons.restaurant_rounded),
-            SizedBox(
-              height: 190,
-              child: Material(
-                color: Colors.transparent,
-                child: ListView(
-                  children: [
-                    for (final option in Food.values)
-                      ListTile(
-                        leading: Icon(
-                          c.canAccess(option.tier)
-                              ? Icons.restaurant_rounded
-                              : Icons.lock_rounded,
-                        ),
-                        title: Text(
-                          '${option.label} · ${option.cost == 0 ? 'Gratis' : '${option.cost} monedas'}',
-                        ),
-                        subtitle: Text(
-                          option.delta.entries
-                              .map(
-                                (e) => '+${e.value} ${Texts.needLabels[e.key]}',
-                              )
-                              .join(' · '),
-                        ),
-                        onTap: () {
-                          if (!c.canAccess(option.tier)) {
-                            showAskAdult(context);
-                            return;
-                          }
-                          final reason = c.careBlocked(kind, food: option);
-                          if (reason != null) {
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text(reason)));
-                            return;
-                          }
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          setState(() => _selected = option);
-                        },
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ] else
+          if (!eating)
+            _CareOptions<Food>(
+              options: Food.values,
+              selected: _selected,
+              artwork: (choice) => 'assets/images/food/${choice.name}.webp',
+              icon: Icons.restaurant_rounded,
+              onSelected: confirming
+                  ? null
+                  : (choice) => setState(() => _selected = choice),
+            )
+          else
             _instruction(
-              '${food.label}. $text',
+              '${option.label}. $text',
               icon: Icons.restaurant_rounded,
             ),
           const SizedBox(height: AppSpace.m),
@@ -306,9 +328,351 @@ class _FeedScreenState extends CareActivityState<FeedScreen, FeedGame> {
             icon: Icons.restaurant_rounded,
             big: true,
             expand: true,
-            onPressed: _selected != null && _activity.canBite && !finishing
-                ? () => game!.bite()
+            onPressed:
+                _selected != null &&
+                    _activity.canBite &&
+                    !finishing &&
+                    !confirming
+                ? _bite
                 : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CareOptions<T extends CareOption> extends StatelessWidget {
+  const _CareOptions({
+    required this.options,
+    required this.selected,
+    required this.artwork,
+    required this.icon,
+    required this.onSelected,
+  });
+
+  final List<T> options;
+  final T? selected;
+  final String Function(T) artwork;
+  final IconData icon;
+  final ValueChanged<T>? onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppScope.of(context);
+    return SizedBox(
+      height: (MediaQuery.sizeOf(context).height * .27).clamp(146.0, 230.0),
+      child: ListView(
+        children: [
+          for (final choice in options)
+            _CareOptionTile(
+              choice: choice,
+              artwork: artwork(choice),
+              icon: icon,
+              selected: selected == choice,
+              locked: !c.canAccess(choice.tier),
+              onTap: onSelected == null
+                  ? null
+                  : () {
+                      if (!c.canAccess(choice.tier)) {
+                        showAskAdult(context);
+                        return;
+                      }
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      onSelected!(choice);
+                    },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CareOptionTile extends StatelessWidget {
+  const _CareOptionTile({
+    required this.choice,
+    required this.artwork,
+    required this.icon,
+    required this.selected,
+    required this.locked,
+    required this.onTap,
+  });
+
+  final CareOption choice;
+  final String artwork;
+  final IconData icon;
+  final bool selected;
+  final bool locked;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+      side: BorderSide(
+        color: selected ? AppColors.plum : AppColors.plum.withAlpha(38),
+        width: selected ? 2 : 1,
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        child: Material(
+          shape: shape,
+          color: selected ? AppColors.leafSoft : Colors.white,
+          child: InkWell(
+            customBorder: shape,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              child: Row(
+                children: [
+                  Image.asset(
+                    artwork,
+                    width: 58,
+                    height: 55,
+                    fit: BoxFit.contain,
+                    excludeFromSemantics: true,
+                    errorBuilder: (_, _, _) =>
+                        Icon(icon, size: 32, color: AppColors.leaf),
+                  ),
+                  const SizedBox(width: AppSpace.s),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          choice.cost == 0
+                              ? '${choice.label} · Gratis'
+                              : choice.label,
+                          style: AppText.subtitle,
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 3,
+                          children: [
+                            for (final effect in choice.delta.entries)
+                              Semantics(
+                                label:
+                                    '${Texts.needLabels[effect.key]} '
+                                    '${effect.value >= 0 ? '+' : ''}${effect.value}',
+                                excludeSemantics: true,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      effect.key.icon,
+                                      size: 16,
+                                      color: effect.key.color,
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '${effect.value >= 0 ? '+' : ''}${effect.value}',
+                                      style: AppText.number.copyWith(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (choice.cost > 0)
+                    Semantics(
+                      label: '${choice.cost} monedas',
+                      excludeSemantics: true,
+                      child: Row(
+                        children: [
+                          const CoinIcon(size: 16),
+                          const SizedBox(width: 4),
+                          Text('${choice.cost}', style: AppText.number),
+                        ],
+                      ),
+                    ),
+                  if (locked)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 6),
+                      child: Icon(
+                        Icons.lock_rounded,
+                        size: 15,
+                        semanticLabel: 'Versión completa',
+                      ),
+                    ),
+                  if (selected)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 6),
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.leaf,
+                        size: 19,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DrinkScreen extends StatefulWidget {
+  const DrinkScreen({super.key});
+  @override
+  State<DrinkScreen> createState() => _DrinkScreenState();
+}
+
+class _DrinkScreenState extends CareActivityState<DrinkScreen, FeedGame> {
+  final _activity = FeedActivity();
+  final _live = LivePoodleController();
+  Drink? _selected;
+  @override
+  Drink get option => _selected ?? Drink.water;
+
+  Color get _drinkColor => switch (option) {
+    Drink.water => const Color(0xFF88BDD8),
+    Drink.bottled => const Color(0xFF8DD3EF),
+    Drink.vitamins => const Color(0xFF92D0B7),
+    Drink.juice => const Color(0xFFF3AA65),
+  };
+
+  @override
+  CareKind get kind => CareKind.drink;
+  @override
+  StepActivity get activity => _activity;
+
+  void _syncWater() {
+    if (!_live.ready || game == null) return;
+    _live.feed(game!.biteProgress, game!.liveBowlFill);
+  }
+
+  @override
+  FeedGame createGame(AppController c) =>
+      FeedGame(
+          painter: PetPainterScope.of(context),
+          look: c.look,
+          reducedMotion: c.reducedMotion,
+          activity: _activity,
+          drinking: true,
+        )
+        ..onChewFrame = _syncWater
+        ..onBite = (() => AppScope.feedbackOf(context).play(Sfx.bubble));
+
+  Future<void> _fill() async {
+    final selection = _selected;
+    if (selection == null || game!.hasWater) return;
+    if (await confirmOption(
+          selection,
+          title: 'Confirmar la bebida',
+          note:
+              'El cobro y los efectos se aplican al terminar los tres sorbos.',
+        ) &&
+        mounted) {
+      game!
+        ..waterColor = _drinkColor
+        ..fillWater();
+    }
+  }
+
+  @override
+  bool hasPending() => game!.hasWater && !finishing;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppScope.of(context);
+    final pet = c.pet;
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(pet.appearance);
+    final live = showModel && _live.ready;
+    final g = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
+    final label = !g.hasWater
+        ? 'Llenar el cuenco'
+        : g.pouring
+        ? 'Llenando…'
+        : _activity.chewing
+        ? 'Bebiendo…'
+        : 'Dar un sorbo';
+    return frame(
+      title: 'Hora de beber',
+      scene: SceneView(
+        game: g,
+        semanticsLabel: 'Cuenco de agua de ${pet.name}',
+        onTap: g.hasWater && !finishing
+            ? (p) {
+                if (live) {
+                  if (_live.hitBowl(p)) g.bite();
+                } else {
+                  g.tapAt(p);
+                }
+              }
+            : null,
+        overlay: showModel
+            ? LivePoodleView(
+                controller: _live,
+                appearance: pet.appearance,
+                resting: false,
+                reducedMotion: c.reducedMotion,
+                wardrobe: false,
+                feeding: true,
+                drinking: true,
+                drinkColor: _drinkColor,
+                hygiene: pet.needPoints(Need.hygiene),
+                mood: pet.needPoints(Need.mood),
+                energy: pet.needPoints(Need.energy),
+                sick: pet.isSick,
+                onStatusChanged: () {
+                  setState(() {});
+                  _syncWater();
+                },
+              )
+            : null,
+      ),
+      controls: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!g.hasWater)
+            _CareOptions<Drink>(
+              options: Drink.values,
+              selected: _selected,
+              artwork: (choice) =>
+                  'assets/images/food/drink_${choice.name}.webp',
+              icon: Need.hydration.icon,
+              onSelected: confirming
+                  ? null
+                  : (choice) => setState(() => _selected = choice),
+            )
+          else
+            _instruction(
+              '${option.label}. Toca el cuenco para darle los tres sorbos.',
+              icon: Need.hydration.icon,
+            ),
+          const SizedBox(height: AppSpace.s),
+          AppButton(
+            label: label,
+            icon: Need.hydration.icon,
+            big: true,
+            expand: true,
+            onPressed:
+                _selected == null ||
+                    confirming ||
+                    g.pouring ||
+                    !_activity.canBite ||
+                    finishing
+                ? null
+                : g.hasWater
+                ? g.bite
+                : _fill,
           ),
         ],
       ),
@@ -330,6 +694,32 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
   final _activity = BathActivity();
   final _live = LivePoodleController();
   List<double>? _lastBathFrame;
+  BathPlan? _selected;
+  bool _started = false;
+  @override
+  BathPlan get option => _selected ?? BathPlan.standard;
+
+  Future<void> _startBath() async {
+    final selection = _selected;
+    if (selection == null || _started) return;
+    if (await confirmOption(
+          selection,
+          title: 'Confirmar el baño',
+          note: 'El cobro y los efectos se aplican al completar el baño.',
+        ) &&
+        mounted) {
+      setState(() {
+        _started = true;
+        _activity.select(selection);
+      });
+      if (selection == BathPlan.massage) game!.setSpa();
+      _syncBath();
+    }
+  }
+
+  @override
+  bool hasPending() => _started && !finishing;
+
   @override
   CareKind get kind => CareKind.bath;
   @override
@@ -350,10 +740,16 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
       _lastBathFrame = null;
       return;
     }
-    final frame = [
+    final frame = <double>[
       _activity.phase.index.toDouble(),
       (_activity.toolProgress * 32).round() / 32,
-      for (final zone in BathZone.values) _activity.foam(zone),
+      for (final zone in BathZone.values)
+        (_activity.visibleFoam(zone) * 32).round() / 32,
+      for (final zone in BathZone.values)
+        (_activity.wetness(zone) * 32).round() / 32,
+      (_activity.curlProgress * 32).round() / 32,
+      option == BathPlan.massage && _started ? 1 : 0,
+      (_activity.extraProgress * 32).round() / 32,
     ];
     if (listEquals(frame, _lastBathFrame)) return;
     _lastBathFrame = frame;
@@ -379,15 +775,31 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
         !_live.failed &&
         LivePoodleView.supports(appearance);
     final live = showModel && _live.ready;
-    final bathGame = game!..useLiveModel = live;
+    final bathGame = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
     final phase = _activity.phase;
     final text = switch (phase) {
-      BathPhase.wet => 'Mantén la ducha sobre el perrito durante 5 segundos.',
+      BathPhase.wet => 'Pasa la ducha por el pelaje o mantén pulsado el botón.',
       BathPhase.soap => 'Frota cabeza, lomo, pecho y patas con la esponja.',
-      BathPhase.rinse =>
-        'Aclara todo el jabón con la ducha durante 5 segundos.',
-      BathPhase.dry => 'Pasa el secador durante 5 segundos para secarle.',
+      BathPhase.rinse => 'Pasa la ducha por la espuma para aclararla.',
+      BathPhase.dry => 'Pasa el secador por el pelo mojado para secarlo.',
+      BathPhase.salts =>
+        'Mantén el bote sobre el agua o mantén pulsado el botón.',
+      BathPhase.massage => 'Masajea despacio el lomo, el pecho y la cabeza.',
+      BathPhase.nails =>
+        'Mantén el cortauñas sobre cada una de las cuatro patas.',
+      BathPhase.curl =>
+        'Pasa el rizador por la cabeza y el lomo para definir los rizos.',
       BathPhase.done => '¡Limpio y seco!',
+    };
+    final (toolLabel, toolIcon) = switch (phase) {
+      BathPhase.dry => ('Mantén: secador', Icons.air_rounded),
+      BathPhase.salts => ('Añadir sales de baño relajantes', Icons.spa_rounded),
+      BathPhase.massage => ('Masaje perruno', Icons.back_hand_rounded),
+      BathPhase.nails => ('Cortador de uñas de perro', Icons.pets_rounded),
+      BathPhase.curl => ('Rizado Extra', Icons.waves_rounded),
+      _ => ('Mantén: ducha', Icons.shower_rounded),
     };
     final action = phase == BathPhase.soap
         ? Wrap(
@@ -408,19 +820,19 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
         : Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              LinearProgressIndicator(value: _activity.toolProgress),
+              LinearProgressIndicator(
+                value: _activity.extraTargets > 0
+                    ? _activity.extraProgress
+                    : _activity.toolProgress,
+              ),
               const SizedBox(height: 8),
               Listener(
                 onPointerDown: (_) => game!.holdTool(),
                 onPointerUp: (_) => game!.releaseTool(),
                 onPointerCancel: (_) => game!.releaseTool(),
                 child: AppButton(
-                  label: phase == BathPhase.dry
-                      ? 'Mantén: secador'
-                      : 'Mantén: ducha',
-                  icon: phase == BathPhase.dry
-                      ? Icons.air_rounded
-                      : Icons.shower_rounded,
+                  label: toolLabel,
+                  icon: toolIcon,
                   big: true,
                   expand: true,
                   onPressed: () {},
@@ -429,14 +841,14 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
             ],
           );
     return frame(
-      title: 'Un baño de espuma',
+      title: _started ? option.label : 'Un baño de espuma',
       scene: SceneView(
         game: bathGame,
         semanticsLabel: 'Bañera lavanda con el caniche',
-        onTap: bathGame.tapAt,
-        onPress: bathGame.pressAt,
-        onRelease: bathGame.releaseTool,
-        onDragUpdate: (_, p, d) => bathGame.dragAt(p, d),
+        onTap: _started ? bathGame.tapAt : null,
+        onPress: _started ? bathGame.pressAt : null,
+        onRelease: _started ? bathGame.releaseTool : null,
+        onDragUpdate: _started ? (_, p, d) => bathGame.dragAt(p, d) : null,
         overlay: showModel
             ? Stack(
                 fit: StackFit.expand,
@@ -452,6 +864,7 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
                     sick: c.pet.isSick,
                     wardrobe: false,
                     bathing: true,
+                    spaBath: bathGame.spaRoom,
                     onBathTargets: bathGame.setLiveTargets,
                     onStatusChanged: () {
                       setState(() {});
@@ -468,16 +881,39 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
               )
             : null,
       ),
-      hintWidget: hint(
-        'Mantén la ducha sobre el perrito.',
-        Icons.shower_rounded,
-      ),
+      hintWidget: !_started || option == BathPlan.massage
+          ? null
+          : hint('Mantén la ducha sobre el perrito.', Icons.shower_rounded),
       controls: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _instruction(text, icon: Icons.bubble_chart_rounded),
-          const SizedBox(height: AppSpace.m),
-          action,
+          if (_started) ...[
+            _instruction(text, icon: toolIcon),
+            const SizedBox(height: AppSpace.m),
+            action,
+          ] else ...[
+            _CareOptions<BathPlan>(
+              options: BathPlan.values,
+              selected: _selected,
+              artwork: (choice) => switch (choice) {
+                BathPlan.standard => 'assets/images/cards/bath.jpg',
+                BathPlan.premium => 'assets/images/food/bath_premium.webp',
+                BathPlan.massage => 'assets/images/food/bath_massage.webp',
+              },
+              icon: Icons.bathtub_rounded,
+              onSelected: confirming
+                  ? null
+                  : (choice) => setState(() => _selected = choice),
+            ),
+            const SizedBox(height: AppSpace.m),
+            AppButton(
+              label: 'Empezar el baño',
+              icon: Icons.bathtub_rounded,
+              big: true,
+              expand: true,
+              onPressed: _selected == null || confirming ? null : _startBath,
+            ),
+          ],
         ],
       ),
     );
@@ -610,7 +1046,9 @@ class _WalkScreenState extends CareActivityState<WalkScreen, WalkGame> {
         !_live.failed &&
         LivePoodleView.supports(appearance);
     final live = showModel && _live.ready;
-    final g = game!..useLiveModel = live;
+    final g = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
     final stop = _activity.enabledStop;
     final atStop = _activity.phase == WalkPhase.atStop;
     final text = switch (_activity.phase) {
@@ -810,7 +1248,9 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
         !_live.failed &&
         LivePoodleView.supports(appearance);
     final live = showModel && _live.ready;
-    final g = game!..useLiveModel = live;
+    final g = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
     final target = _targetHair ?? equipped.hair;
     final preview = live && !c.pet.owned.contains(target);
     return frame(
@@ -990,7 +1430,9 @@ class _SleepScreenState extends CareActivityState<SleepScreen, SleepGame> {
         !_live.failed &&
         LivePoodleView.supports(appearance);
     final live = showModel && _live.ready;
-    final g = game!..useLiveModel = live;
+    final g = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
     final (text, label, icon, action) = switch (_activity.phase) {
       SleepPhase.toBed => (
         'Toca su cama para que $name se acueste.',
@@ -1149,7 +1591,9 @@ class _VetScreenState extends CareActivityState<VetScreen, VetGame> {
         !_live.failed &&
         LivePoodleView.supports(appearance);
     final live = showModel && _live.ready;
-    final g = game!..useLiveModel = live;
+    final g = game!
+      ..useLiveModel = live
+      ..pet.showSprite = !showModel;
     final busy = g.busy;
     final sick = _activity.sick;
     final (text, label, icon, action) = switch (_activity.phase) {

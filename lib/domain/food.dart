@@ -1,8 +1,9 @@
 import 'balance.dart';
+import 'care_options.dart';
 import 'entitlements.dart';
 
 /// Una ración por cuidado, con cobro y efectos en la misma escritura.
-enum Food {
+enum Food implements CareOption {
   basic('Pienso diario', 0, Tier.free, {Need.satiety: 20}),
   premium('Comida premium', 10, Tier.free, {Need.satiety: 40}),
   salmon('Comida de salmón', 30, Tier.full, {
@@ -23,8 +24,12 @@ enum Food {
   bone('Hueso', 5, Tier.full, {Need.satiety: 5, Need.mood: 30});
 
   const Food(this.label, this.cost, this.tier, this.delta);
+  @override
   final String label;
+  @override
   final int cost;
+  @override
   final Tier tier;
+  @override
   final Map<Need, int> delta;
 }

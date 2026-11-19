@@ -13,16 +13,22 @@
       "satiety": 65,
       "hygiene": 70,
       "mood": 75,
-      "energy": 80
+      "energy": 80,
+      "hydration": 90
     },
     "deltaPerTick100": {
       "satiety": -75,
       "hygiene": -50,
       "mood": -50,
-      "energy": 100
+      "energy": 100,
+      "hydration": -150
     }
   },
   "care": {
+    "drink": {
+      "steps": ["fill", "sip", "sip", "sip"],
+      "delta": { "hydration": 60 }
+    },
     "feed": {
       "steps": [
         "bite",
@@ -44,7 +50,7 @@
         "dry"
       ],
       "delta": {
-        "hygiene": 25
+        "hygiene": 30
       }
     },
     "groom": {
@@ -99,10 +105,10 @@
   },
   "games": {
     "fruit": {
-      "seconds": 30,
-      "maxScore": 12,
+      "seconds": 60,
+      "maxScore": 24,
       "baseCoins": 2,
-      "coinsPerPoint": 1,
+      "coinsPerPoint": 2,
       "tier": "full"
     },
     "frisbee": {

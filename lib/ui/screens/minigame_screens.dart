@@ -157,6 +157,7 @@ class _OrchardScreenState extends State<OrchardScreen>
     _render3d =
         LivePoodleView.enabled && LivePoodleView.supports(c.pet.appearance);
     _game = OrchardGame(
+      sim: OrchardSim(timeLimit: c.balance.fruit.seconds.toDouble()),
       painter: PetPainterScope.of(context),
       look: c.look,
       reducedMotion: c.reducedMotion,
@@ -173,6 +174,7 @@ class _OrchardScreenState extends State<OrchardScreen>
       }),
     );
     _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
+    _game!.pet.showSprite = !_render3d;
     if (_render3d) _loadTimeout = Timer(const Duration(seconds: 10), _fallback);
     setState(() {});
   }
@@ -238,7 +240,9 @@ class _OrchardScreenState extends State<OrchardScreen>
           Expanded(
             child: Text(
               _game!.showPenalty
-                  ? 'Caída −${OrchardSim.fallPenaltySeconds} s. Vuelves al último apoyo.'
+                  ? _game!.lastPenaltyWasFall
+                        ? 'Caída −${OrchardSim.fallPenaltySeconds} s. Vuelves al último apoyo.'
+                        : 'Choque −${OrchardSim.fallPenaltySeconds} s.'
                   : waiting
                   ? 'Salta los bancales y recoge las frutas.'
                   : def.gesture,
@@ -325,6 +329,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
       _game!.start();
     }
     _game!.useLiveModel = _showModel && _live.ready;
+    _game!.pet.showSprite = !_showModel;
     _syncFrisbee();
     setState(() {});
   }
@@ -354,33 +359,37 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
     final rule = c.balance.frisbee;
     _showModel =
         LivePoodleView.enabled && LivePoodleView.supports(c.pet.appearance);
-    _game = FrisbeeGame(
-      painter: PetPainterScope.of(context),
-      look: c.look,
-      reducedMotion: c.reducedMotion,
-      sim: FrisbeeSim(
-        targets: rule.targetsField,
-        flightSeconds: rule.flightSeconds,
-        catchRadius: rule.catchRadius,
-      ),
-      onFinished: (score) => WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) complete(score);
-      }),
-      onHud: refreshAfterFrame,
-      onVisualFrame: _syncFrisbee,
-      onEvent: (e) {
-        switch (e) {
-          case 'catch':
-            fx.play(Sfx.catchDisc);
-            _missText = null;
-          case 'miss':
-            fx.play(Sfx.miss);
-            _missText = _texts.pick(Texts.missFeedback);
-          default:
-            fx.play(Sfx.throwDisc);
-        }
-      },
-    )..waitForStart = _showModel;
+    _game =
+        FrisbeeGame(
+            painter: PetPainterScope.of(context),
+            look: c.look,
+            reducedMotion: c.reducedMotion,
+            sim: FrisbeeSim(
+              targets: rule.targetsField,
+              flightSeconds: rule.flightSeconds,
+              catchRadius: rule.catchRadius,
+            ),
+            onFinished: (score) =>
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) complete(score);
+                }),
+            onHud: refreshAfterFrame,
+            onVisualFrame: _syncFrisbee,
+            onEvent: (e) {
+              switch (e) {
+                case 'catch':
+                  fx.play(Sfx.catchDisc);
+                  _missText = null;
+                case 'miss':
+                  fx.play(Sfx.miss);
+                  _missText = _texts.pick(Texts.missFeedback);
+                default:
+                  fx.play(Sfx.throwDisc);
+              }
+            },
+          )
+          ..waitForStart = _showModel
+          ..pet.showSprite = !_showModel;
     _game!.pet.hygiene = c.pet.needPoints(Need.hygiene);
     setState(() {});
   }

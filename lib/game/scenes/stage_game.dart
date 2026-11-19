@@ -256,10 +256,8 @@ class HomeGame extends StageGame {
   }
 
   void _zzz(Canvas c) {
-    if (!resting) return;
-    final head =
-        pet.position.toOffset() +
-        Offset(pet.petSize * 0.2, -pet.petSize * 0.95);
+    if (!resting || useLiveBed) return;
+    final head = pet.landmarkScene('headTop') + Offset(pet.petSize * .09, 0);
     for (var i = 0; i < 3; i++) {
       final k = ((time * 0.5 + i / 3) % 1);
       final tp = _text('z', 14 + i * 5.0, const Color(0xFF5C354E));
@@ -269,11 +267,13 @@ class HomeGame extends StageGame {
 
   @override
   void tapAt(Offset p) {
-    if (pet.hits(p)) {
-      if (resting) setResting(false);
-      pet.react(PetAnim.happy, seconds: 1.6);
-      onPetTapped?.call();
-    }
+    if (pet.hits(p)) reactToPetTap();
+  }
+
+  void reactToPetTap() {
+    if (resting) setResting(false);
+    pet.react(PetAnim.happy, seconds: 1.6);
+    onPetTapped?.call();
   }
 }
 

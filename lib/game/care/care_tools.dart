@@ -10,6 +10,10 @@ enum CareTool {
   stethoscope,
   magnifier,
   pill,
+  nailClippers,
+  curler,
+  salts,
+  massage,
 }
 
 /// Herramientas vectoriales que siguen al dedo, independientes de fuentes.
@@ -22,10 +26,20 @@ void paintCareTool(
   Image? atlas,
 ]) {
   if (atlas != null) {
-    final tile = atlas.width / 3;
+    final extras = tool.index >= CareTool.nailClippers.index;
+    final columns = extras ? 2 : 3;
+    final index = extras
+        ? tool.index - CareTool.nailClippers.index
+        : tool.index;
+    final tile = atlas.width / columns;
     c.drawImageRect(
       atlas,
-      Rect.fromLTWH(tool.index % 3 * tile, tool.index ~/ 3 * tile, tile, tile),
+      Rect.fromLTWH(
+        index % columns * tile,
+        index ~/ columns * tile,
+        tile,
+        tile,
+      ),
       Rect.fromCenter(center: at, width: size * 1.20, height: size * 1.20),
       Paint()..filterQuality = FilterQuality.medium,
     );
@@ -56,17 +70,6 @@ void paintCareTool(
       );
       box(const Rect.fromLTWH(-2, -9, 27, 13), const Color(0xFF91BDC6));
       box(const Rect.fromLTWH(15, 1, 9, 23), const Color(0xFFE5D4E4), 3);
-      for (var i = 0; i < 4; i++) {
-        final y = 8 + (time * 28 + i * 7) % 20;
-        c.drawLine(
-          Offset(-1 + i * 5, y),
-          Offset(-4 + i * 5, y + 7),
-          Paint()
-            ..color = const Color(0xAA67B7DD)
-            ..strokeWidth = 2
-            ..strokeCap = StrokeCap.round,
-        );
-      }
     case CareTool.sponge:
       box(const Rect.fromLTWH(-18, -11, 36, 24), const Color(0xFFEACB75), 9);
       for (var i = 0; i < 7; i++) {
@@ -190,6 +193,65 @@ void paintCareTool(
         Paint()..color = const Color(0xFFD9838E),
       );
       c.restore();
+    case CareTool.nailClippers:
+      c.drawPath(
+        Path()
+          ..moveTo(-13, -15)
+          ..quadraticBezierTo(-11, -28, 1, -19)
+          ..quadraticBezierTo(7, -27, 16, -16)
+          ..lineTo(7, 3)
+          ..lineTo(-7, 3)
+          ..close(),
+        Paint()..color = const Color(0xff9cacbb),
+      );
+      for (final side in [-1.0, 1.0]) {
+        c.save();
+        c.rotate(side * .35);
+        box(const Rect.fromLTWH(-6, 1, 12, 24), const Color(0xff438f84));
+        c.restore();
+      }
+      c.drawCircle(
+        const Offset(0, -2),
+        3,
+        Paint()..color = const Color(0xffdddfe2),
+      );
+    case CareTool.curler:
+      c.rotate(.46);
+      box(const Rect.fromLTWH(-5, -24, 10, 31), const Color(0xfff0dbbb), 4);
+      box(const Rect.fromLTWH(-7, 5, 14, 20), const Color(0xff9c79ae), 5);
+      c.drawCircle(
+        const Offset(0, 13),
+        2,
+        Paint()..color = const Color(0xffdcf8d7),
+      );
+    case CareTool.salts:
+      box(const Rect.fromLTWH(-15, -12, 30, 30), const Color(0xffedc6d2), 7);
+      box(const Rect.fromLTWH(-12, -19, 24, 8), const Color(0xffecc8a7), 3);
+      for (var i = 0; i < 13; i++) {
+        c.drawCircle(
+          Offset(-10 + (i * 7 % 20).toDouble(), (i * 11 % 18).toDouble() - 5),
+          1.5,
+          Paint()..color = const Color(0xfffaece1),
+        );
+      }
+    case CareTool.massage:
+      for (final (x, y, width) in [(-8.0, 9.0, 27.0), (7.0, -5.0, 22.0)]) {
+        final stone = Rect.fromCenter(
+          center: Offset(x, y),
+          width: width,
+          height: 14,
+        );
+        c.drawOval(stone, Paint()..color = const Color(0xff555169));
+        c.drawArc(
+          stone.deflate(3),
+          3.35,
+          1.45,
+          false,
+          ink
+            ..color = const Color(0xffaaa1ae)
+            ..strokeWidth = 1.8,
+        );
+      }
   }
   c.restore();
 }
