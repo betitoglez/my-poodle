@@ -55,6 +55,7 @@ class FakeClient implements IapClient {
   int restores = 0;
   int queries = 0;
   ProductDetails? bought;
+  void Function()? onBuy;
   List<PurchaseDetails> restoreResult = [];
   List<GooglePlayPurchaseDetails> owned = [];
   IAPError? queryError;
@@ -73,6 +74,7 @@ class FakeClient implements IapClient {
   @override
   Future<bool> buy(ProductDetails product) async {
     bought = product;
+    onBuy?.call();
     return buyStarted;
   }
 
@@ -217,6 +219,108 @@ void main() {
     },
   );
 
+  for (final status in [PurchaseStatus.canceled, PurchaseStatus.error]) {
+    test(
+      'Android: $status sin producto termina el flujo sin guardar ni confirmar',
+      () async {
+        final android = IapStore(productId: id, android: true, client: client);
+        final backend = MemoryBackend();
+        final controller = StoreController(
+          provider: android,
+          entitlements: EntitlementStore(backend, productId: id),
+          clock: FakeClock(t0),
+        );
+        addTearDown(controller.dispose);
+        addTearDown(android.dispose);
+        await controller.start();
+        await flush();
+        client.onBuy = () => client.updates.add([
+          purchase(status, productId: 'otro', needsCompletion: false),
+        ]);
+        await controller.buy();
+        await flush();
+        expect(controller.flow, PurchaseFlow.buying);
+        client.updates.add([
+          PurchaseDetails(
+            purchaseID: '',
+            productID: '',
+            transactionDate: null,
+            verificationData: PurchaseVerificationData(
+              localVerificationData: '',
+              serverVerificationData: '',
+              source: 'google_play',
+            ),
+            status: status,
+          ),
+        ]);
+        await flush();
+        expect(controller.flow, PurchaseFlow.idle);
+        expect(
+          controller.notice,
+          status == PurchaseStatus.canceled
+              ? StoreNotice.canceled
+              : StoreNotice.error,
+        );
+        expect(controller.full, isFalse);
+        expect(backend.files, isEmpty);
+        expect(client.completed, isEmpty);
+      },
+    );
+  }
+
+  test(
+    'Android: restaurar una transacción pendiente no la desbloquea ni confirma',
+    () async {
+      final android = IapStore(productId: id, android: true, client: client);
+      addTearDown(android.dispose);
+      android.events.listen(events.add);
+      final pending = GooglePlayPurchaseDetails.fromPurchase(
+        PurchaseWrapper(
+          orderId: '',
+          packageName: 'com.betitoglez.mypoodle',
+          purchaseTime: 1794920000,
+          purchaseToken: 'pending-token',
+          signature: '',
+          products: [id],
+          isAutoRenewing: false,
+          originalJson: '{}',
+          isAcknowledged: false,
+          purchaseState: PurchaseStateWrapper.pending,
+        ),
+      ).single..status = PurchaseStatus.restored;
+      client.restoreResult = [pending];
+      await android.restore();
+      await flush();
+      expect(events.single.kind, StoreEventKind.pending);
+      await android.complete(events.single.eventId);
+      expect(client.completed, isEmpty);
+      pending.status = PurchaseStatus.canceled;
+      client.updates.add([pending]);
+      await flush();
+      expect(events.last.kind, StoreEventKind.canceled);
+      await android.complete(events.last.eventId);
+      expect(
+        client.completed,
+        isEmpty,
+        reason: 'tampoco se confirma una pendiente cancelada',
+      );
+      client.updates.add([
+        purchase(
+          PurchaseStatus.purchased,
+          productId: '',
+          transaction: '',
+          needsCompletion: false,
+        ),
+      ]);
+      await flush();
+      expect(
+        events,
+        hasLength(2),
+        reason: 'una compra sin producto nunca entrega contenido',
+      );
+    },
+  );
+
   test(
     'no consultar ni restaurar al arrancar iOS; restauración explícita',
     () async {
@@ -317,47 +421,50 @@ void main() {
     expect(client.completed, hasLength(1));
   });
 
-  test('guarda antes de completar; fallo de disco y reentrega, sin datos privados', () async {
-    final backend = FlakyBackend();
-    final c = StoreController(
-      provider: store,
-      entitlements: EntitlementStore(
-        backend,
-        productId: id,
-        acceptSimulated: false,
-      ),
-      clock: FakeClock(t0),
-    );
-    // dispose es idempotente: el controlador y tearDown comparten proveedor.
-    await c.start();
-    client.onComplete = (_) {
+  test(
+    'guarda antes de completar; fallo de disco y reentrega, sin datos privados',
+    () async {
+      final backend = FlakyBackend();
+      final c = StoreController(
+        provider: store,
+        entitlements: EntitlementStore(
+          backend,
+          productId: id,
+          acceptSimulated: false,
+        ),
+        clock: FakeClock(t0),
+      );
+      // dispose es idempotente: el controlador y tearDown comparten proveedor.
+      await c.start();
+      client.onComplete = (_) {
+        expect(c.full, isTrue);
+        expect(backend.files[EntitlementStore.primary], contains('purchased'));
+      };
+      final p = purchase(PurchaseStatus.purchased);
+      backend.failWrites = true;
+      client.updates.add([p]);
+      await flush();
+      expect(c.full, isFalse);
+      expect(client.completed, isEmpty);
+      backend.failWrites = false;
+      client.failComplete = true;
+      client.updates.add([p]);
+      await flush();
       expect(c.full, isTrue);
-      expect(backend.files[EntitlementStore.primary], contains('purchased'));
-    };
-    final p = purchase(PurchaseStatus.purchased);
-    backend.failWrites = true;
-    client.updates.add([p]);
-    await flush();
-    expect(c.full, isFalse);
-    expect(client.completed, isEmpty);
-    backend.failWrites = false;
-    client.failComplete = true;
-    client.updates.add([p]);
-    await flush();
-    expect(c.full, isTrue);
-    expect(client.completed, isEmpty);
-    client.failComplete = false;
-    client.updates.add([p]);
-    await flush();
-    expect(client.completed, hasLength(1));
-    final text = backend.files.values.join();
-    for (final private in [
-      'transaction-1',
-      'private-receipt',
-      'private-token',
-    ]) {
-      expect(text, isNot(contains(private)));
-    }
-    c.dispose();
-  });
+      expect(client.completed, isEmpty);
+      client.failComplete = false;
+      client.updates.add([p]);
+      await flush();
+      expect(client.completed, hasLength(1));
+      final text = backend.files.values.join();
+      for (final private in [
+        'transaction-1',
+        'private-receipt',
+        'private-token',
+      ]) {
+        expect(text, isNot(contains(private)));
+      }
+      c.dispose();
+    },
+  );
 }

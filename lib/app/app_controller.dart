@@ -147,8 +147,13 @@ class AppController extends ChangeNotifier {
     });
   }
 
-  /// Al volver de segundo plano se recalculan las necesidades.
-  void onResumed() => notifyListeners();
+  /// Al volver se recalculan necesidades y se reconcilia la propiedad Android.
+  void onResumed() {
+    notifyListeners();
+    if (purchases.provider.silentOwnershipQuery) {
+      unawaited(purchases.checkOwnership());
+    }
+  }
 
   @override
   void dispose() {

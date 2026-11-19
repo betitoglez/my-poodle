@@ -1,3 +1,6 @@
+import 'package:my_poodle/store/simulated_store.dart';
+import 'package:my_poodle/data/save_store.dart';
+import 'package:my_poodle/app/app_scope.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -98,6 +101,23 @@ void main() {
     await tapText(t, 'Hidratación');
     expect(find.text('Hora de beber'), findsOneWidget);
     expect(saved(backend).restingSinceUtc, isNull);
+  });
+
+  testWidgets('al reanudar consulta propiedad Android sin cambiar la partida', (
+    t,
+  ) async {
+    final backend = backendWith((s) => s);
+    final store = SimulatedStore(owned: true, delay: Duration.zero);
+    await boot(t, backend, store: store);
+    final controller = AppScope.read(t.element(find.byType(StatusBubbles)));
+    expect(controller.fullVersion, isTrue);
+    final before = backend.files[SaveStore.primary];
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    store.owned = false;
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await idle(t);
+    expect(controller.fullVersion, isFalse);
+    expect(backend.files[SaveStore.primary], before);
   });
 
   testWidgets('frisbee se congela en segundo plano hasta Continuar', (t) async {
