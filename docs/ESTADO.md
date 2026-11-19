@@ -4,6 +4,12 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-19 · Corrección de activación del 3D en iPhone
+
+El propietario detecta que no aparecen los diseños 3D. Causa verificada: `LivePoodleView.enabled` exige `POODLE_LIVE_3D=true`, pero las builds 0.4.11 y 0.4.12 se hicieron sin esa opción. Contenían el GLB y el código nativo, pero mostraban el respaldo 2D; los registros anteriores de empaquetado no acreditaban que el 3D estuviese activo. Fue un error de preparación de esas builds, no una pérdida de los diseños.
+
+Se prepara **0.4.13 (31)** y se añade `tool/build_ios_3d.sh`, que activa la opción y verifica tanto el valor efectivo como el modelo empaquetado. Build Profile **0.4.13 (31)** correcta, instalada sobre la versión previa y abierta en primer plano. El script verifica `POODLE_LIVE_3D=true` decodificando la configuración efectiva y comprueba el GLB empaquetado. Firma estricta correcta. No se han cambiado las reglas ni los diseños: se activa su visor existente. La captura remota de pantalla no está disponible en este entorno; se solicita confirmación visual al propietario.
+
 ## Sesión 2026-11-19 · main actualizado y rama rebasada
 
 Por petición del propietario se descarga main directamente de GitHub por HTTPS (SSH agotó el tiempo de conexión), se actualiza main local a `54279f6` y se rebasa `codex/elevenlabs-sfx` sobre ese main. La música queda en un commit propio; los efectos ya incorporados en main por #3 no se duplican. Se conserva `codex/backup-music-before-main-20261119` como referencia previa. Se comprueba que main coincide con GitHub, que es ancestro de la rama y que el árbol tras el rebase coincide con el anterior.

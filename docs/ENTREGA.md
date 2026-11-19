@@ -29,6 +29,8 @@ Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. La comp
 
 ## iOS
 
+Para probar la versión actual con los diseños 3D, ejecutar `tool/build_ios_3d.sh`. Este script compila la entrada normal en Profile con `--dart-define=POODLE_LIVE_3D=true` y comprueba la opción y el GLB empaquetado. Un `flutter build ios` sin esa opción muestra el respaldo 2D, aunque el modelo esté dentro de los assets. No confundir un paquete que contiene el modelo con una compilación que activa el visor.
+
 1. Preparar Xcode y toolchain iOS de Flutter. Mantener configuración y puente Swift en ios/; resolver dependencias nativas según el método soportado por el SDK/plugins elegidos. Bundle ID, versión y build number deben coincidir con ficha.
 2. Abrir ios/Runner.xcworkspace cuando corresponda al proyecto generado. Seleccionar Team autorizado y provisioning, conectar iPhone y ejecutar Runner o flutter run -d <device-id>. Probar teclado, audio, interrupciones y exclusión de backup en hardware.
 3. Ejecutar flutter build ipa --release con firma válida. Inspeccionar archivo en Organizer y validar/distribuir a TestFlight/App Store. Conservar dSYM y metadatos de exportación. [Carga de builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/).
