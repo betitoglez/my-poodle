@@ -7,9 +7,11 @@
 ## Identidad y situación de Apple · 20-11-2026
 
 - Team `79KBLB95KX`, Bundle ID `com.betitoglez.mypoodle`, Apple ID app `6836995483`, SKU `mypoodle-ios`; ficha creada e inglés principal.
-- Producto **no consumible** `mypoodle.full_version`, Apple ID `6837002992`, creado. Metadatos de idioma en preparación; precio real aún sin guardar por confirmación pendiente del propietario.
+- Producto **no consumible** `mypoodle.full_version`, Apple ID `6837002992`, creado. 11 nombres/descripciones de idioma guardados; precio real aún sin guardar por confirmación pendiente del propietario.
 - «Mi Caniche» se conserva dentro de la app y bajo el icono. Apple rechaza ese nombre exacto de ficha por estar ocupado; variante pendiente de elección.
-- PR #5 de compras integrada en main (`f08fb2d`), 193 pruebas y Codex sin incidencias. Compra iPhone Sandbox, subida/procesamiento y aceptación física de esta candidata todavía sin acreditar.
+- PR #5 de compras integrada en main (`f08fb2d`), 193 pruebas y Codex sin incidencias. IPA 0.5.0 (32) exportada manualmente y firma estricta verificada; la candidata 0.5.0 (33) añade las correcciones de la revisión #6. Subida bloqueada por Mac bloqueado y ausencia de sesión en Xcode. Compra iPhone Sandbox, subida/procesamiento y aceptación física todavía sin acreditar.
+
+El grupo interno **MVP Sandbox** está preparado con selección manual de builds; no tiene una build distribuida. El perfil **My Poodle App Store 20261120** está creado para el App ID y coincide con el certificado de distribución disponible. La cuenta en el navegador no inicia automáticamente una sesión de Xcode.
 
 ## Generación y comprobación
 
@@ -22,7 +24,7 @@ flutter test
 tool/build_testflight.sh
 ```
 
-Fijar un número de build creciente en pubspec. El script usa Release, la entrada real y `POODLE_LIVE_3D=true`, exportación App Store Connect interna y el Team autorizado. Verifica el GLB, los 11 catálogos y nombres nativos, respaldo inglés e identidad. El archivo StoreKit local sirve para Debug/Test y no debe estar dentro del paquete de distribución. No sustituye Sandbox. Conservar SHA de Git, log, dSYM, SHA-256 de IPA y resultado de firma.
+Fijar un número de build creciente en pubspec. Para exportación manual usar `POODLE_EXPORT_OPTIONS=.build/ExportOptions-TestFlight-local.plist tool/build_testflight.sh`; ese fichero local contiene la asignación del perfil y queda fuera de Git. El script usa Release, la entrada real y `POODLE_LIVE_3D=true`, exportación App Store Connect interna y el Team autorizado. Verifica el GLB, los 11 catálogos y nombres nativos, respaldo inglés e identidad. El archivo StoreKit local sirve para Debug/Test y no debe estar dentro del paquete de distribución. No sustituye Sandbox. Conservar SHA de Git, log, dSYM, SHA-256 de IPA y resultado de firma.
 
 Usar Xcode Organizer para validar y subir el Archive/IPA autorizado, o la vía de carga autenticada que permita la cuenta. Si se requieren nuevos acuerdos, datos bancarios/fiscales o credenciales, el propietario los completa; no se guardan en el repositorio. No enviar a producción. Esperar a que la build figure procesada en TestFlight y añadirla a un grupo interno del propietario. La exportación inicial es solo para pruebas internas; una beta externa requiere su propio flujo de revisión.
 

@@ -179,7 +179,8 @@ Future<bool> showPurchaseDialog(
         mainAxisSize: MainAxisSize.min,
         children: [
           LText(
-            items.join(' · '),
+            items.map((item) => localize(c, item)).join(' · '),
+            verbatim: true,
             style: AppText.subtitle,
             textAlign: TextAlign.center,
           ),

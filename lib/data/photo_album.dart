@@ -18,7 +18,9 @@ class PhotoAlbum {
   static const index = 'photos-v1.json';
   static const limit = 24;
   static int _sequence = 0;
-  Future<void> _tail = Future.value();
+  static final _writeQueues = Expando<_AlbumWriteQueue>('private photo album');
+
+  _AlbumWriteQueue get _queue => _writeQueues[backend] ??= _AlbumWriteQueue();
 
   Future<List<AlbumPhoto>> load() async {
     final raw = await backend.read(index);
@@ -47,8 +49,9 @@ class PhotoAlbum {
   }
 
   Future<T> _serial<T>(Future<T> Function() action) {
-    final next = _tail.then((_) => action());
-    _tail = next.then((_) {}, onError: (_) {});
+    final queue = _queue;
+    final next = queue.tail.then((_) => action());
+    queue.tail = next.then((_) {}, onError: (_) {});
     return next;
   }
 
@@ -110,4 +113,8 @@ class PhotoAlbum {
     await _writeIndex(photos.where((p) => p.id != photo.id).toList());
     await backend.delete('${photo.id}.png.base64');
   });
+}
+
+class _AlbumWriteQueue {
+  Future<void> tail = Future.value();
 }

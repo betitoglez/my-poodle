@@ -64,6 +64,17 @@ void main() {
       expect(backend.files[PhotoAlbum.index], previous);
     },
   );
+  test('screen instances share the same backend write queue', () async {
+    final backend = MemoryBackend();
+    final first = PhotoAlbum(backend);
+    final reopened = PhotoAlbum(backend);
+    final photos = await Future.wait([first.save(png), reopened.save(png)]);
+    expect((await PhotoAlbum(backend).load()).length, 2);
+    for (final photo in photos) {
+      expect(await reopened.read(photo), png);
+    }
+  });
+
   test(
     'invalid images and corrupted index are preserved for recovery',
     () async {

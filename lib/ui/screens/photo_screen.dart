@@ -107,6 +107,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppScope.of(context);
+    _game!.useLiveBed = _showModel;
     _game!.pet.showSprite = !_showModel;
     _game!.setResting(_resting);
     return Scaffold(
@@ -149,6 +150,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       reducedMotion: c.reducedMotion,
                       resting: _resting,
                       idle: true,
+                      passiveBed: true,
                       hygiene: c.pet.needPoints(Need.hygiene),
                       onStatusChanged: () {
                         if (mounted) setState(() {});
@@ -171,9 +173,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                           context,
                           'Girar a la izquierda',
                         ),
-                        onPressed: _live.ready
-                            ? () => _live.rotate(-0.35)
-                            : null,
+                        onPressed: _live.ready ? () => _live.rotate(-60) : null,
                         icon: const Icon(Icons.rotate_left_rounded),
                       ),
                       TextButton(
@@ -185,9 +185,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                           context,
                           'Girar a la derecha',
                         ),
-                        onPressed: _live.ready
-                            ? () => _live.rotate(0.35)
-                            : null,
+                        onPressed: _live.ready ? () => _live.rotate(60) : null,
                         icon: const Icon(Icons.rotate_right_rounded),
                       ),
                       IconButton(

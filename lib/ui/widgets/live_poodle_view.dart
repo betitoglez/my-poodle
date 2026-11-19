@@ -18,7 +18,8 @@ class LivePoodleController {
   bool ready = false;
   bool failed = false;
 
-  void rotate(double delta) => _send('rotate', delta);
+  /// Desplazamiento horizontal en píxeles lógicos, como el gesto de arrastre.
+  void rotate(double deltaPixels) => _send('rotate', deltaPixels);
   void pet() => _send('pet');
   Future<LivePetTap> petAt(Offset point) async {
     if (_viewport.isEmpty) return LivePetTap.missed;

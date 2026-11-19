@@ -1,5 +1,14 @@
 # Estado de la implementación
 
+## Revisión de la candidata 0.5.0 (33) · 20-11-2026
+
+- Codex #6 detectó tres P2: giro de foto expresado en radianes frente a píxeles, etiquetas sin traducir al comprar varios artículos y colisión entre colas de escritura de dos pantallas del álbum. Corregidos: giro visible por toque, traducción individual y cola compartida por backend mediante referencias débiles.
+- La carrera se reproduce antes de la corrección (`photos-v1.json.tmp` ausente); la regresión pasa después. **221/221 pruebas** correctas y análisis sin incidencias.
+- Prueba nativa iOS con un simulador aislado **My Poodle Photo QA**, sin compras y con partida/álbum en memoria: PNG nativo 542×639, 37.709 píxeles de modelo visibles, cambio medio 16,08 por canal al girar, foto compuesta de 1.085.332 bytes y dos fotos (de pie y tumbado). Inspección visual correcta; [foto](reviews/testflight-20261120/photo.png), [tumbado](reviews/testflight-20261120/resting-photo.png) y [métricas](reviews/testflight-20261120/results.json). No sustituye aceptación en el iPhone físico.
+- La exportación automática encontró `No Accounts`; se creó el perfil explícito My Poodle App Store 20261120 y se exportó la IPA (32) con el certificado local existente. Firma de distribución estricta, 3D y 11 catálogos/nombres nativos verificados. Se prepara la (33) con las correcciones anteriores; el registro de la IPA concreta se genera localmente con su SHA-256.
+- App Store Connect: producto no consumible con 11 idiomas y grupo interno MVP Sandbox preparado, distribución manual. Ninguna build subida/distribuida todavía. El Mac está bloqueado y Xcode sin sesión, por lo que se ha solicitado desbloqueo/inicio de sesión; siguen pendientes precio autorizado y variante de nombre español de ficha.
+- Se solicita segunda revisión de Codex antes de fusionar; el resultado autoritativo de revisión/fusión está en [PR #6](https://github.com/betitoglez/my-poodle/pull/6).
+
 ## Candidata MVP 0.5.0 (32) · 20-11-2026
 
 - Rama `codex/mvp-testflight-purchases` rebasada sobre main `f08fb2d`.

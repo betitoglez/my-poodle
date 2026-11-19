@@ -102,7 +102,9 @@ class SettingsScreen extends StatelessWidget {
           children: [
             DropdownButtonFormField<String>(
               key: ValueKey('language-${p.language ?? 'system'}'),
-              initialValue: p.language ?? 'system',
+              initialValue: p.language == null
+                  ? 'system'
+                  : AppLanguage.fromTag(p.language).tag,
               isExpanded: true,
               decoration: InputDecoration(
                 labelText: localize(context, 'Idioma de la app'),

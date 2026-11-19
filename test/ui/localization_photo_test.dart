@@ -1,3 +1,4 @@
+import 'package:my_poodle/ui/widgets/dialogs.dart';
 import 'package:my_poodle/ui/screens/main_shell.dart';
 
 import 'dart:convert';
@@ -93,4 +94,51 @@ void main() {
       },
     );
   }
+  testWidgets('purchase confirmation translates each selected wardrobe item', (
+    t,
+  ) async {
+    await boot(
+      t,
+      backendWith((s) => s.copyWith(prefs: s.prefs.copyWith(language: 'en'))),
+    );
+    final context = t.element(find.byType(StatusBubbles));
+    final strings = AppStrings.of(context);
+    final result = showPurchaseDialog(
+      context,
+      items: ['Corte osito', 'Lazo rosa'],
+      price: 20,
+      balance: 42,
+    );
+    await idle(t);
+    expect(
+      find.text(
+        '${strings.text('Corte osito')} · ${strings.text('Lazo rosa')}',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Corte osito · Lazo rosa'), findsNothing);
+    await t.tap(find.text(strings.text('Cancelar')));
+    await idle(t);
+    expect(await result, isFalse);
+  });
+  testWidgets('unsupported persisted language falls back safely in Settings', (
+    t,
+  ) async {
+    await boot(
+      t,
+      backendWith(
+        (s) => s.copyWith(prefs: s.prefs.copyWith(language: 'future-language')),
+      ),
+    );
+    await tapIcon(t, Icons.settings_rounded);
+    expect(t.takeException(), isNull);
+    expect(
+      t
+          .widget<DropdownButtonFormField<String>>(
+            find.byType(DropdownButtonFormField<String>),
+          )
+          .initialValue,
+      'en',
+    );
+  });
 }

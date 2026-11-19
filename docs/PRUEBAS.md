@@ -143,3 +143,11 @@ Para validar Billing revisar `aapt dump permissions <apk>`, el manifiesto fusion
 - `test/data/photo_album_test.dart`: reinicio, eliminación, índice dañado, fallo de reemplazo y capacidad bajo escrituras simultáneas.
 
 En iPhone comprobar con el 3D activo que la foto contiene al caniche con su ropa, pose y giro reales; volver del álbum no altera la partida. Probar guardar, ampliar, borrar y reabrir; los tests de widgets no acreditan el puente WebGL del dispositivo. Probar cambio de idioma, lectura CJK/cirílica, VoiceOver y textos largos a escala grande. La traducción inicial requiere revisión lingüística humana antes de producción. No marcar la compra Sandbox como aceptada por haber pasado la tienda simulada.
+
+### Captura 3D nativa con datos aislados
+
+```sh
+flutter drive --driver=test_driver/photo_test.dart --target=integration_test/photo_snapshot_test.dart -d <simulador-propio> --dart-define=POODLE_LIVE_3D=true
+```
+
+Usa mascota y álbum en memoria, sin compras. Comprueba píxeles del PNG nativo, giro visible por botón, captura/composición de las dos poses y conservación de aspecto/monedas. El driver guarda PNG y métricas en `.build/photo-evidence/` (o `POODLE_PHOTO_EVIDENCE`). No ejecutar sobre un dispositivo que tenga otra sesión de QA en curso. La evidencia de simulador del 20-11-2026 está en `reviews/testflight-20261120/`.

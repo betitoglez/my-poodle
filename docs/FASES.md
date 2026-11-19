@@ -15,7 +15,7 @@ Actualizado el 19-11-2026. Sustituye las fichas antiguas centradas en un juego e
 | Fase | Estado actual | Trabajo pendiente | Criterio de cierre |
 |---|---|---|---|
 | F00 · Entorno e identidad | Implementado | Mantener builds reproducibles y localización del nombre | Mismo Bundle ID/producto y builds identificables; 3D activo comprobado |
-| F01 · Partida y reglas | Implementado; ampliación en curso | Idioma persistente, cupo premium por juego y almacenamiento del álbum | Carga de partidas antiguas, operaciones atómicas y pruebas de fallos/reinicio |
+| F01 · Partida y reglas | Implementado y probado | Idioma persistente, cupo premium por juego y almacenamiento del álbum | Carga de partidas antiguas, operaciones atómicas y pruebas de fallos/reinicio |
 | F02 · Adopción/Casa | Implementado | Localizar UI y añadir acceso a modo foto | Recorrido completo en los 11 idiomas y sin modificar la partida al fotografiar |
 | F03 · 3D, armario y audio | Implementado; aceptación física parcial | Revisión visual de catálogo y poses; licencias/fuentes | Matriz física y audio/silencio correctos; recursos locales y sin red |
 | F04 · Cuidados | Implementado; aceptación parcial | Traducciones, accesibilidad y regresión de gestos 3D | Comer/beber/baño/paseo/peluquería/dormir/veterinario correctos en ambos sistemas |
@@ -24,7 +24,7 @@ Actualizado el 19-11-2026. Sustituye las fichas antiguas centradas en un juego e
 | F07.5 · Correcciones de compra | Integrado en main | PR #5 (`f08fb2d`): restauración, cancelación/pending Android y reconciliación al reanudar | 193 pruebas y análisis correctos; Codex sin incidencias. Compra iPhone Sandbox aún sin aceptación física |
 | F07.6 · Apple Sandbox | Pendiente | App Store Connect, producto, precios, testers y compra física | Precio/hoja Sandbox, compra/cancelación/pendiente/restauración/revocación y persistencia acreditados |
 | F07.7 · Aceptación móvil | Parcial | Offline iPhone, interrupciones, accesibilidad, rendimiento y cobertura 3D | Dispositivo, build y evidencia por caso; no confundir prueba automática con física |
-| F08 · TestFlight | En preparación | Archive/IPA firmada con 3D, idiomas y modo foto; metadatos y distribución beta | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
+| F08 · TestFlight | En preparación | Exportación de distribución y prueba nativa de fotos verificadas; acceso a Xcode/precio/nombre de ficha pendientes para distribución beta | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
 | F09 · Idiomas MVP | Implementado y probado automáticamente | es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans, zh-Hant; nombre y selector | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
 | F10 · Modo foto MVP | Implementado; aceptación física pendiente | Posado/giro, captura 3D, álbum privado, vista y borrado | Imagen real del render; fotos conservadas tras reiniciar; sin acceso a fotos ajenas |
 | F11 · Juegos nuevos | Por definir | Parejas, Simón de perritos y laberinto | Reglas, premios, tier y alcance aprobados antes de implementar |
