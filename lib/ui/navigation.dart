@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../app/background_music.dart';
+
 /// Cuatro destinos principales.
 enum ShellTab { home, care, games, wardrobe }
 
@@ -45,9 +47,24 @@ void goToTab(BuildContext context, ShellTab tab) {
   shell?.force(tab);
 }
 
-Future<T?> pushScreen<T>(BuildContext context, Widget screen) =>
-    Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => screen));
+Future<T?> pushScreen<T>(
+  BuildContext context,
+  Widget screen, {
+  MusicTrack music = MusicTrack.home,
+}) => Navigator.of(context).push<T>(
+  MaterialPageRoute(
+    settings: RouteSettings(arguments: music),
+    builder: (_) => screen,
+  ),
+);
 
-Future<T?> replaceScreen<T>(BuildContext context, Widget screen) =>
-    Navigator.of(context)
-        .pushReplacement<T, void>(MaterialPageRoute(builder: (_) => screen));
+Future<T?> replaceScreen<T>(
+  BuildContext context,
+  Widget screen, {
+  MusicTrack music = MusicTrack.home,
+}) => Navigator.of(context).pushReplacement<T, void>(
+  MaterialPageRoute(
+    settings: RouteSettings(arguments: music),
+    builder: (_) => screen,
+  ),
+);

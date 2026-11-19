@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
+import '../../app/background_music.dart';
 import '../../domain/rules.dart';
 import '../../game/game_registry.dart';
 import '../ask_adult_view.dart';
@@ -236,6 +237,7 @@ class InstructionsScreen extends StatelessWidget {
                           game == GameId.fruit
                               ? const OrchardScreen()
                               : const FrisbeeScreen(),
+                          music: MusicTrack.games,
                         ),
                       ),
                     ),

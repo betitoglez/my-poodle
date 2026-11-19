@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../domain/pet_state.dart';
+import 'background_music.dart';
 
 enum Sfx {
   tap('tap', .52),
@@ -57,7 +58,10 @@ abstract interface class EffectPlayback {
 
 /// Mantiene juntas la preferencia de efectos, la háptica y el audio.
 class FeedbackService {
-  FeedbackService({this._playback});
+  FeedbackService({this._playback, BackgroundMusic? music})
+    : music = music ?? BackgroundMusic();
+
+  final BackgroundMusic music;
 
   final EffectPlayback? _playback;
   final routes = RouteObserver<ModalRoute<dynamic>>();

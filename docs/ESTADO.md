@@ -4,6 +4,16 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-19 · iPhone 0.4.11 (29): música y versión actual
+
+Actualización 21:43 (hora de Madrid): tras desbloquear el iPhone, `devicectl` abrió la app en primer plano y se verificó que el proceso del paquete instalado seguía en ejecución. La escucha y revisión visual quedan para la prueba manual del propietario.
+
+Integradas las tres músicas sobre `bb85158` de este worktree, conservando caniche 3D, cuidados ampliados y efectos ElevenLabs. Un único reproductor selecciona Casa/menús, juegos o actividades por ruta; se mantienen las pausas y ajustes independientes de efectos. Fuentes y pistas en [AUDIO](AUDIO.md).
+
+Verificación: análisis sin incidencias, validador correcto, 16 pruebas relevantes y **182/182 pruebas completas** correctas. Build Profile con entrada normal `lib/main.dart`, `--build-name 0.4.11 --build-number 29`; paquete incluye el caniche GLB, los efectos y las tres canciones (hashes coincidentes con las fuentes).
+
+Instalación física completada sobre My Poodle 0.4.10 (28), manteniendo el identificador y sin desinstalar. Se corrigió un rechazo de firma de Flutter.framework por un Info.plist modificado después de firmar: frameworks y app firmados de nuevo con la identidad de desarrollo existente y entitlements preservados; verificación estricta correcta. `devicectl` confirma 0.4.11 (29). Lanzamiento automático bloqueado por el teléfono bloqueado; el propietario puede desbloquearlo y abrir My Poodle. Revisión visual y escucha físicas pendientes.
+
 ## Sesión 2026-11-18 · Piloto de prendas integradas
 
 Alcance autorizado e implementado: gorro de lana, familia jersey y pañuelo coral. Seis recursos ilustrados locales, ajuste por pose mediante malla, oclusión del pelaje original y sombras recortadas al cuerpo. El resto del catálogo conserva su representación anterior. Capturas de frente, perfil y carrera sobre albaricoque, blanco y negro en [la revisión del piloto](reviews/integrated-pilot/README.md). Se descartó una primera prueba de texturas planas: no resolvía el volumen del jersey. Análisis limpio y 36 pruebas relevantes correctas, incluyendo facciones y regresión de artículos ajenos al piloto. Revisado visualmente en este Mac; valoración del propietario y dispositivo pendientes. Sin build de distribución; cambios sin commit del clon original respetados.

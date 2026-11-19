@@ -103,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.music_note_rounded),
               title: const Text('Música'),
-              subtitle: const Text('Pendiente de audio final'),
+              subtitle: const Text('Música de fondo'),
               value: p.music,
               onChanged: c.saving
                   ? null
@@ -426,7 +426,7 @@ class HelpScreen extends StatelessWidget {
               'Ilustraciones de referencia de escenas y fondos: material del propietario del proyecto (docs/arte).\n'
               'Caniche, salas y efectos: dibujo vectorial provisional generado por código.\n'
               'Tipografía: fuentes del sistema (pendiente empaquetar Young Serif y Nunito con licencia OFL).\n'
-              'Los efectos de sonido se pueden desactivar en Ajustes.',
+              'Música: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.',
               style: AppText.body,
             ),
             SizedBox(height: AppSpace.s),

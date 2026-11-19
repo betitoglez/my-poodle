@@ -22,10 +22,12 @@ import '../ui/screens/adoption_screen.dart';
 import '../ui/screens/loading_screen.dart';
 import '../ui/screens/main_shell.dart';
 import '../ui/navigation.dart';
+import '../ui/music_route_observer.dart';
 import '../ui/theme.dart';
 import 'app_controller.dart';
 import 'app_scope.dart';
 import 'feedback.dart';
+import 'background_music.dart';
 
 /// Dependencias construidas una vez en el arranque.
 class AppServices {
@@ -105,6 +107,7 @@ class MyPoodleApp extends StatefulWidget {
     this.clock,
     this.storeProvider,
     this.loadSprites = true,
+    this.backgroundMusic,
     this.effectPlayback,
   });
   final StorageBackend? backend;
@@ -113,6 +116,7 @@ class MyPoodleApp extends StatefulWidget {
   /// Tienda inyectable (pruebas); por defecto según el tipo de build.
   final StoreProvider? storeProvider;
   final bool loadSprites;
+  final BackgroundMusic? backgroundMusic;
   final EffectPlayback? effectPlayback;
 
   @override
@@ -122,18 +126,33 @@ class MyPoodleApp extends StatefulWidget {
 class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
   AppServices? _services;
   Object? _error;
-  late final _feedback = FeedbackService(playback: widget.effectPlayback);
+  late final FeedbackService _feedback;
+  late final MusicRouteObserver _musicRoutes;
   final _shell = ShellController();
 
   @override
   void initState() {
     super.initState();
+    _feedback = FeedbackService(
+      music: widget.backgroundMusic,
+      playback: widget.effectPlayback,
+    );
+    _musicRoutes = MusicRouteObserver(_feedback.music);
+    _feedback.setForeground(
+      WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+    );
+    _feedback.music.setForeground(
+      WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+    );
     WidgetsBinding.instance.addObserver(this);
     _start();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _feedback.music.setForeground(state == AppLifecycleState.resumed);
     _feedback.setForeground(state == AppLifecycleState.resumed);
     if (state == AppLifecycleState.resumed) {
       _services?.controller.onResumed();
@@ -153,6 +172,8 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
           );
       _feedback.prefs = () => s.controller.prefs;
       if (_services != s) s.controller.addListener(_feedback.sync);
+      s.controller.removeListener(_syncMusic);
+      s.controller.addListener(_syncMusic);
       // Suscrito a la tienda antes de decidir Adopción o Casa.
       try {
         await s.controller.purchases.start();
@@ -167,11 +188,22 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
     }
   }
 
+  void _syncMusic() {
+    final c = _services?.controller;
+    _feedback.music.setEnabled(
+      c != null &&
+          (c.status == BootStatus.ready || c.status == BootStatus.adoption) &&
+          c.prefs.music,
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _services?.controller.removeListener(_syncMusic);
     _services?.controller.removeListener(_feedback.sync);
     _feedback.dispose();
+    _feedback.music.dispose();
     _services?.controller.dispose();
     _services?.controller.purchases.dispose();
     super.dispose();
@@ -190,20 +222,23 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
       home = const _BootGate();
     }
     return MaterialApp(
-      navigatorObservers: [_feedback.routes],
       title: 'My Poodle',
+      navigatorObservers: [_feedback.routes, _musicRoutes],
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       locale: const Locale('es'),
       builder: (context, child) {
         // Las escenas y diálogos comparten el mismo AppScope.
         if (s == null) return child!;
-        return AppScope(
-          controller: s.controller,
-          feedback: _feedback,
-          child: ShellScope(
-            controller: _shell,
-            child: PetPainterScope(painter: s.painter, child: child!),
+        return Listener(
+          onPointerDown: (_) => _feedback.music.onUserInteraction(),
+          child: AppScope(
+            controller: s.controller,
+            feedback: _feedback,
+            child: ShellScope(
+              controller: _shell,
+              child: PetPainterScope(painter: s.painter, child: child!),
+            ),
           ),
         );
       },
