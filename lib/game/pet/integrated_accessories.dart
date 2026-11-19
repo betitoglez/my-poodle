@@ -944,6 +944,80 @@ class IntegratedAccessories {
     return mapped;
   }
 
+  Image get articulatedCorduroy => _images['overalls-side']!.image;
+
+  /// El pañuelo se ajusta a los dos bordes del cuello del esqueleto.
+  /// La cabeza y la cola se dibujan después y tapan la tela que queda detrás.
+  void paintArticulatedBandana(
+    Canvas c,
+    PetNeck neck, {
+    required bool side,
+    required bool back,
+  }) {
+    if (back) {
+      final cloth = _images['bandana-back']!;
+      final src = cloth.source;
+      final cotton = Rect.fromLTRB(
+        src.left + src.width * 0.51,
+        src.top + src.height * 0.43,
+        src.left + src.width * 0.82,
+        src.top + src.height * 0.59,
+      );
+      final hem = neck.band(7, drape: 5);
+      c.drawPath(
+        hem.shift(const Offset(0, 2)),
+        Paint()..color = const Color(0x773D3130),
+      );
+      c.save();
+      c.clipPath(hem);
+      c.drawImageRect(
+        cloth.image,
+        cotton,
+        hem.getBounds(),
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      c.restore();
+      return;
+    }
+    final (name, rect, shear) = _fitBandana(neck, side, side ? 58 : 59);
+    c.save();
+    c.translate(0, 2.3);
+    _draw(
+      c,
+      name,
+      rect,
+      shear: shear,
+      colorFilter: const ColorFilter.mode(Color(0x70482C28), BlendMode.srcIn),
+    );
+    c.restore();
+    _draw(c, name, rect, shear: shear);
+  }
+
+  (String, Rect, double) _fitBandana(PetNeck neck, bool side, double height) {
+    final (name, uvLeft, uvRight) = side
+        ? (
+            'bandana-side',
+            const Offset(0.254, 0.166),
+            const Offset(0.974, 0.336),
+          )
+        : (
+            'bandana-front',
+            const Offset(0.062, 0.083),
+            const Offset(0.675, 0.079),
+          );
+    final width = neck.width / (uvRight.dx - uvLeft.dx);
+    final shear =
+        (neck.right.dy - neck.left.dy - (uvRight.dy - uvLeft.dy) * height) /
+        neck.width;
+    final rect = Rect.fromLTWH(
+      neck.left.dx - uvLeft.dx * width,
+      neck.left.dy - uvLeft.dy * height - uvLeft.dx * width * shear,
+      width,
+      height,
+    );
+    return (name, rect, shear);
+  }
+
   void paintBandana(
     Canvas c,
     Appearance ids,
@@ -959,32 +1033,8 @@ class IntegratedAccessories {
       _paintNapeBand(c, neck, base, petRect, coatPaint, ids);
       return;
     }
-    final (name, uvLeft, uvRight, height) = switch (pose) {
-      'front' => (
-        'bandana-front',
-        const Offset(0.062, 0.083),
-        const Offset(0.675, 0.079),
-        0.245,
-      ),
-      _ => (
-        'bandana-side',
-        const Offset(0.254, 0.166),
-        const Offset(0.974, 0.336),
-        0.248,
-      ),
-    };
-    // Dos puntos del borde de la ilustración coinciden con los dos extremos
-    // del cuello. El vuelo del nudo se extiende fuera de esos puntos.
-    final width = neck.width / (uvRight.dx - uvLeft.dx);
-    final shear =
-        (neck.right.dy - neck.left.dy - (uvRight.dy - uvLeft.dy) * height) /
-        neck.width;
-    final rect = Rect.fromLTWH(
-      neck.left.dx - uvLeft.dx * width,
-      neck.left.dy - uvLeft.dy * height - uvLeft.dx * width * shear,
-      width,
-      height,
-    );
+    final side = pose != 'front';
+    final (name, rect, shear) = _fitBandana(neck, side, side ? 0.248 : 0.245);
     _shadow(c, name, rect, '', base, petRect, shear: shear);
     _draw(c, name, rect, shear: shear);
     if (pose != 'front') {

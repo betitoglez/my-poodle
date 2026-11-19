@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import '../../domain/appearance.dart';
 import 'appearance_catalog.dart';
+import 'articulated_wardrobe.dart';
 import 'pet_sprites.dart';
 import 'pet_accessories.dart';
 import 'integrated_accessories.dart';
@@ -99,9 +100,17 @@ enum _Eyes { open, blink, happy, closed }
 /// Las capas siguen el orden de appearance-v1.json; el color del pelaje solo
 /// tiñe pelo y piel, nunca ojos, nariz, ropa ni accesorios.
 class PetPainter extends ChangeNotifier {
-  PetPainter(this.catalog);
+  PetPainter(
+    this.catalog, {
+    this.articulatedPilot = const bool.fromEnvironment(
+      'POODLE_ARTICULATED_PILOT',
+    ),
+  });
+  final bool articulatedPilot;
   final AppearanceCatalog catalog;
   final IntegratedAccessories integratedAccessories = IntegratedAccessories();
+
+  late final _articulatedWardrobe = ArticulatedWardrobe(integratedAccessories);
 
   /// Comparativa visual reproducible de los tres artículos del piloto.
   bool integratedPilot = true;
@@ -324,14 +333,35 @@ class PetPainter extends ChangeNotifier {
       final r = resolve(p, ids);
       if (r != null) names.add(r.pose);
     }
-    if (integratedPilot) await integratedAccessories.warm(ids);
-    await sp.preload(hair: ids.hair, poseNames: names);
     final coat = catalog.resolve(ids).coat;
     final palette = [
       coat.shade.toARGB32(),
       coat.base.toARGB32(),
       coat.light.toARGB32(),
     ];
+    final articulated = articulatedPilot && ArticulatedWardrobe.supports(ids);
+    if (integratedPilot || articulated) await integratedAccessories.warm(ids);
+    if (articulated) {
+      final views = {
+        for (final pose in poses)
+          if (const {'front', 'side', 'back'}.contains(pose))
+            pose
+          else if (const {'run_a', 'run_b', 'jump'}.contains(pose))
+            'side',
+      };
+      names.addAll(views);
+      if (ids.hair != ArticulatedWardrobe.referenceHair) {
+        await sp.preload(
+          hair: ArticulatedWardrobe.referenceHair,
+          poseNames: views,
+        );
+        for (final view in views) {
+          final layer = sp.hairLayer(ArticulatedWardrobe.referenceHair, view);
+          if (layer != null) await sp.prepareCoat(layer, ids.coat, palette);
+        }
+      }
+    }
+    await sp.preload(hair: ids.hair, poseNames: names);
     for (final p in names) {
       for (final layer in [
         sp.hairLayer(ids.hair, p),
@@ -397,6 +427,9 @@ class PetPainter extends ChangeNotifier {
       s.t,
       reducedMotion: s.m < 0.5,
     );
+    if (articulatedPilot && _paintArticulated(s, sp, ids, requested, desired)) {
+      return true;
+    }
     final r = resolve(desired, ids);
     if (r == null) return false;
     final poseName = r.pose;
@@ -680,6 +713,54 @@ class PetPainter extends ChangeNotifier {
     c.restore();
     _foamAtLandmarks(s, meta.landmarks);
     _sickMarks(s, meta.landmarks);
+    return true;
+  }
+
+  bool _paintArticulated(
+    _Ctx s,
+    PetSprites sp,
+    Appearance ids,
+    PetPose view,
+    String desired,
+  ) {
+    final running = view == PetPose.side && s.anim == PetAnim.run && s.m > 0.5;
+    if (!ArticulatedWardrobe.supports(ids) ||
+        (!running && view.name != desired)) {
+      return false;
+    }
+
+    if (!integratedAccessories.readyFor(ids)) return false;
+    final coat = s.look.coat;
+    final palette = [
+      coat.shade.toARGB32(),
+      coat.base.toARGB32(),
+      coat.light.toARGB32(),
+    ];
+    Image? fur(String hair) =>
+        sp.coatedLayer(sp.hairLayer(hair, view.name), ids.coat, palette)?.image;
+    final hair = fur(ids.hair);
+    final body = fur(ArticulatedWardrobe.referenceHair);
+    if (hair == null || body == null) return false;
+
+    _spriteShadow(s.c, desired);
+    final coatPaint = Paint()..filterQuality = FilterQuality.medium;
+    List<double>? matrix;
+    if (s.fx.sick) matrix = PetSprites.chain(matrix, _sickMatrix);
+    if (s.fx.wet) matrix = PetSprites.chain(matrix, _darken(0.82));
+    if (matrix != null) coatPaint.colorFilter = ColorFilter.matrix(matrix);
+    _articulatedWardrobe.paint(
+      s.c,
+      s.look,
+      view,
+      bodyFur: body,
+      hair: hair,
+      coatPaint: coatPaint,
+      stride: running ? s.t * 9 : null,
+    );
+    final landmarks = sp.poses[desired]?.landmarks ?? const {};
+    _dirt(s, landmarks);
+    _foamAtLandmarks(s, landmarks);
+    _sickMarks(s, landmarks);
     return true;
   }
 
