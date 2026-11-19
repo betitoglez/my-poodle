@@ -5,9 +5,10 @@ export function patchCoat(material, uniforms) {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = `
       uniform vec2 poodleCuts;
-      uniform float poodleDirt;
+      uniform float poodleDirt, poodleMouthOpen;
       varying vec3 poodleRestPosition;
       varying float poodleShortCoat;
+      varying float poodleMouthInterior;
     ` + shader.vertexShader.replace('#include <morphtarget_vertex>', `
       #include <morphtarget_vertex>
       poodleRestPosition = position;
@@ -38,12 +39,22 @@ export function patchCoat(material, uniforms) {
       transformed += poodleCuts.y * contour;
       float tousled = clamp((poodleDirt-1.0)*.25,0.0,1.0) * (.014*ear+.012*head);
       transformed += vec3(p.x*3.0,.68,.30) * tousled * sin(p.y*68.0-p.z*53.0);
+
+      // Stretch the lip seam while lowering just the jaw in front of the throat.
+      float lipWidth = abs(p.x+.008);
+      float lip = p.y - (.704 - .003*smoothstep(.022,.075,lipWidth));
+      float jaw = smoothstep(.414,.482,p.z) * (1.0-smoothstep(.049,.092,lipWidth))
+        * smoothstep(.644,.673,p.y) * (1.0-smoothstep(-.012,.003,lip));
+      transformed += poodleMouthOpen * jaw * vec3(0.0,-.033,-.006);
+      poodleMouthInterior = smoothstep(.465,.493,p.z) * (1.0-smoothstep(.055,.080,lipWidth))
+        * smoothstep(-.017,-.009,lip) * (1.0-smoothstep(-.004,.003,lip));
     `);
     shader.fragmentShader = `
       uniform vec3 poodleFur;
-      uniform float poodleRecolor, poodleWet, poodleDirt;
+      uniform float poodleRecolor, poodleWet, poodleDirt, poodleMouthOpen;
       varying vec3 poodleRestPosition;
       varying float poodleShortCoat;
+      varying float poodleMouthInterior;
     ` + shader.fragmentShader.replace('#include <map_fragment>', `
       #include <map_fragment>
       float tone = dot(diffuseColor.rgb, vec3(.24,.65,.11));
@@ -58,18 +69,21 @@ export function patchCoat(material, uniforms) {
       float dirt = smoothstep(.9-poodleDirt*.105,1.0,patches)*onCoat*min(1.0,poodleDirt*.3);
       diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*.46+vec3(.056,.029,.013), dirt*.76);
       diffuseColor.rgb *= mix(vec3(1.0),vec3(.72,.76,.78),poodleWet);
+      diffuseColor.rgb = mix(diffuseColor.rgb,vec3(.021,.006,.008),
+        poodleMouthInterior*smoothstep(.10,.62,poodleMouthOpen));
     `).replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
       roughnessFactor *= mix(1.0,.63,poodleWet);
     `);
   };
-  material.customProgramCacheKey = () => 'poodle-coat-v2';
+  material.customProgramCacheKey = () => 'poodle-coat';
 }
 
 export function fitCollar(mesh) {
   mesh.geometry = mesh.geometry.clone();
   const position = mesh.geometry.attributes.position;
   const showCut = position.clone();
+  const overGarment = position.clone();
   for (let i = 0; i < position.count; i++) {
     const x = position.getX(i) * .91;
     const originalDepth = position.getZ(i);
@@ -85,8 +99,19 @@ export function fitCollar(mesh) {
       THREE.MathUtils.smoothstep(Math.abs(x), .046, .100));
     position.setXYZ(i, x, y, z);
     showCut.setXYZ(i, x, y, z - front * shaved);
+    // Follow the bound opening at the sides and lay the front across the fabric.
+    const neckline = THREE.MathUtils.smoothstep(depth, .20, .36);
+    const sides = THREE.MathUtils.smoothstep(depth, .20, .29)
+      * (1 - THREE.MathUtils.smoothstep(depth, .32, .372));
+    const sideClearance = THREE.MathUtils.smoothstep(depth, .18, .21)
+      * (1 - THREE.MathUtils.smoothstep(depth, .27, .35));
+    const hanging = mesh.userData.underNeckwear
+      ? 1 - THREE.MathUtils.smoothstep(y, .594, .613) : 0;
+    overGarment.setXYZ(i, x + Math.sign(x) * .040 * sideClearance,
+      y + .018 * neckline + .026 * sides,
+      z + neckline * (.030 + .034 * shoulder + .018 * hanging));
   }
-  mesh.geometry.morphAttributes.position = [showCut];
+  mesh.geometry.morphAttributes.position = [showCut, overGarment];
   mesh.updateMorphTargets();
   position.needsUpdate = true;
   mesh.geometry.computeVertexNormals();
@@ -94,9 +119,14 @@ export function fitCollar(mesh) {
 }
 
 export function makeIdle(body, bones) {
+  const mouthOpen = { value: 0 };
+  const muzzle = new THREE.Group();
+  body.add(muzzle);
+  // Most of the lower muzzle is bound to the neck, so the tongue follows it as well.
+  bones.get('cuello').attach(muzzle);
   const tongue = new THREE.Mesh(new THREE.SphereGeometry(1,18,12),
     new THREE.MeshStandardMaterial({color:'#bd686e',roughness:.66}));
-  body.add(tongue);
+  muzzle.add(tongue);
   tongue.visible = false;
   const drops = [];
   const water = new THREE.MeshStandardMaterial({color:'#9bdaea', roughness:.28, metalness:.05});
@@ -121,6 +151,7 @@ export function makeIdle(body, bones) {
   function reset() {
     for (const [bone,q] of saved) bone.quaternion.copy(q);
     saved.clear();
+    mouthOpen.value = 0;
     tongue.visible = false;
     for (const drop of drops) drop.visible = false;
   }
@@ -138,11 +169,13 @@ export function makeIdle(body, bones) {
     turn('cola',0,1,0,wag);
     turn('cola',1,0,0,-.31*dejected);
     const pant = seconds%6.1;
-    if (!still && dejected < .5 && pant > 2.05 && pant < 3.7) {
-      const show = THREE.MathUtils.smoothstep(pant,2.05,2.33)*(1-THREE.MathUtils.smoothstep(pant,3.45,3.7));
-      tongue.visible = show > .04;
-      tongue.position.set(.006,.701-.035*show+wave*.006,.505+.030*show);
-      tongue.scale.set(.031,.016+.010*show,.039+.020*show);
+    if (!still && dejected < .5 && pant > 1.97 && pant < 3.87) {
+      const open = THREE.MathUtils.smoothstep(pant,1.97,2.34)*(1-THREE.MathUtils.smoothstep(pant,3.48,3.87));
+      const extend = THREE.MathUtils.smoothstep(pant,2.15,2.46)*(1-THREE.MathUtils.smoothstep(pant,3.26,3.65));
+      mouthOpen.value = open * (.93 + .07 * Math.sin(seconds * 20));
+      tongue.visible = extend > .025;
+      tongue.position.set(-.008,.697-.020*extend,.479+.049*extend-(config.showCut ? .014 : 0));
+      tongue.scale.set(.025,.010+.004*extend,.025+.024*extend);
       tongue.rotation.x = .52;
     }
     if (sick > 0) {
@@ -154,5 +187,5 @@ export function makeIdle(body, bones) {
       });
     }
   }
-  return { reset, update };
+  return { reset, update, mouthOpen };
 }

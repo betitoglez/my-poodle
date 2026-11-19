@@ -147,14 +147,19 @@ for (const root of items) {
     if (wear !== 'base') return;
     for (const material of [object.material].flat()) {
       patchCoat(material, {poodleFur: furColor, poodleRecolor: recolor,
-        poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts});
+        poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts,
+        poodleMouthOpen: idle.mouthOpen});
     }
   });
 }
 
 function setCuts(teddy, showCut) {
   cuts.value.set(teddy, showCut);
-  for (const collar of collars) collar.morphTargetInfluences[0] = showCut;
+  const overGarment = wear.has('outfit.sweater_red') || wear.has('outfit.raincoat_blue');
+  for (const collar of collars) {
+    collar.morphTargetInfluences[0] = overGarment ? 0 : showCut;
+    collar.morphTargetInfluences[1] = Number(overGarment);
+  }
 }
 
 let configuration = {x: 0.5, y: 0.8, size: 0.55};
