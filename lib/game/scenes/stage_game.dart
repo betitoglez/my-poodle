@@ -1,3 +1,5 @@
+import '../../l10n/app_strings.dart';
+
 import 'dart:math' as math;
 import 'dart:ui' hide TextStyle;
 
@@ -329,7 +331,7 @@ class HomeGame extends StageGame {
 
 TextPainter _text(String s, double size, Color color) => TextPainter(
   text: TextSpan(
-    text: s,
+    text: AppStrings.active.text(s),
     style: TextStyle(fontSize: size, color: color, fontWeight: FontWeight.w900),
   ),
   textDirection: TextDirection.ltr,

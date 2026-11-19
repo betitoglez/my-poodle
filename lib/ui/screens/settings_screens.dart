@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
@@ -20,7 +21,7 @@ class _Page extends StatelessWidget {
     final c = AppScope.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: LText(title),
         actions: [
           if (c.demo)
             const Padding(
@@ -72,7 +73,7 @@ class _Section extends StatelessWidget {
                   Icon(icon, color: AppColors.plum),
                   const SizedBox(width: AppSpace.s),
                 ],
-                Expanded(child: Text(title, style: AppText.subtitle)),
+                Expanded(child: LText(title, style: AppText.subtitle)),
               ],
             ),
             const SizedBox(height: AppSpace.s),
@@ -96,14 +97,53 @@ class SettingsScreen extends StatelessWidget {
       title: 'Ajustes',
       children: [
         _Section(
+          'Idioma',
+          icon: Icons.language_rounded,
+          children: [
+            DropdownButtonFormField<String>(
+              key: ValueKey('language-${p.language ?? 'system'}'),
+              initialValue: p.language ?? 'system',
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: localize(context, 'Idioma de la app'),
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: 'system',
+                  child: LText('Idioma del dispositivo'),
+                ),
+                for (final language in AppLanguage.all)
+                  DropdownMenuItem(
+                    value: language.tag,
+                    child: LText(language.nativeName, verbatim: true),
+                  ),
+              ],
+              onChanged: c.saving
+                  ? null
+                  : (value) {
+                      if (value == null) return;
+                      commitOrRecover(
+                        context,
+                        () => c.updatePrefs(
+                          p.copyWith(
+                            language: value == 'system' ? null : value,
+                            systemLanguage: value == 'system',
+                          ),
+                        ),
+                      );
+                    },
+            ),
+          ],
+        ),
+        _Section(
           'Sonido y movimiento',
           icon: Icons.tune_rounded,
           children: [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.music_note_rounded),
-              title: const Text('Música'),
-              subtitle: const Text('Música de fondo'),
+              title: const LText('Música'),
+              subtitle: const LText('Música de fondo'),
               value: p.music,
               onChanged: c.saving
                   ? null
@@ -115,8 +155,8 @@ class SettingsScreen extends StatelessWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.volume_up_rounded),
-              title: const Text('Efectos'),
-              subtitle: const Text('Respuesta táctil y sonidos de acción'),
+              title: const LText('Efectos'),
+              subtitle: const LText('Respuesta táctil y sonidos de acción'),
               value: p.effects,
               onChanged: c.saving
                   ? null
@@ -128,8 +168,8 @@ class SettingsScreen extends StatelessWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.motion_photos_off_rounded),
-              title: const Text('Movimiento reducido'),
-              subtitle: const Text(
+              title: const LText('Movimiento reducido'),
+              subtitle: const LText(
                 'Animaciones más cortas y cámara sin desplazamientos',
               ),
               value: p.reducedMotion,
@@ -156,7 +196,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: AppSpace.s),
             TextButton(
               onPressed: () => c.updatePrefs(p.copyWith(seenHints: {})),
-              child: const Text('Volver a mostrar las ayudas iniciales'),
+              child: const LText('Volver a mostrar las ayudas iniciales'),
             ),
           ],
         ),
@@ -164,7 +204,7 @@ class SettingsScreen extends StatelessWidget {
           'Para personas adultas',
           icon: Icons.lock_rounded,
           children: [
-            const Text(
+            const LText(
               'Versión completa, partida, privacidad y reinicio.',
               style: AppText.body,
             ),
@@ -193,7 +233,7 @@ class AdultZoneScreen extends StatelessWidget {
           'Guardado en este dispositivo',
           icon: Icons.phone_iphone_rounded,
           children: [
-            Text(
+            LText(
               'La partida de ${c.state?.name ?? 'tu caniche'} (nombre, monedas, armario y ajustes) se guarda solo en esta instalación, '
               'sin cuentas, servidores ni copias en la nube. Si desinstalas la app o cambias de teléfono, la partida '
               'no se transfiere y el nuevo dispositivo empieza por la adopción.',
@@ -205,7 +245,7 @@ class AdultZoneScreen extends StatelessWidget {
           'Versión completa',
           icon: Icons.lock_open_rounded,
           children: [
-            Text(
+            LText(
               c.fullVersion
                   ? 'La versión completa está desbloqueada en este dispositivo.'
                   : 'Pago único que desbloquea el Huerto saltarín, 24 artículos más del armario y las novedades futuras. '
@@ -228,7 +268,7 @@ class AdultZoneScreen extends StatelessWidget {
           'Privacidad',
           icon: Icons.privacy_tip_rounded,
           children: [
-            const Text(
+            const LText(
               'No se recogen datos personales, analítica externa ni publicidad.',
               style: AppText.body,
             ),
@@ -246,7 +286,7 @@ class AdultZoneScreen extends StatelessWidget {
           'Modo demostración',
           icon: Icons.science_rounded,
           children: [
-            const Text(
+            const LText(
               'Revisa necesidades bajas, saldo, versión completa y combinaciones con una partida de muestra en memoria. '
               'La partida normal no se modifica y vuelve al salir.',
               style: AppText.body,
@@ -270,7 +310,7 @@ class AdultZoneScreen extends StatelessWidget {
           'Reiniciar partida',
           icon: Icons.restart_alt_rounded,
           children: [
-            const Text(
+            const LText(
               'Borra la partida de este dispositivo y vuelve a la adopción.',
               style: AppText.body,
             ),
@@ -317,7 +357,7 @@ class PrivacyScreen extends StatelessWidget {
               Icon(Icons.warning_amber_rounded, color: AppColors.plum),
               SizedBox(width: AppSpace.s),
               Expanded(
-                child: Text(
+                child: LText(
                   'TEXTO PROVISIONAL. No es una política legal. Debe sustituirse por el texto definitivo '
                   'revisado antes de publicar.',
                   style: AppText.subtitle,
@@ -330,7 +370,7 @@ class PrivacyScreen extends StatelessWidget {
         const _Section(
           'Qué guarda el juego',
           children: [
-            Text(
+            LText(
               'Nombre del caniche, necesidades, monedas, artículos del armario, récords y ajustes, '
               'únicamente en el almacenamiento privado de este dispositivo.',
               style: AppText.body,
@@ -340,7 +380,7 @@ class PrivacyScreen extends StatelessWidget {
         const _Section(
           'Qué no hace',
           children: [
-            Text(
+            LText(
               'No hay cuentas, servidores, sincronización, analítica externa ni publicidad. La única compra con dinero es '
               'la versión completa: la cobra la tienda (App Store o Google Play) tras la puerta adulta, y la app solo guarda '
               'en el dispositivo si está desbloqueada, sin recibos ni datos de la cuenta.',
@@ -351,7 +391,7 @@ class PrivacyScreen extends StatelessWidget {
         const _Section(
           'Pendiente para publicación',
           children: [
-            Text(
+            LText(
               'Responsable, contacto, base legal, tratamiento de la compra por cada tienda y adaptación a '
               'las normas de apps infantiles de cada tienda.',
               style: AppText.body,
@@ -368,14 +408,14 @@ class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    return const _Page(
+    return _Page(
       title: 'Ayuda y créditos',
       children: [
-        _Section(
+        const _Section(
           'Cuidados',
           icon: Icons.volunteer_activism_rounded,
           children: [
-            Text(
+            LText(
               'Comer, bañar, pasear, cepillar y dormir mejoran sus indicadores. Puedes hacerlos aunque estén llenos. '
               'Si sales antes de terminar, no se aplica la mejora. Los iconos de arriba se encienden cuando tiene '
               'hambre, está sucio, triste, cansado o malito: tócalos para atenderle.',
@@ -383,33 +423,33 @@ class HelpScreen extends StatelessWidget {
             ),
           ],
         ),
-        _Section(
+        const _Section(
           'Salud',
           icon: Icons.medical_services_rounded,
           children: [
-            Text(
+            LText(
               'Si pasa hambre, mucho cansancio o suciedad —o a veces sin motivo— puede ponerse malito, pero como mucho '
               'una vez por semana y nunca es grave. El veterinario le da una pastilla y se pone bueno enseguida.',
               style: AppText.body,
             ),
           ],
         ),
-        _Section(
+        const _Section(
           'Juegos',
           icon: Icons.sports_esports_rounded,
           children: [
-            Text(
+            LText(
               'En el Huerto saltarín tocas para saltar y recoges manzanas. En el Frisbee arrastras hacia arriba '
               'para lanzar. Al terminar una partida ganas monedas.',
               style: AppText.body,
             ),
           ],
         ),
-        _Section(
+        const _Section(
           'Armario',
           icon: Icons.checkroom_rounded,
           children: [
-            Text(
+            LText(
               'Prueba colores, peinados, ropa y accesorios gratis. Solo pagas al confirmar. Lo que compras es tuyo '
               'para siempre y puedes quitártelo y ponértelo sin volver a pagar. Lo que lleva candado es de la '
               'versión completa: puedes probártelo, pero para comprarlo hay que pedir ayuda a un adulto.',
@@ -421,16 +461,14 @@ class HelpScreen extends StatelessWidget {
           'Créditos',
           icon: Icons.favorite_rounded,
           children: [
-            Text(
-              'My Poodle · prototipo Flutter + Flame.\n'
-              'Ilustraciones de referencia de escenas y fondos: material del propietario del proyecto (docs/arte).\n'
-              'Caniche, salas y efectos: dibujo vectorial provisional generado por código.\n'
-              'Tipografía: fuentes del sistema (pendiente empaquetar Young Serif y Nunito con licencia OFL).\n'
+            LText(
+              '${AppStrings.of(context).appName} · Flutter + Flame.\n'
+              'Caniche 3D y escenarios: recursos del proyecto.\n'
               'Música: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.',
               style: AppText.body,
             ),
-            SizedBox(height: AppSpace.s),
-            Text(
+            const SizedBox(height: AppSpace.s),
+            const LText(
               'No hay enlaces externos en esta versión. Si se añaden, pasarán por la zona adulta.',
               style: AppText.small,
             ),
@@ -451,13 +489,13 @@ class DemoScreen extends StatelessWidget {
     if (!c.demo) {
       return const _Page(
         title: 'Demostración',
-        children: [Text('El modo demostración no está activo.')],
+        children: [LText('El modo demostración no está activo.')],
       );
     }
     final b = c.balance;
     Widget combo(String label, Appearance a) => OutlinedButton(
       onPressed: () => c.demoAppearance(a),
-      child: Text(label),
+      child: LText(label),
     );
     final base = b.initialAppearance;
     return _Page(
@@ -467,7 +505,7 @@ class DemoScreen extends StatelessWidget {
           'Partida de muestra',
           icon: Icons.science_rounded,
           children: [
-            Text(
+            LText(
               'Saldo actual: ${c.state?.coins ?? 0} monedas. Nada de esto se guarda en la partida normal.',
               style: AppText.body,
             ),
@@ -482,11 +520,11 @@ class DemoScreen extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: c.demoLowNeeds,
-                  child: const Text('Necesidades bajas'),
+                  child: const LText('Necesidades bajas'),
                 ),
                 OutlinedButton(
                   onPressed: c.demoFullNeeds,
-                  child: const Text('Necesidades llenas'),
+                  child: const LText('Necesidades llenas'),
                 ),
               ],
             ),
@@ -501,11 +539,11 @@ class DemoScreen extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: () => c.demoSetSick(true),
-                  child: const Text('Ponerlo malito'),
+                  child: const LText('Ponerlo malito'),
                 ),
                 OutlinedButton(
                   onPressed: () => c.demoSetSick(false),
-                  child: const Text('Curarlo'),
+                  child: const LText('Curarlo'),
                 ),
               ],
             ),
@@ -521,7 +559,7 @@ class DemoScreen extends StatelessWidget {
                 for (final n in [0, 9, 10, 12, 100])
                   OutlinedButton(
                     onPressed: () => c.demoSetCoins(n),
-                    child: Text('$n monedas'),
+                    child: LText('$n monedas'),
                   ),
               ],
             ),
@@ -579,7 +617,7 @@ class DemoScreen extends StatelessWidget {
         _Section(
           'Versión completa',
           children: [
-            Text(
+            LText(
               'Ahora: ${c.purchases.full
                   ? 'completa'
                   : c.purchases.pending
@@ -596,15 +634,15 @@ class DemoScreen extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () =>
                       c.demoEntitlement(EntitlementState.purchased),
-                  child: const Text('Simular versión completa'),
+                  child: const LText('Simular versión completa'),
                 ),
                 OutlinedButton(
                   onPressed: () => c.demoEntitlement(EntitlementState.pending),
-                  child: const Text('Simular compra pendiente'),
+                  child: const LText('Simular compra pendiente'),
                 ),
                 OutlinedButton(
                   onPressed: () => c.demoEntitlement(EntitlementState.revoked),
-                  child: const Text('Simular reembolso'),
+                  child: const LText('Simular reembolso'),
                 ),
               ],
             ),

@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -28,7 +30,7 @@ class GamesScreen extends StatelessWidget {
           const TabHeader(kicker: 'En el parque', title: 'A jugar'),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: l.gutter),
-            child: const Text(
+            child: const LText(
               'Elige dónde ganar monedas con tu caniche.',
               style: AppText.body,
             ),
@@ -51,6 +53,8 @@ class GamesScreen extends StatelessWidget {
                           ? c.pet.bestFruit
                           : c.pet.bestFrisbee,
                       locked: !c.canPlay(def.id),
+                      trial: c.isGameTrial(def.id),
+                      trialLabel: c.trialLabel(def.id),
                       onOpen: () => c.canPlay(def.id)
                           ? pushScreen(
                               context,
@@ -74,6 +78,8 @@ class _GameCard extends StatelessWidget {
     required this.best,
     required this.onOpen,
     this.locked = false,
+    this.trial = false,
+    this.trialLabel,
   });
   final GameDefinition def;
   final int best;
@@ -81,11 +87,13 @@ class _GameCard extends StatelessWidget {
 
   /// Juego de la versión completa sin derecho: candado, no abre el juego.
   final bool locked;
+  final bool trial;
+  final String? trialLabel;
 
   @override
   Widget build(BuildContext context) {
     final l = Layout.of(context);
-    return Semantics(
+    return LSemantics(
       button: true,
       label: locked
           ? '${def.title}. Versión completa. Pide ayuda a un adulto.'
@@ -116,25 +124,33 @@ class _GameCard extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(AppSpace.m),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(def.title, style: AppText.title),
-                          Text(def.tagline, style: AppText.body),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${def.limitLabel} · Récord: $best ${def.scoreLabel}',
-                            style: AppText.small,
-                          ),
-                        ],
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LText(def.title, style: AppText.title),
+                        LText(def.tagline, style: AppText.body),
+                        if (trial && !locked)
+                          const LText('Versión completa', style: AppText.small),
+                        if (trialLabel != null)
+                          LText(trialLabel!, style: AppText.small),
+                        const SizedBox(height: 4),
+                        LText(
+                          '${def.limitLabel} · Récord: $best ${def.scoreLabel}',
+                          style: AppText.small,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: AppSpace.s),
+                    const SizedBox(height: AppSpace.s),
                     AppButton(
-                      label: locked ? 'Ver' : 'Jugar',
+                      expand: true,
+                      label: locked
+                          ? 'Ver'
+                          : trial
+                          ? 'Probar gratis'
+                          : 'Jugar',
                       icon: locked
                           ? Icons.lock_rounded
                           : Icons.play_arrow_rounded,
@@ -166,11 +182,11 @@ class InstructionsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          tooltip: 'Volver',
+          tooltip: localizeNullable(context, 'Volver'),
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(def.title),
+        title: LText(def.title),
       ),
       body: SafeArea(
         child: Center(
@@ -204,6 +220,11 @@ class InstructionsScreen extends StatelessWidget {
                   text: def.gesture,
                 ),
                 _Line(icon: Icons.flag_rounded, text: def.objective),
+                if (c.isGameTrial(game))
+                  const _Line(
+                    icon: Icons.schedule_rounded,
+                    text: 'Una partida gratis cada 24 horas. La prueba se usa al comenzar, aunque salgas antes de terminar.',
+                  ),
                 _Line(
                   icon: Icons.timer_rounded,
                   text: 'Duración: ${def.limitLabel}.',
@@ -264,7 +285,7 @@ class _Line extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.leaf),
         const SizedBox(width: AppSpace.m),
-        Expanded(child: Text(text, style: AppText.body)),
+        Expanded(child: LText(text, style: AppText.body)),
       ],
     ),
   );
@@ -347,7 +368,7 @@ class _GestureDemoState extends State<_GestureDemo>
                     color: AppColors.ink,
                     borderRadius: BorderRadius.circular(99),
                   ),
-                  child: Text(
+                  child: LText(
                     widget.drag ? 'Arrastra y suelta' : 'Toca para saltar',
                     style: const TextStyle(
                       color: AppColors.cream,
@@ -376,7 +397,7 @@ class GameHud extends StatelessWidget {
       alignment: WrapAlignment.center,
       children: [
         for (final (icon, label, value) in items)
-          Semantics(
+          LSemantics(
             label: '$label $value',
             excludeSemantics: true,
             child: Container(
@@ -393,7 +414,7 @@ class GameHud extends StatelessWidget {
                 children: [
                   Icon(icon, size: 20, color: AppColors.plum),
                   const SizedBox(width: 6),
-                  Text(value, style: AppText.number),
+                  LText(value, style: AppText.number),
                 ],
               ),
             ),

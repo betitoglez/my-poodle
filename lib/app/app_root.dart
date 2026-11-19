@@ -1,3 +1,5 @@
+import '../l10n/app_strings.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -211,6 +213,15 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final controller = _services?.controller;
+    if (controller == null) return _buildApp(context);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => _buildApp(context),
+    );
+  }
+
+  Widget _buildApp(BuildContext context) {
     final s = _services;
     Widget home;
     if (s == null) {
@@ -226,8 +237,18 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
       navigatorObservers: [_feedback.routes, _musicRoutes],
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      locale: const Locale('es'),
+      locale: s?.controller.prefs.language == null
+          ? null
+          : AppLanguage.fromTag(s!.controller.prefs.language).locale,
+      supportedLocales: AppLanguage.locales,
+      localeListResolutionCallback: AppLanguage.resolve,
+      localizationsDelegates: const [
+        AppStrings.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      onGenerateTitle: (context) => AppStrings.of(context).appName,
       builder: (context, child) {
+        AppStrings.active = AppStrings.of(context);
         // Las escenas y diálogos comparten el mismo AppScope.
         if (s == null) return child!;
         return Listener(

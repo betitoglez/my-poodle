@@ -24,7 +24,7 @@ android {
             "com.betitoglez.mypoodle"
         }
         manifestPlaceholders["mypoodleAppLabel"] =
-            if (wardrobePreview) "Vestuario 3D" else "My Poodle"
+            if (wardrobePreview) "Vestuario 3D" else "@string/app_name"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24 // Flutter 3.50 e in_app_purchase 3.3.1

@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -28,10 +30,10 @@ void showCareBlocked(BuildContext context, CareKind kind, String reason) {
               children: [
                 const CoinIcon(size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(reason)),
+                Expanded(child: LText(reason)),
               ],
             )
-          : Text(reason),
+          : LText(reason),
       action: cooldown
           ? SnackBarAction(
               label: 'Versión completa',
@@ -68,7 +70,7 @@ class _DialogFrame extends StatelessWidget {
             children: [
               Icon(icon, size: 40, color: AppColors.plum),
               const SizedBox(height: AppSpace.s),
-              Text(title, style: AppText.title, textAlign: TextAlign.center),
+              LText(title, style: AppText.title, textAlign: TextAlign.center),
               const SizedBox(height: AppSpace.m),
               DefaultTextStyle(
                 style: AppText.body,
@@ -100,7 +102,7 @@ Future<bool> showPauseDialog(BuildContext context, {bool game = true}) async {
       child: _DialogFrame(
         icon: Icons.pause_circle_filled_rounded,
         title: 'En pausa',
-        body: Text(
+        body: LText(
           game
               ? 'El tiempo está detenido. Si sales, se abandona la partida sin premio.'
               : 'Todo está detenido. Si sales, se abandona la actividad sin aplicar su mejora.',
@@ -135,7 +137,7 @@ Future<bool> showExitActivityDialog(
     builder: (c) => _DialogFrame(
       icon: Icons.directions_walk_rounded,
       title: '¿Salir de $activity?',
-      body: Text(
+      body: LText(
         game
             ? 'Si sales ahora se abandona esta partida y no se ganan monedas.'
             : 'Si sales ahora se abandona esta actividad y no se aplica su mejora.',
@@ -176,7 +178,7 @@ Future<bool> showPurchaseDialog(
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          LText(
             items.join(' · '),
             style: AppText.subtitle,
             textAlign: TextAlign.center,
@@ -188,7 +190,7 @@ Future<bool> showPurchaseDialog(
           _row('Saldo restante', balance - price, bold: true),
           if (note != null) ...[
             const SizedBox(height: AppSpace.s),
-            Text(note, textAlign: TextAlign.center),
+            LText(note, textAlign: TextAlign.center),
           ],
         ],
       ),
@@ -215,7 +217,7 @@ Widget _row(String label, int value, {bool bold = false}) => Padding(
   child: Row(
     children: [
       Expanded(
-        child: Text(
+        child: LText(
           label,
           style: bold ? AppText.subtitle : AppText.body,
           textAlign: TextAlign.left,
@@ -223,7 +225,7 @@ Widget _row(String label, int value, {bool bold = false}) => Padding(
       ),
       const CoinIcon(size: 18),
       const SizedBox(width: 6),
-      Text('$value', style: AppText.number),
+      LText('$value', style: AppText.number),
     ],
   ),
 );
@@ -242,7 +244,7 @@ Future<InsufficientChoice> showInsufficientDialog(
     builder: (c) => _DialogFrame(
       icon: Icons.savings_rounded,
       title: 'Faltan $missing ${missing == 1 ? 'moneda' : 'monedas'}',
-      body: Text(
+      body: LText(
         'Cuesta $price. Juega en el huerto o en el prado para conseguir las que faltan.',
       ),
       actions: [
@@ -275,7 +277,7 @@ Future<PreviewChoice> showLeavePreviewDialog(
     builder: (c) => _DialogFrame(
       icon: Icons.checkroom_rounded,
       title: '¿Te quedas con este aspecto?',
-      body: Text(
+      body: LText(
         cost > 0
             ? 'Aplicarlo cuesta $cost monedas. Si lo descartas, vuelve el aspecto anterior.'
             : 'Puedes aplicarlo gratis o descartarlo y volver al aspecto anterior.',
@@ -305,7 +307,7 @@ Future<bool> showResetDialog(BuildContext context, String petName) async {
     builder: (c) => _DialogFrame(
       icon: Icons.warning_amber_rounded,
       title: '¿Borrar la partida?',
-      body: Text(
+      body: LText(
         'Se eliminarán $petName, sus monedas, su armario y los ajustes de este dispositivo. '
         'No se puede deshacer.',
       ),
@@ -341,7 +343,7 @@ Future<bool> resolveSaveFailure(BuildContext context) async {
         child: _DialogFrame(
           icon: Icons.sd_card_alert_rounded,
           title: 'No se ha podido guardar',
-          body: const Text(
+          body: const LText(
             'El progreso sigue pendiente en este dispositivo. Puedes intentarlo otra vez.',
           ),
           actions: [
@@ -431,13 +433,13 @@ class HintBubble extends StatelessWidget {
             Icon(icon, color: AppColors.coin),
             const SizedBox(width: AppSpace.s),
             Flexible(
-              child: Text(
+              child: LText(
                 text,
                 style: AppText.body.copyWith(color: AppColors.cream),
               ),
             ),
             IconButton(
-              tooltip: 'Cerrar ayuda',
+              tooltip: localizeNullable(context, 'Cerrar ayuda'),
               onPressed: onClose,
               icon: const Icon(Icons.close_rounded, color: AppColors.cream),
             ),

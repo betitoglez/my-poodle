@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_scope.dart';
@@ -165,7 +166,7 @@ class _IllustratedCard extends StatelessWidget {
     children: [
       Icon(icon, size: 15, color: color),
       const SizedBox(width: 3),
-      Text(text, style: AppText.small.copyWith(fontWeight: FontWeight.w800)),
+      LText(text, style: AppText.small.copyWith(fontWeight: FontWeight.w800)),
     ],
   );
 
@@ -177,7 +178,7 @@ class _IllustratedCard extends StatelessWidget {
         '${_amount(e.value)} ${Texts.needLabels[e.key]}',
       if (price != null) '$price monedas',
     ].join('. ');
-    return Semantics(
+    return LSemantics(
       button: true,
       label: '$title. $subtitle. $details.${badge == null ? '' : ' $badge'}',
       excludeSemantics: true,
@@ -209,7 +210,7 @@ class _IllustratedCard extends StatelessWidget {
                             color: AppColors.coral,
                             borderRadius: BorderRadius.circular(AppRadii.pill),
                           ),
-                          child: Text(
+                          child: LText(
                             badge!,
                             style: const TextStyle(
                               color: Colors.white,
@@ -227,8 +228,8 @@ class _IllustratedCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppText.subtitle),
-                    Text(
+                    LText(title, style: AppText.subtitle),
+                    LText(
                       subtitle,
                       style: AppText.small,
                       maxLines: 2,
@@ -254,7 +255,7 @@ class _IllustratedCard extends StatelessWidget {
                               const CoinIcon(size: 15),
                               const SizedBox(width: 3),
                               Flexible(
-                                child: Text(
+                                child: LText(
                                   '$price monedas',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

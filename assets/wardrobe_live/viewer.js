@@ -407,6 +407,11 @@ function schedule() {
 const nightBlue = new THREE.Color(0x7985cf);
 
 window.poodle = {
+  snapshot() {
+    if (!firstFrameRendered) return null;
+    renderer.render(scene, camera);
+    return renderer.domElement.toDataURL('image/png');
+  },
   configure(newConfiguration) {
     const wasFeeding = configuration.feeding;
     const wasDrinking = configuration.drinking;

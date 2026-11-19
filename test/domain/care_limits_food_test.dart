@@ -168,16 +168,16 @@ void main() {
   test('3 partidas globales por ventana móvil; se conserva al reiniciar', () {
     var s = pet();
     for (var i = 0; i < 3; i++) {
-      s = rules.startGame(s, 'start-$i', t0 + i * 10);
+      s = rules.startGame(s, 'start-$i', t0 + i * 10, game: GameId.frisbee);
     }
     s = SaveCodec(b).decode(SaveCodec(b).encode(s));
     expect(rules.gameBlocked(s, t0 + 299), isNotNull);
     expect(
-      () => rules.startGame(s, 'fourth', t0 + 299),
+      () => rules.startGame(s, 'fourth', t0 + 299, game: GameId.frisbee),
       throwsA(isA<RuleException>()),
     );
     expect(rules.gameBlocked(s, t0 + 300), isNull);
-    final next = rules.startGame(s, 'fourth', t0 + 300);
+    final next = rules.startGame(s, 'fourth', t0 + 300, game: GameId.frisbee);
     expect(next.gameStartedUtc, [t0 + 10, t0 + 20, t0 + 300]);
   });
 

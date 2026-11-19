@@ -1,89 +1,46 @@
-# Secuencia de implementación
+# Planning vigente · My Poodle / Mi Caniche
 
-Ejecutar las fichas en orden. Las rutas parten de la raíz Flutter descrita en TECNICA; las fichas son tareas previstas. Cada fila produce un cambio verificable; en la columna de cierre se indica qué hacer para demostrarlo. Al retomar, contrastar ESTADO.md con el árbol Flutter y ejecutar la prueba del último corte antes de continuar.
+Actualizado el 19-11-2026. Sustituye las fichas antiguas centradas en un juego exclusivamente 2D. Flutter gestiona interfaz y dominio; el caniche y las actividades móviles usan el visor 3D local, con respaldo 2D. Los registros históricos de ESTADO no se reescriben como éxitos actuales.
 
-## F00 · Preparar el entorno y los dos reproductores
+## Alcance y decisiones confirmadas
 
-| ID | Implementación y resultado esperado | Prueba de cierre |
-|---|---|---|
-| 00.1 | Instalar Flutter estable, Android SDK/JDK compatibles y Xcode con componentes de iOS. Ejecutar flutter doctor -v y flutter devices; registrar versiones exactas en ESTADO | Toolchains detectadas; pendientes de firma/hardware identificados |
-| 00.2 | Generar app con flutter create --platforms=android,ios en carpeta temporal y llevar lib, android, ios y configuración al clon conservando las guías. Ignorar build, .dart_tool, llaves y logs; versionar pubspec.lock | Clon limpio resuelve paquetes con flutter pub get |
-| 00.3 | Añadir Flame compatible, flutter_test e integration_test. Preparar lib/domain, UI y game. Incorporar fuente local con licencia y soporte ñ/acentos; declarar assets en pubspec | flutter analyze y prueba de dominio pasan; dominio sin imports de Flutter/Flame |
-| 00.4 | Configurar orientación vertical, AppRoot y pantallas de carga/casa; alojar una escena 2D en GameWidget. Generar APK debug e iOS de humo según ENTREGA | Instalar y arrancar Android e iPhone; registrar build y captura. Sin firma, registrar solo compilación iOS sin firmar |
+- Gratis con compra única no consumible de versión completa; sin publicidad ni venta de monedas. Una partida local por instalación, sin login de jugadores ni backend.
+- Primera beta TestFlight con **11 variantes de idioma y modo foto**. Inglés es el respaldo; español muestra el nombre Mi Caniche. Chino simplificado y tradicional son requisitos separados.
+- Juegos premium: un intento gratuito por juego cada 24 horas para quien no tenga la compra. El inicio confirmado consume el cupo; abandono lo consume y un fallo de guardado no. Propiedad de artículos y cupo de juegos son reglas distintas.
+- Nuevos candidatos: parejas, Simón de perritos y laberinto. Su inclusión exacta y reglas quedan por definir; no bloquear el hito de compras con un juego cuya definición no está aprobada.
+- El objetivo inmediato es una beta funcional en **Sandbox de TestFlight**, no una publicación de producción.
 
-## F01 · Partida, reloj y cartera
+## Secuencia de trabajo y criterios de salida
 
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 01.1 | Crear PetState y DTO v1 según TECNICA. Escribir factory de adopción, normalizador de nombre, validación de cuatro ranuras y límites. Inyectar reloj UTC y directorio temporal de pruebas | Casos vacíos, nombre con tilde, 16/17 grafemas y nombre con salto de línea |
-| 01.2 | Codificar NeedsClock con centésimas, cursor en segundos, bloque de 900 s y tope de 32 bloques. Procesar primero tiempo y después acciones sobre una copia | Tras 2 h desde la adopción, saciedad 59. Tras 48 h, saciedad 41. Retroceder el reloj no suma ni resta |
-| 01.3 | Crear SaveStore con carga principal/copia, validación, escritura temporal, reemplazo y resultado explícito. Permitir fallos de E/S inyectables en pruebas. Instalar ruta Android y exclusión iOS | Interrumpir en cada frontera descrita en PRUEBAS; se recupera exactamente la revisión anterior o la siguiente |
-| 01.4 | Crear StyleCatalog y WalletRules. Registrar IDs, precios, propiedad, ranuras y coste cero de reequipar. Añadir operación Finish con comprobación de sesión e ID | Probar 9, 10 y 12 monedas ante compra de 10; comprobar todas las ranuras tras recargar |
+| Fase | Estado actual | Trabajo pendiente | Criterio de cierre |
+|---|---|---|---|
+| F00 · Entorno e identidad | Implementado | Mantener builds reproducibles y localización del nombre | Mismo Bundle ID/producto y builds identificables; 3D activo comprobado |
+| F01 · Partida y reglas | Implementado; ampliación en curso | Idioma persistente, cupo premium por juego y almacenamiento del álbum | Carga de partidas antiguas, operaciones atómicas y pruebas de fallos/reinicio |
+| F02 · Adopción/Casa | Implementado | Localizar UI y añadir acceso a modo foto | Recorrido completo en los 11 idiomas y sin modificar la partida al fotografiar |
+| F03 · 3D, armario y audio | Implementado; aceptación física parcial | Revisión visual de catálogo y poses; licencias/fuentes | Matriz física y audio/silencio correctos; recursos locales y sin red |
+| F04 · Cuidados | Implementado; aceptación parcial | Traducciones, accesibilidad y regresión de gestos 3D | Comer/beber/baño/paseo/peluquería/dormir/veterinario correctos en ambos sistemas |
+| F05–F06 · Huerto/Frisbee | Implementado | Cupo gratuito premium y mensajes de disponibilidad; definir próximos juegos | Un inicio gratuito cada 24 h por juego, persistente y sin dobles reservas |
+| F07.1–F07.4 · Versión completa | Implementado | Compatibilidad del cupo con candados, energía y compra | Cosméticos premium siguen exigiendo la compra; una prueba de juego no compra derechos |
+| F07.5 · Correcciones de compra | Integrado en main | PR #5 (`f08fb2d`): restauración, cancelación/pending Android y reconciliación al reanudar | 193 pruebas y análisis correctos; Codex sin incidencias. Compra iPhone Sandbox aún sin aceptación física |
+| F07.6 · Apple Sandbox | Pendiente | App Store Connect, producto, precios, testers y compra física | Precio/hoja Sandbox, compra/cancelación/pendiente/restauración/revocación y persistencia acreditados |
+| F07.7 · Aceptación móvil | Parcial | Offline iPhone, interrupciones, accesibilidad, rendimiento y cobertura 3D | Dispositivo, build y evidencia por caso; no confundir prueba automática con física |
+| F08 · TestFlight | En preparación | Archive/IPA firmada con 3D, idiomas y modo foto; metadatos y distribución beta | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
+| F09 · Idiomas MVP | Pendiente de implementación | es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans, zh-Hant; nombre y selector | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
+| F10 · Modo foto MVP | Pendiente de implementación | Posado/giro, captura 3D, álbum privado, vista y borrado | Imagen real del render; fotos conservadas tras reiniciar; sin acceso a fotos ajenas |
+| F11 · Juegos nuevos | Por definir | Parejas, Simón de perritos y laberinto | Reglas, premios, tier y alcance aprobados antes de implementar |
 
-## F02 · Adopción y primer cuidado completo
+F09 y F10 forman parte de la puerta de salida F08: la primera beta no se considera terminada sin ellos. F11 mantiene definición pendiente por indicación del propietario.
 
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 02.1 | Crear AppRoot, AppRouter y vistas Loading/Adoption/Error. Resolver almacenamiento al arrancar. Usar TextField con teclado nativo, nombre como Text y validación del dominio | Cancelar teclado, cerrar antes de adoptar, adoptar/cerrar inmediatamente; reapertura correcta |
-| 02.2 | Crear PetComponent 2D con capas provisionales, cuatro ranuras y reloj de animación. Home con nombre, saldo, necesidades y navegación dentro de SafeArea | Cargar a Miel y volver desde cada panel: una raíz, una instancia activa de escena y listeners únicos |
-| 02.3 | Crear CareRoom, alimentar en tres pasos. Habilitar siguiente gesto al acabar masticación; presentar progreso y enviar un solo Finish. Conectar sonidos y reducir movimiento | Desde 65 de saciedad completar y reiniciar → 85. Tras dos bocados cancelar → 65; saldo 0 en ambos casos |
-| 02.4 | Completar recorrido vertical desde instalación limpia. Crear build de desarrollo por plataforma y ejecutar en modo avión | Criterio del primer corte: adoptar, alimentar, reabrir y ver nombre, saldo y saciedad correctos |
+## Ruta de integración
 
-## F03 · Recursos y personalización
+1. Partir del main remoto actual y conservar los cambios locales de otros clones.
+2. Integrar las correcciones de compras con sus regresiones; mantener los avances 3D y audio.
+3. Implementar la prueba de juego premium y sus casos de frontera de 24 h, fallo de guardado y concurrencia.
+4. Incorporar idiomas y nombres localizados, incluyendo alfabetos CJK/cirílico, y el modo foto.
+5. Ejecutar análisis, validadores, pruebas y build Release/Archive; verificar flag 3D y assets.
+6. Preparar y subir a TestFlight, completar configuración Apple y pruebas Sandbox con el propietario.
+7. Registrar por separado implementado, compilado, subido, procesado y probado físicamente. No marcar pasos remotos sin observar su resultado.
 
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 03.1 | Preparar arte 2D desde las referencias según UI-UX: piezas transparentes, atlas, pivotes y poses. Animar reposo, comida, carrera, salto y captura sin modelos 3D | Reproducir poses frontal/perfil previstas; verificar patas, suelo, anclajes y escala |
-| 03.2 | Crear máscaras albaricoque/plata, piezas natural/pompón, peto y pañuelo por pose. Registrar metadatos en appearance-v1.json y resolverlos desde PetComponent | Probar las 16 combinaciones en reposo, salto y carrera; mismo aspecto en casa, cuidados y juegos |
-| 03.3 | Construir Boutique con categorías, previsualización aislada, saldo, coste, confirmación y cancelación. Llamar a BuyAndEquip. Volver a casa reconstruye Appearance desde el estado confirmado | Completar compra con saldo exacto y cerrar durante confirmación. Probar restauración y compra repetida |
-| 03.4 | Crear clips musicales cortos de Mureka, efectos en ElevenLabs y canales de audio Music, Pet, UI. Configurar bucle, prioridades y silenciamiento persistente. Registrar origen/licencia por archivo | En modo avión se oye cada acción. Con silencio, las señales visuales permiten completarla |
+## Aceptación mínima de compras
 
-## F04 · Rutinas de cuidado
-
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 04.1 | Crear BathController Wet/Soap/Rinse con tres zonas 2D y máscaras de espuma. Convertir coordenadas de toque/arrastre al espacio del personaje; excluir UI | Repetir pata solo marca una zona; aclarar tras tres zonas concede +25 una vez |
-| 04.2 | Crear GroomController, tres mechones y espejo. Tras +8 de higiene ofrecer elegir corte. Delegar precio y propiedad al armario; al cancelar corte se conserva cepillado ya confirmado | Cepillar, probar pompón, cancelar, salir y volver. Higiene nueva y corte anterior |
-| 04.3 | Montar Park con recorrido fijo de tres waypoints y animación Trot/Sniff. Aceptar toque al destino activo, interpolar movimiento y habilitar siguiente solo tras llegar | Tocar un punto fuera de orden no avanza. Última parada concede +15 ánimo y −5 energía |
-| 04.4 | Añadir consulta con dos instrumentos, estados y reacción tranquila. Enlazar desde lista de cuidados | Volver tras un paso deja ánimo intacto; terminar dos pasos añade +5 |
-| 04.5 | Probar gestos con segundo dedo, mano izquierda, sistema en pausa y movimiento reducido. Transferir la entrada a un solo pointerId y limpiar al cancelar | Una secuencia de pulsaciones simultáneas nunca salta dos fases |
-
-## F05 · Plataformas con frutas
-
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 05.1 | Crear OrchardGame, tres tramos, suelo, frutas y meta según JUEGOS. Añadir overlay de depuración 2D del salto/viewport y validar IDs únicos con tool/validate_content.dart | Recorrer saltos en 320×568 y 430×932; próximo apoyo visible |
-| 05.2 | Implementar movimiento cinemático 2D a paso fijo, barrido de colisión y apoyo. Aplicar tolerancia y buffer de Jump; hitbox independiente de las capas visuales | A 30 y 60 fps alcanza el mismo bancal; mantener pulsado no repite salto |
-| 05.3 | Implementar fruta de un solo uso, checkpoint, recuperación tras caída, temporizador y meta. Mantener conjunto de recogidas al reaparecer | Caer sobre una fruta recogida no vuelve a sumarla; pausar durante 10 s conserva el tiempo restante |
-| 05.4 | Conectar Completed al resumen común, recompensas y récord. Probar tiempo agotado en el mismo frame que la meta | Una partida con 7 frutas concede 9 monedas. Reiniciar la aplicación tras el resultado conserva 9 |
-
-## F06 · Frisbee y ampliación del catálogo
-
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 06.1 | Crear FrisbeeGame, fondo 2D, objetivos, aro y disco. Dibujar guía con Canvas/Path usando la misma función de proyección y arco que el vuelo | Soltar izquierda/centro/derecha coincide con marca; gesto corto conserva intento |
-| 06.2 | Implementar vuelo, captura, recogida y devolución con tiempo activo. Callback visual nunca concede puntos. Botón asistido apunta al centro | Segundo toque en vuelo no duplica intento; tres fallos/aciertos dan 3/12 monedas |
-| 06.3 | Crear una definición por juego. Conectar selector, repetir y volver. Aplicar aspecto equipado al comenzar ambos juegos | Cambiar color y peto, iniciar ambos juegos y revisar que se conservan; cargar definición de ensayo para probar extensión |
-| 06.4 | Encadenar adopción, frisbee, pañuelo, huerto y nuevo arranque. Verificar cartera usando la fórmula independiente | Con frisbee perfecto y 7 frutas, después de comprar pañuelo quedan 11 monedas |
-
-## F07 · Versión completa y aceptación móvil
-
-Decisión del 17 de noviembre de 2026: descarga gratuita y compra única, sin publicidad ([FUNCIONAL](FUNCIONAL.md#versión-gratuita-y-versión-completa), [TECNICA](TECNICA.md#versión-completa-compra-única)). Sustituye al plan anterior de anuncios.
-
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 07.1 | Retirar publicidad: borrar `ads/`, `AdsController`, banda simulada de Casa y del modo demostración, y bloque `ads` del balance. Añadir `tier` a los 42 artículos y a los dos juegos y el bloque `fullVersion` en `docs/datos/balance-v1.json` y su copia en assets. Ampliar `tool/validate_content.dart` con las reglas de TECNICA | Validador correcto con el reparto de FUNCIONAL y fallo con un artículo sin `tier`, sin artículo gratuito en una ranura o sin juego gratuito. Ninguna referencia a anuncios en `lib/` |
-| 07.2 | Dominio: `Entitlement`, `canAccess` y `apply` puros; `BuyAndEquip` y `BeginActivity` con `requiresFull`. Cuidados sin cambios | Casos E11–E13 de PRUEBAS en `test/domain/` |
-| 07.3 | `StoreProvider`, `SimulatedStore`, `NoStore`, `EntitlementStore` y `StoreController`, conectados en AppRoot y suscritos antes de Casa. Reiniciar partida conserva el derecho | Casos E14–E15 y recorrido gratuito de INTEGRACION con SimulatedStore |
-| 07.4 | UI: candados en Armario y Juegos, «Pide ayuda a un adulto», puerta adulta (sustituye a la pulsación de 2 s también en la Zona adulta), pantalla Versión completa con todos sus estados y controles de demostración | P06 de PRUEBAS en 320×568 y 430×932. Ninguna oferta aparece sin tocar un candado o Ajustes |
-| 07.5 | **Implementación añadida; cierre de validación pendiente, ver ESTADO.** `in_app_purchase` 3.3.1 y adaptadores oficiales fijados (TECNICA); `IapStore` solo en Android/iOS. Capacidad In-App Purchase y archivo StoreKit en iOS; permiso de facturación en Android. La web sigue usando `NoStore` | `flutter build web`, `flutter build ios --simulator` y APK compilan. Compra, pendiente, cancelación y restauración con el archivo StoreKit en simulador. Registrar versiones en ESTADO |
-| 07.6 | Con la cuenta del propietario: crear el producto y los precios según ENTREGA; probar en prueba interna de Play y sandbox/TestFlight | Compra real de prueba, reinstalación con restauración, reembolso de prueba y aprobación familiar en un iPhone y un Android. Registrar la tabla de precios aplicada |
-| 07.7 | Ejecutar dominio, widgets, componentes e integration_test; restauración, transferencia y matriz visual. Medir 60 s por escena con DevTools en profile en hardware | Corregir PRUEBAS y repetir en ambos sistemas; identificar dispositivo que limita rendimiento |
-
-## F08 · Candidatas y distribución
-
-| ID | Implementación | Prueba de cierre |
-|---|---|---|
-| 08.1 | Preparar comandos y validación de ENTREGA. Fijar versión, número de build, recursos, ID del producto, ausencia de tienda simulada en Release y firma local. Generar APK, AAB y archivo/IPA | Comandos fallan ante error; clon limpio contiene mismos catálogos, rutas y recursos |
-| 08.2 | Preparar AAB firmado y archivo Xcode Release. Ejecutar betas internas. Instalar desde TestFlight y Play Internal, también como actualización sobre build anterior | Los dos canales conservan partida y catálogo; registrar identificadores de build y dispositivos |
-| 08.3 | Completar fichas, privacidad, compras integradas, licencias, clasificación y capturas reales; registrar resultado de revisión y habilitar lanzamiento según decisión del propietario | Build pública identificable por versión y revisión de Git. Si hay incidencia aplicar el procedimiento de recuperación de ENTREGA |
+Compra única → acceso al catálogo completo y Huerto; cancelación/error → sin entrega y con reintento; pendiente → sin entrega hasta confirmación; restaurar → conservar partida/monedas; reinicio/offline → derecho confirmado conservado; reembolso/revocación → retirada del derecho sin borrar la partida. La prueba gratuita de juegos no altera la propiedad de la versión completa.

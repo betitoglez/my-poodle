@@ -104,7 +104,21 @@ class AppController extends ChangeNotifier {
   /// Derecho confirmado (o el de la demostración).
   bool get fullVersion => purchases.full;
   bool canAccess(Tier tier) => purchases.canAccess(tier);
-  bool canPlay(GameId game) => canAccess(rules.gameTier(game));
+  bool isGameTrial(GameId game) =>
+      !fullVersion && rules.gameTier(game) == Tier.full;
+  int trialRemaining(GameId game) => _confirmed == null
+      ? 0
+      : rules.premiumTrialRemaining(pet, game, clock.nowUtcSeconds());
+  bool canPlay(GameId game) =>
+      canAccess(rules.gameTier(game)) ||
+      (_confirmed != null && trialRemaining(game) == 0);
+  String? trialLabel(GameId game) {
+    if (!isGameTrial(game)) return null;
+    final seconds = trialRemaining(game);
+    if (seconds == 0) return '1 partida gratis cada 24 h';
+    final minutes = (seconds / 60).ceil();
+    return 'Prueba disponible en ${minutes ~/ 60} h ${minutes % 60} min';
+  }
 
   /// Artículos de [target] que piden la versión completa.
   List<String> lockedIn(Appearance target) =>
@@ -300,8 +314,8 @@ class AppController extends ChangeNotifier {
     return sessions.begin(activityId);
   }
 
-  /// Abre la sesión de un minijuego; un juego de la versión completa sin
-  /// derecho se rechaza (`requiresFull`) y no crea sesión.
+  /// Guarda el inicio y el cupo premium en una sola escritura antes de jugar.
+  /// Un fallo no consume la prueba; abandonar una sesión iniciada sí.
   Future<String?> beginGame(GameId game) => _serial(() async {
     if (!canPlay(game) || gameBlocked != null || hasPending || saving) {
       return null;
@@ -311,6 +325,8 @@ class AppController extends ChangeNotifier {
       _confirmed!,
       'start-$id',
       clock.nowUtcSeconds(),
+      game: game,
+      fullVersion: fullVersion,
     );
     saving = true;
     notifyListeners();

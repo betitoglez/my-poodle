@@ -1,8 +1,19 @@
+## Actualización de integración · 19-11-2026
+
+- Compras: PR #5 fusionada en main (`f08fb2d`), 193 pruebas y revisión Codex sin incidencias. Esto no acredita compra física iPhone.
+- App ID explícito registrado con In-App Purchase y ficha App Store Connect creada: Apple ID `6836995483`, Bundle ID `com.betitoglez.mypoodle`, SKU `mypoodle-ios`, inglés principal.
+- Apple rechaza el nombre exacto de ficha «Mi Caniche» por estar ocupado; se espera elección del propietario para una variante. El nombre nativo español sigue siendo Mi Caniche.
+- En desarrollo y validación: 11 idiomas, nombre nativo localizado, modo foto y cupo gratuito de juegos premium. La primera beta no se publica sin estos requisitos.
+
 # Estado de la implementación
 
 Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (smoke test en iPhone; ver última sesión).
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
+
+## Sesión 2026-11-19 · MVP y preparación de TestFlight
+
+Nuevo alcance confirmado: primera beta TestFlight con 11 idiomas, ambos chinos, nombres localizados, modo foto y un intento gratuito de cada juego premium cada 24 h. Inglés es respaldo y español usa Mi Caniche. Parejas, Simón de perritos y laberinto quedan en TODO por definir. Se integran las correcciones locales de compra conservando los avances del main; implementación y aceptación aún en curso. El alta y compra Apple, la subida de una build y su procesamiento no se declaran completados por tener código local.
 
 ## Sesión 2026-11-19 · Correcciones pendientes de compras
 

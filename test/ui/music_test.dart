@@ -72,7 +72,7 @@ void main() {
     expect(player.tracks.last, MusicTrack.activities);
     await tapText(t, 'Probar cortes');
     expect(player.tracks.last, MusicTrack.home);
-    await t.pageBack();
+    await t.tap(find.byType(BackButton));
     await idle(t);
     expect(player.tracks.last, MusicTrack.activities);
     await tapIcon(t, Icons.close_rounded);

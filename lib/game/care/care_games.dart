@@ -2125,7 +2125,7 @@ class VetGame extends StageGame with _CareToolArt {
           c.drawRRect(rr, Paint()..color = const Color(0xFFFFFFFF));
           c.drawRRect(
             RRect.fromRectAndCorners(
-              Rect.fromLTRB(-13, -6, 0, 6),
+              const Rect.fromLTRB(-13, -6, 0, 6),
               topLeft: const Radius.circular(6),
               bottomLeft: const Radius.circular(6),
             ),

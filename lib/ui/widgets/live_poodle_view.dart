@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -30,6 +31,14 @@ class LivePoodleController {
       1 => LivePetTap.touched,
       _ => LivePetTap.missed,
     };
+  }
+
+  Future<Uint8List?> snapshot() async {
+    if (!ready || failed) return null;
+    final encoded = await _channel?.invokeMethod<String>('snapshot');
+    const prefix = 'data:image/png;base64,';
+    if (encoded == null || !encoded.startsWith(prefix)) return null;
+    return base64Decode(encoded.substring(prefix.length));
   }
 
   void front() => _send('front');

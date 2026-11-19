@@ -1,5 +1,10 @@
 # Minijuegos y nuevos juegos
 
+## Acceso y próximos juegos · 19-11-2026
+
+Los minijuegos de tier full ofrecen una partida gratuita por juego cada 24 h a jugadores sin la compra. Guardar la reserva junto al inicio confirmado; no consumir en instrucciones ni por un fallo de escritura. Abandonar sí consume. La compra completa quita este cupo, manteniendo las restricciones generales de energía/descanso. Nuevos candidatos: memory de parejas, secuencias tipo Simón con perritos y laberinto. Reglas, premios, tier y entrada exacta en el MVP/beta por definir.
+
+
 ## Contrato común
 
 GameDefinition contiene ID estable, título, clave de juego registrada, miniatura, instrucciones, límite de intentos o tiempo, tipo de puntuación, regla de premio y versión (`tier`: `free` o `full`). Frisbee es `free` y Huerto `full`; un juego nuevo es `full` salvo decisión del propietario. Sin la versión completa, su tarjeta aparece con candado y no crea sesión ([reglas](FUNCIONAL.md#versión-gratuita-y-versión-completa)). GamesView construye las tarjetas leyendo GameCatalog. Al tocar una, crear su instancia de FlameGame en GameWidget y el aspecto actual del caniche. Estados: Preparado → Jugando ↔ Pausado → Terminado → Resultado → Casa o Repetir. Salir antes de Terminado cancela la sesión. Repetir crea un identificador nuevo. El minijuego entrega solo métricas enteras validadas, nunca se le confía la escritura del saldo.

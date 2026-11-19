@@ -1083,7 +1083,7 @@ class PetPainter extends ChangeNotifier {
         s.c.drawLine(Offset(x - 0.05, -0.255), Offset(x + 0.05, -0.255), seam);
       }
       final bib = RRect.fromRectAndRadius(
-        Rect.fromLTRB(-0.135, -0.56, 0.135, -0.36),
+        const Rect.fromLTRB(-0.135, -0.56, 0.135, -0.36),
         const Radius.circular(0.05),
       );
       s.c.drawRRect(bib, fill);
@@ -1109,7 +1109,7 @@ class PetPainter extends ChangeNotifier {
       s.c.drawCircle(const Offset(0.1, -0.545), 0.02, trim);
       s.c.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTRB(-0.055, -0.5, 0.055, -0.43),
+          const Rect.fromLTRB(-0.055, -0.5, 0.055, -0.43),
           const Radius.circular(0.015),
         ),
         seam..color = g.shade,

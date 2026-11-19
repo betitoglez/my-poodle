@@ -1,5 +1,10 @@
 # Diseño técnico de Flutter + Flame
 
+## Arquitectura vigente para la beta · 19-11-2026
+
+Flutter y dominio Dart puro, visor WebGL 3D local con puente iOS/Android y respaldo 2D. Bundle ID com.betitoglez.mypoodle y producto mypoodle.full_version permanecen estables. La beta exige localización de interfaz/nombre, guardado compatible del idioma y cupos premium, captura del render nativo y álbum privado. No se añaden cuentas de jugador ni backend. El flujo de compras se valida finalmente en Sandbox/TestFlight.
+
+
 Decisión confirmada el 16 de noviembre de 2026. Juego móvil completamente 2D para iOS y Android, con partida local e independiente por instalación. El diseño web es una referencia visual; la implementación Flutter comienza en F00.
 
 ## Herramientas y responsabilidades

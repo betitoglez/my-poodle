@@ -1,38 +1,48 @@
-# TODO · My Poodle
+# TODO · My Poodle / Mi Caniche
 
-Recomendaciones de la revisión del 17 de noviembre de 2026. El plan por tareas está en [docs/FASES.md](docs/FASES.md) y el estado real en [docs/ESTADO.md](docs/ESTADO.md). Marca aquí lo que se complete y registra la evidencia en ESTADO.
+Actualizado el 19-11-2026. Este documento recoge el alcance confirmado; [FASES](docs/FASES.md) ordena las entregas y [ESTADO](docs/ESTADO.md) contiene la evidencia. Una tarea implementada no equivale a una prueba física pasada.
 
-## Falta para publicar
+## Puerta de salida: primera beta funcional de TestFlight
 
-- [x] **F07.5 · Adaptador nativo y configuración.** `IapStore` Android/iOS, precio localizado, compra/restauración, eventos, guardado antes de confirmar, StoreKit local y capacidad iOS, BILLING en Android. Ver [ESTADO](docs/ESTADO.md): implementar no equivale a cerrar todas las pruebas de aceptación.
-- [ ] **Cerrar validación F07.5.** APK Release y manifiesto/Billing Android ya verificados. Siguen pendientes StoreKitTest (Code=3/notEntitled en iOS 26.5) y los recorridos nativos de compra, pendiente, cancelación, restauración y reembolso.
-- [ ] **F07.6 · Productos y cuentas reales.** IDs definitivos, acuerdos de pagos, producto en ambas consolas, precios y pruebas sandbox/Play Internal en teléfonos.
-- [x] **Smoke test iPhone y Xiaomi en Profile.** Adopción, alimentación, guardado nativo, puerta adulta, consulta de tienda y conservación entre procesos; evidencia en ESTADO.
-- [x] **Offline manual en Xiaomi.** El propietario confirma modo avión, comida y conservación al cerrar/reabrir.
-- [x] **Segundo plano manual en Xiaomi.** Frisbee muestra «En pausa» al volver y solo sigue al pulsar Continuar.
-- [ ] **F07.7 · Aceptación móvil restante.** Offline/segundo plano iPhone, transferencia/restauración, teclado real y rendimiento.
+- [x] Integrar en main las correcciones de compras (PR #5, `f08fb2d`; 193 pruebas y Codex sin incidencias): restauración siempre visible, cancelación Android sin producto, pendientes nativas y reconciliación al reanudar. Mantener partida y monedas.
+- [ ] Localizar toda la app en **11 variantes**: español (es), inglés (en, respaldo), francés (fr), alemán (de), portugués de Brasil (pt-BR), italiano (it), ruso (ru), coreano de Corea del Sur (ko), japonés (ja), chino simplificado (zh-Hans) y chino tradicional (zh-Hant). Selección persistente y detección del sistema; revisar textos largos y accesibilidad.
+- [ ] Localizar el nombre bajo el icono y en la app: **Mi Caniche** en español, **My Poodle** en inglés/respaldo, y nombre equivalente en cada idioma. No cambiar Bundle ID ni producto de compra.
+- [ ] **Modo foto del MVP**: posar/girar al caniche con su aspecto actual, capturar el render 3D y conservar fotos en un álbum privado dentro de la app. No exige compartir ni acceso a las fotos personales del dispositivo.
+- [ ] **Prueba premium gratuita**: una partida por cada minijuego de la versión completa cada 24 horas, guardada al comenzar. Reiniciar el proceso no renueva el cupo; abandono consume el intento; guardar fallido no lo consume. Se mantienen las reglas generales de energía y descanso. La compra completa quita este límite de prueba.
+- [ ] Configurar la ficha de Apple `com.betitoglez.mypoodle` y la compra no consumible `mypoodle.full_version`, precio base acordado 1,99 €, idiomas y metadatos Sandbox.
+- [ ] Crear una candidata Release/Archive con 3D activo, firma de distribución y datos de exportación verificables; subir a TestFlight y esperar procesamiento.
+- [ ] Aceptación física de compra iPhone: compra, cancelación, pendiente/aprobación/rechazo, restauración en entorno de prueba, reinicio, offline y revocación/reembolso. No borrar la partida personal para probar restauración.
+- [ ] La primera beta incluye idiomas y modo foto; no se declara lista con esos requisitos pendientes. El alta remota y una compilación local tampoco acreditan una compra Sandbox correcta.
 
-- [x] **Icono de la app.** Android, iOS y web usan el logo de Flutter. Icono adaptativo en Android (fondo, primer plano y monocromo para iconos temáticos de Android 13+), todos los tamaños de iOS (1024 px sin canal alfa) y favicon e iconos web. *Hecho (5545986); falta comprobarlo en Android y en un iPhone real.*
-- [x] **Pantalla de arranque (splash).** Android solo pinta el fondo del sistema; en iOS `LaunchImage` es un PNG transparente (pantalla vacía). Configurar la SplashScreen de Android 12+, el `launch_background` anterior y el `LaunchScreen` de iOS con el mismo color que `LoadingScreen`, sin destello al pasar a Flutter. *Hecho (5545986); falta comprobarlo en Android y en un iPhone real.*
-- [ ] **Audio (FASES 03.4).** No hay ningún sonido; hoy los efectos son solo háptica. Música corta en bucle, efectos de cuidados, minijuegos e interfaz, con canales Music/Pet/UI y silencio persistente. Registrar origen y licencia de cada archivo.
-- [ ] **Fuente local con licencia (FASES 00.3).** Se usan fuentes del sistema, que difieren entre Android e iOS.
-- [ ] **Coherencia del arte.** El sendero del paseo sigue siendo vectorial y la peluquería tiene un tono distinto al resto de salas.
-- [ ] **Nombre e identificador definitivos.** `CFBundleName` es `my_poodle`; los IDs `dev.mypoodle.*` son provisionales y condicionan el producto `mypoodle.full_version`.
-- [ ] **Ficha de tienda (FASES 08.x).** URL de política de privacidad, capturas reales, clasificación por edades y formularios de privacidad de Play y App Store.
+## Implementado y verificado previamente
 
-## Funcionales
+- [x] Caniche 3D y catálogo de prendas/accesorios, cuidados y dos minijuegos conectados. El propietario confirma el 3D en iPhone 0.4.13 (31).
+- [x] Tres músicas locales por contexto, 37 efectos activos y ajustes persistentes; PR #4 fusionada, 187 pruebas correctas y revisión final de Codex sin incidencias.
+- [x] Bundle ID definitivo `com.betitoglez.mypoodle`; compra única `mypoodle.full_version`; sin anuncios ni venta de monedas.
+- [x] Guardado local, adopción, necesidades/salud y puerta adulta. El guardado de la compra se conserva separado de la partida.
+- [x] Compra y aceptación Android documentadas en el clon original: compra, cancelación, pendientes aprobada/rechazada, restauración con derecho existente, reembolso y reinicio offline. Incorporar las correcciones a main y repetir la candidata actual.
 
-- [ ] **Más valor en la versión completa.** Hoy se paga por 24 artículos y un minijuego (Huerto). Añadir un tercer minijuego `full` siguiendo [docs/JUEGOS.md](docs/JUEGOS.md).
-- [ ] **No perder el caniche al cambiar de móvil.** La partida se excluye de la copia de seguridad a propósito: la compra se restaura en el móvil nuevo, pero el caniche no. Exportar e importar la partida (archivo o código) detrás de la puerta adulta, sin servidor.
-- [ ] **Inglés.** Solo hay español y los precios ya contemplan dólares. Localizar con `flutter_localizations` y textos en ARB.
-- [ ] **Objetivos a medio plazo.** Álbum de pegatinas o logros locales, sin monedas de pago, que den motivos para volver.
-- [ ] **Primera partida guiada.** Guía corta en Casa aprovechando los `seenHints` existentes.
-- [ ] **Accesibilidad.** `Semantics` en botones y escenas, prueba con texto grande y revisión de contraste.
-- [ ] **Recordatorios opcionales.** Notificaciones locales («Miel tiene hambre») desactivadas por defecto y activables solo desde la Zona adulta. Requiere justificar el plugin.
+## Minijuegos nuevos: definición pendiente
 
-## Estéticas
+Son candidatos del MVP ampliado, no juegos ya implementados. Antes de construirlos fijar cuáles entran en la beta/MVP, reglas, duración, premios, acceso gratuito/completo y arte.
 
-- [ ] **Reacciones al tocarlo.** Corazones al acariciarlo, mover la cola, seguir el dedo con la mirada y reposos variados (bostezar, rascarse).
-- [ ] **Luz según la hora.** La ventana de Casa cambia con la hora local, en coherencia con dormir.
-- [ ] **Pequeñas celebraciones.** Confeti al estrenar ropa, monedas que se suman una a una al ganar y transiciones suaves entre salas.
-- [ ] **Modo foto.** Posar al caniche con su ropa y guardarlo en un álbum dentro del juego, sin compartir fuera.
+- [ ] Memory de parejas: descubrir cartas y encontrar parejas; tamaño de tablero y dificultad por definir.
+- [ ] Memory de perritos tipo Simón: repetir una secuencia de perritos/colores/sonidos; acceso sin sonido y dificultad por definir.
+- [ ] Laberinto: conducir al caniche a la meta; controles, niveles y obstáculos por definir.
+- [ ] Cada juego premium futuro debe usar el mismo cupo gratuito de una partida cada 24 h, con IDs estables y guardado compatible.
+
+## Aceptación y preparación de publicación
+
+- [ ] Revisar los 11 idiomas en adopción, cuidados, juegos, compras, modo foto, ajustes, ayuda, privacidad y estados de error; precios localizados por la tienda.
+- [ ] Matriz 3D: colores, cortes y prendas, giro, descanso, cuidados y juegos; verificar que la carga o el respaldo se identifican correctamente durante QA.
+- [ ] Pruebas físicas de música/efectos, silencio, llamadas/interrupciones y segundo plano en iPhone y Android.
+- [ ] Medir arranque y 60 s por escena, memoria y diez ciclos de navegación en dispositivo de menor rendimiento.
+- [ ] Android: actualizar prueba interna y restaurar el derecho en instalación limpia/dispositivo de prueba.
+- [ ] Tipografías y cobertura CJK/cirílico, créditos y licencias de recursos, privacidad/soporte definitivos, accesibilidad, capturas y fichas localizadas.
+- [ ] TestFlight y Play Internal: actualización conservando datos, feedback y cierre de incidencias. Producción requiere una decisión posterior del propietario.
+
+## Después del MVP
+
+- [ ] Exportación/importación de partida detrás de la puerta adulta, sin servidor.
+- [ ] Logros/álbum de pegatinas y nuevas actividades.
+- [ ] Recordatorios locales opcionales desde la zona adulta.

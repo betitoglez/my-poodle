@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app/app_scope.dart';
@@ -36,7 +37,7 @@ class _FullVersionScreenState extends State<FullVersionScreen> {
     final l = Layout.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Versión completa'),
+        title: const LText('Versión completa'),
         actions: [
           if (c.demo)
             const Padding(
@@ -61,12 +62,12 @@ class _FullVersionScreenState extends State<FullVersionScreen> {
                   key: const Key('restore'),
                   onPressed: p.flow == PurchaseFlow.idle ? p.restore : null,
                   icon: const Icon(Icons.restore_rounded),
-                  label: const Text('Restaurar compras'),
+                  label: const LText('Restaurar compras'),
                 ),
                 TextButton.icon(
                   onPressed: () => pushScreen(context, const PrivacyScreen()),
                   icon: const Icon(Icons.privacy_tip_rounded),
-                  label: const Text('Privacidad'),
+                  label: const LText('Privacidad'),
                 ),
               ],
             ),
@@ -88,7 +89,7 @@ class _Includes extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.plum),
           const SizedBox(width: AppSpace.s),
-          Expanded(child: Text(text, style: AppText.body)),
+          Expanded(child: LText(text, style: AppText.body)),
         ],
       ),
     );
@@ -100,7 +101,7 @@ class _Includes extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Incluye', style: AppText.subtitle),
+            const LText('Incluye', style: AppText.subtitle),
             const SizedBox(height: AppSpace.s),
             row(Icons.sports_esports_rounded, 'El Huerto saltarín'),
             row(
@@ -113,7 +114,7 @@ class _Includes extends StatelessWidget {
               'Las novedades futuras, sin volver a pagar',
             ),
             const SizedBox(height: AppSpace.s),
-            const Text(
+            const LText(
               'Pago único. Sin anuncios. Las monedas se ganan jugando',
               style: AppText.subtitle,
             ),
@@ -135,7 +136,7 @@ class _Status extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.plum),
         const SizedBox(width: AppSpace.s),
-        Expanded(child: Text(text, style: AppText.body)),
+        Expanded(child: LText(text, style: AppText.body)),
       ],
     );
     Widget busy(String text) => Row(
@@ -146,7 +147,7 @@ class _Status extends StatelessWidget {
           child: CircularProgressIndicator(strokeWidth: 3),
         ),
         const SizedBox(width: AppSpace.m),
-        Expanded(child: Text(text, style: AppText.body)),
+        Expanded(child: LText(text, style: AppText.body)),
       ],
     );
 

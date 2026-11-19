@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -146,14 +147,14 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const Text('ADOPCIÓN', style: AppText.kicker),
+                                const LText('ADOPCIÓN', style: AppText.kicker),
                                 const SizedBox(height: 2),
-                                const Text(
+                                const LText(
                                   'Tu caniche toy',
                                   style: AppText.display,
                                 ),
                                 const SizedBox(height: AppSpace.xs),
-                                const Text(
+                                const LText(
                                   'Elige el nombre que tendrá en casa.',
                                   style: AppText.body,
                                 ),
@@ -177,8 +178,14 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                                   onSubmitted: (_) => _adopt(),
                                   style: AppText.subtitle,
                                   decoration: InputDecoration(
-                                    labelText: 'Nombre de tu caniche',
-                                    errorText: _error,
+                                    labelText: localizeNullable(
+                                      context,
+                                      'Nombre de tu caniche',
+                                    ),
+                                    errorText: localizeNullable(
+                                      context,
+                                      _error,
+                                    ),
                                     counterText:
                                         '$count / ${PetName.maxGraphemes}',
                                     prefixIcon: const Icon(Icons.pets_rounded),
@@ -195,7 +202,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                                           Icons.auto_awesome_rounded,
                                           size: 18,
                                         ),
-                                        label: Text(n),
+                                        label: LText(n),
                                         onPressed: () {
                                           _name.text = n;
                                           _react();
@@ -235,7 +242,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                         ),
                         if (!keyboard) ...[
                           const SizedBox(height: AppSpace.s),
-                          const Text(
+                          const LText(
                             'Empiezas con 0 monedas. Tu partida se guarda solo en este dispositivo.',
                             style: AppText.small,
                             textAlign: TextAlign.center,

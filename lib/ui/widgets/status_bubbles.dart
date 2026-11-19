@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -155,7 +157,7 @@ class _Bubble extends StatelessWidget {
               color: AppColors.plum,
             ),
           );
-    return Semantics(
+    return LSemantics(
       button: true,
       label: on
           ? '$name: encendido, toca para atender'
@@ -205,7 +207,7 @@ class _Bubble extends StatelessWidget {
                       color: AppColors.coral,
                       shape: BoxShape.circle,
                     ),
-                    child: const Text(
+                    child: const LText(
                       '!',
                       style: TextStyle(
                         color: Colors.white,

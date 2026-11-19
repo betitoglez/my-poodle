@@ -61,6 +61,22 @@ private class PoodleView(context: Context, private val channel: MethodChannel) :
         }
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
+                "snapshot" -> {
+                    if (!ready || disposed) {
+                        result.error("not_ready", "The scene is loading", null)
+                    } else {
+                        web.evaluateJavascript("window.poodle.snapshot()") { encoded ->
+                            try {
+                                val value = org.json.JSONTokener(encoded).nextValue()
+                                if (value is String) result.success(value)
+                                else result.error("snapshot_failed", "Unable to capture scene", null)
+                            } catch (_: Exception) {
+                                result.error("snapshot_failed", "Unable to capture scene", null)
+                            }
+                        }
+                    }
+                    return@setMethodCallHandler
+                }
                 "configure" -> {
                     configuration = JSONObject(call.arguments as Map<*, *>).toString()
                     execute("configure($configuration)")

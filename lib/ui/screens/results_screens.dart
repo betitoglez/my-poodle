@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app/app_root.dart';
@@ -103,7 +104,7 @@ class _ResultLayout extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(kicker.toUpperCase(), style: AppText.kicker),
+                      child: LText(kicker.toUpperCase(), style: AppText.kicker),
                     ),
                     if (c.demo) const DemoBadge(),
                     const SizedBox(width: 6),
@@ -119,7 +120,7 @@ class _ResultLayout extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
+                      LText(
                         title,
                         style: AppText.display.copyWith(fontSize: 26),
                       ),
@@ -153,8 +154,8 @@ Widget _needChange(Receipt r, Need n) {
       children: [
         Icon(n.icon, color: n.color),
         const SizedBox(width: AppSpace.s),
-        Expanded(child: Text(Texts.needLabels[n]!, style: AppText.subtitle)),
-        Text('$before → $after', style: AppText.number),
+        Expanded(child: LText(Texts.needLabels[n]!, style: AppText.subtitle)),
+        LText('$before → $after', style: AppText.number),
         const SizedBox(width: AppSpace.s),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -162,7 +163,7 @@ Widget _needChange(Receipt r, Need n) {
             color: diff >= 0 ? AppColors.leafSoft : AppColors.plumSoft,
             borderRadius: BorderRadius.circular(99),
           ),
-          child: Text(
+          child: LText(
             diff >= 0 ? '+$diff' : '$diff',
             style: AppText.number.copyWith(fontSize: 14),
           ),
@@ -179,8 +180,8 @@ Widget _healthChange(Receipt r) => Padding(
     children: [
       const Icon(Icons.favorite_rounded, color: AppColors.leaf),
       const SizedBox(width: AppSpace.s),
-      const Expanded(child: Text('Salud', style: AppText.subtitle)),
-      const Text('Malito → Sano', style: AppText.number),
+      const Expanded(child: LText('Salud', style: AppText.subtitle)),
+      const LText('Malito → Sano', style: AppText.number),
       const SizedBox(width: AppSpace.s),
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -188,7 +189,7 @@ Widget _healthChange(Receipt r) => Padding(
           color: AppColors.leafSoft,
           borderRadius: BorderRadius.circular(99),
         ),
-        child: Text(
+        child: LText(
           '+${r.after.healthPoints - r.before.healthPoints}',
           style: AppText.number.copyWith(fontSize: 14),
         ),
@@ -309,7 +310,7 @@ class _GameResultScreenState extends State<GameResultScreen> {
               ),
               const SizedBox(width: AppSpace.s),
               Expanded(
-                child: Text(
+                child: LText(
                   '${r.score} de $max ${def.scoreLabel}${r.newBest ? ' · ¡nuevo récord!' : ''}',
                   style: AppText.subtitle,
                 ),
@@ -322,12 +323,12 @@ class _GameResultScreenState extends State<GameResultScreen> {
               const CoinIcon(size: 22),
               const SizedBox(width: AppSpace.s),
               Expanded(
-                child: Text(
+                child: LText(
                   '+${r.coinsEarned} monedas',
                   style: AppText.subtitle,
                 ),
               ),
-              Text('Saldo ${r.after.coins}', style: AppText.number),
+              LText('Saldo ${r.after.coins}', style: AppText.number),
             ],
           ),
           const Divider(height: AppSpace.l),

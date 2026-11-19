@@ -1,5 +1,10 @@
 # Dirección de arte y pantallas
 
+## Dirección de la beta MVP · 19-11-2026
+
+Usar el caniche y vestuario 3D existentes en móvil; verificar la opción de compilación. Soportar 11 variantes, nombres localizados y alfabetos CJK/cirílico, texto largo y accesibilidad. El modo foto muestra el aspecto actual, permite posar/girar y conserva capturas en un álbum privado. En juegos premium se muestra el intento gratuito disponible y la espera de 24 h sin confundirla con una compra.
+
+
 [Galería de pantallas](arte/pantallas.jpg) · [Diseño interactivo sin conexión](disenos.html) · [Escenarios](arte/escenas.png) · [Prendas, corte y pelaje](arte/armario.png) · [Caniche de perfil](arte/caniche.png).
 
 ## Identidad visual
