@@ -100,13 +100,19 @@ class BackgroundMusic {
     retry();
   }
 
+  bool get _shouldPlay =>
+      !_disposed &&
+      _enabled &&
+      _foreground &&
+      !_activityPaused &&
+      _gestureReceived;
+
   /// Reintenta tras un gesto si el navegador bloqueó el inicio automático.
   void retry() {
     if (_disposed) return;
     _tail = _tail.then((_) async {
       if (_disposed) return;
-      final shouldPlay =
-          _enabled && _foreground && !_activityPaused && _gestureReceived;
+      final shouldPlay = _shouldPlay;
       if (_playing == shouldPlay && (!shouldPlay || _loadedTrack == _track)) {
         return;
       }
@@ -119,6 +125,8 @@ class BackgroundMusic {
             await player.selectTrack(track);
             _loadedTrack = track;
           }
+          // La intención puede cambiar mientras se prepara el recurso.
+          if (!_shouldPlay || _track != track) return;
           await player.resume();
         } else {
           await _player?.pause();

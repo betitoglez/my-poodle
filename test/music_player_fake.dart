@@ -7,9 +7,13 @@ class FakeMusicPlayer implements MusicPlayer {
   final tracks = <MusicTrack>[];
   bool failNextResume = false;
   Completer<void>? pendingResume;
+  Completer<void>? pendingSelection;
 
   @override
-  Future<void> selectTrack(MusicTrack track) async => tracks.add(track);
+  Future<void> selectTrack(MusicTrack track) async {
+    tracks.add(track);
+    await pendingSelection?.future;
+  }
 
   @override
   Future<void> resume() async {

@@ -6,6 +6,70 @@ import 'package:my_poodle/app/background_music.dart';
 import '../music_player_fake.dart';
 
 void main() {
+  final interruptions = <String, void Function(BackgroundMusic)>{
+    'silenciar': (music) => music.setEnabled(false),
+    'pausar actividad': (music) => music.setActivityPaused(true),
+    'segundo plano': (music) => music.setForeground(false),
+  };
+  for (final interruption in interruptions.entries) {
+    test(
+      '${interruption.key} durante la preparación impide arrancar',
+      () async {
+        final pending = Completer<void>();
+        final player = FakeMusicPlayer()..pendingSelection = pending;
+        final music = BackgroundMusic(player: player);
+        music.setEnabled(true);
+        await Future<void>.delayed(Duration.zero);
+        expect(player.tracks, [MusicTrack.home]);
+        interruption.value(music);
+        pending.complete();
+        await music.settled;
+        expect(
+          player.calls,
+          isEmpty,
+          reason: 'No debe iniciar audio tras pedir silencio',
+        );
+        music.setEnabled(true);
+        music.setActivityPaused(false);
+        music.setForeground(true);
+        await music.settled;
+        expect(player.calls, ['resume']);
+        expect(player.tracks, [MusicTrack.home]);
+        await music.dispose();
+      },
+    );
+  }
+
+  test('destruir durante la preparación libera sin arrancar', () async {
+    final pending = Completer<void>();
+    final player = FakeMusicPlayer()..pendingSelection = pending;
+    final music = BackgroundMusic(player: player);
+    music.setEnabled(true);
+    await Future<void>.delayed(Duration.zero);
+    expect(player.tracks, [MusicTrack.home]);
+    final disposed = music.dispose();
+    pending.complete();
+    await disposed;
+    expect(player.calls, ['dispose']);
+  });
+
+  test(
+    'cambiar de pista durante la preparación no arranca la anterior',
+    () async {
+      final pending = Completer<void>();
+      final player = FakeMusicPlayer()..pendingSelection = pending;
+      final music = BackgroundMusic(player: player);
+      music.setEnabled(true);
+      await Future<void>.delayed(Duration.zero);
+      music.setTrack(MusicTrack.games);
+      pending.complete();
+      await music.settled;
+      expect(player.tracks, [MusicTrack.home, MusicTrack.games]);
+      expect(player.calls, ['resume']);
+      await music.dispose();
+    },
+  );
+
   test(
     'cambia de pista sin duplicarla y respeta el silencio al cambiar',
     () async {
@@ -90,7 +154,7 @@ void main() {
     await music.dispose();
   });
 
-  test('silenciar durante la carga no deja la música sonando', () async {
+  test('silenciar durante el arranque no deja la música sonando', () async {
     final pending = Completer<void>();
     final player = FakeMusicPlayer()..pendingResume = pending;
     final music = BackgroundMusic(player: player);

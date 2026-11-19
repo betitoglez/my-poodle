@@ -4,6 +4,10 @@ Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas auto
 
 **Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
 
+## Sesión 2026-11-19 · Revisión de Codex de la PR #4
+
+La revisión de GitHub detecta un P2: una pista podía arrancar después de pedir silencio si la preparación seguía pendiente. Se revalidan las condiciones actuales, la pista solicitada y la destrucción del servicio tras cargar y antes de reanudar. Cinco pruebas de regresión reproducen primero el fallo y pasan con la corrección: silenciar, pausa de actividad, segundo plano, cierre y cambio de pista durante la preparación. Análisis y contenido correctos; **187/187 pruebas** correctas. Corrección subida para una segunda revisión antes de fusionar.
+
 ## Sesión 2026-11-19 · Corrección de activación del 3D en iPhone
 
 El propietario detecta que no aparecen los diseños 3D. Causa verificada: `LivePoodleView.enabled` exige `POODLE_LIVE_3D=true`, pero las builds 0.4.11 y 0.4.12 se hicieron sin esa opción. Contenían el GLB y el código nativo, pero mostraban el respaldo 2D; los registros anteriores de empaquetado no acreditaban que el 3D estuviese activo. Fue un error de preparación de esas builds, no una pérdida de los diseños.
