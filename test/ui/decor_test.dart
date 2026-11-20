@@ -59,8 +59,9 @@ void main() {
     expect(find.text('Alfombra redonda'), findsOneWidget);
     expect(tileState('Sin alfombra', 'Puesto'), findsOneWidget);
     expect(tileState('Alfombra redonda', '40 monedas'), findsOneWidget);
-    // Los de la versión completa llevan candado.
-    expect(find.byType(LockBadge), findsNWidgets(2));
+    // Los de la versión completa llevan candado (rayas, hueso, cuadros y
+    // nube; la alfombra persa es una meta de lujo del modo gratuito).
+    expect(find.byType(LockBadge), findsNWidgets(4));
     expect(find.widgetWithText(AppButton, 'Puesto'), findsOneWidget);
     expect(previewGame(t).decor, {
       DecorSlot.rug: 'rug.none',

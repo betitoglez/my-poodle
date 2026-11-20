@@ -124,6 +124,10 @@ class StatusRule {
   final int tiredBelow;
 }
 
+/// Precio desde el que un artículo (armario o salón) se presenta como «de
+/// lujo»: una meta de ahorro visible desde el principio con su precio.
+const luxuryCost = 250;
+
 class StyleItem {
   const StyleItem({
     required this.id,
@@ -139,6 +143,9 @@ class StyleItem {
 
   /// Versión que permite comprarlo (los poseídos siempre se pueden usar).
   final Tier tier;
+
+  /// Meta de ahorro «de lujo» (precio [luxuryCost] o más).
+  bool get luxury => cost >= luxuryCost;
 }
 
 /// Huecos de decoración del salón: independientes del aspecto del caniche.
@@ -157,6 +164,9 @@ class DecorItem {
   final int cost;
   final bool initial;
   final Tier tier;
+
+  /// Meta de ahorro «de lujo» (precio [luxuryCost] o más).
+  bool get luxury => cost >= luxuryCost;
 }
 
 class Balance {

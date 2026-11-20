@@ -16,6 +16,7 @@ import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/luxury_badge.dart';
 import '../widgets/scene_view.dart';
 
 extension DecorSlotUi on DecorSlot {
@@ -45,6 +46,15 @@ String decorLabel(String id) => switch (id) {
   'plant.fern' => 'Helecho',
   'plant.flowers' => 'Maceta de flores',
   'plant.cactus' => 'Cactus sonriente',
+  'rug.checks' => 'Alfombra de cuadros',
+  'rug.cloud' => 'Alfombra nube',
+  'rug.persian' => 'Alfombra persa',
+  'wall.rainbow' => 'Arcoíris de pared',
+  'wall.clock' => 'Reloj de hueso',
+  'wall.goldframe' => 'Retrato con marco dorado',
+  'plant.sunflower' => 'Girasol',
+  'plant.bonsai' => 'Bonsái',
+  'plant.lights' => 'Árbol con luces',
   _ => id,
 };
 
@@ -223,7 +233,7 @@ class _DecorScreenState extends State<DecorScreen> {
     final tileExtent =
         (l.compact ? 54.0 : 70.0) +
         textScale.scale(15) * 1.3 +
-        textScale.scale(13) * 1.3 +
+        textScale.scale(13) * 1.3 * 2 +
         18;
     final items = c.balance.decorFor(_slot);
 
@@ -320,6 +330,11 @@ class _DecorScreenState extends State<DecorScreen> {
                                 ? 'Versión completa'
                                 : '${it.cost} monedas',
                             cost: isOwned || isLocked ? null : it.cost,
+                            luxury: it.luxury,
+                            missing:
+                                !isOwned && !isLocked && it.cost > pet.coins
+                                ? it.cost - pet.coins
+                                : null,
                             placed: isPlaced,
                             owned: isOwned,
                             locked: isLocked,
@@ -438,8 +453,16 @@ class _DecorTile extends StatelessWidget {
     required this.locked,
     required this.selected,
     required this.onTap,
+    this.luxury = false,
+    this.missing,
   });
   final String id;
+
+  /// Meta de ahorro «de lujo»: borde e insignia dorados.
+  final bool luxury;
+
+  /// Monedas que faltan para comprarlo (null: alcanza o no se paga).
+  final int? missing;
   final String label;
 
   /// «Puesto», «Gratis», «En propiedad», «Versión completa» o el precio.
@@ -459,16 +482,24 @@ class _DecorTile extends StatelessWidget {
       button: true,
       selected: selected,
       label: label,
-      value: state,
+      value: tileValue(context, state, luxury: luxury, missing: missing),
       excludeSemantics: true,
       onTap: onTap,
       child: Material(
-        color: selected ? AppColors.plumSoft : Colors.white,
+        color: selected
+            ? AppColors.plumSoft
+            : luxury
+            ? LuxuryColors.goldSoft
+            : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.m),
           side: BorderSide(
-            color: selected ? AppColors.plum : const Color(0x22000000),
-            width: selected ? 3 : 1,
+            color: selected
+                ? AppColors.plum
+                : luxury
+                ? LuxuryColors.gold
+                : const Color(0x22000000),
+            width: selected || luxury ? 3 : 1,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -494,6 +525,8 @@ class _DecorTile extends StatelessWidget {
                               )
                             : CustomPaint(painter: _ThumbPainter(id)),
                       ),
+                      if (luxury)
+                        const Positioned(top: 2, left: 2, child: LuxuryBadge()),
                       if (locked)
                         const Positioned(
                           top: 2,
@@ -544,6 +577,7 @@ class _DecorTile extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (missing case final n?) MissingCoinsLine(missing: n),
               ],
             ),
           ),

@@ -85,7 +85,7 @@ export function patchCoat(material, uniforms) {
     `);
     shader.fragmentShader = `
       uniform vec3 poodleFur;
-      uniform float poodleRecolor, poodleDirt, poodleMouthOpen, poodleExtraCurl;
+      uniform float poodleRecolor, poodleDirt, poodleMouthOpen, poodleExtraCurl, poodleSheen;
       varying vec3 poodleRestPosition;
       varying float poodleShortCoat;
       varying float poodleMouthInterior;
@@ -99,6 +99,10 @@ export function patchCoat(material, uniforms) {
       diffuseColor.rgb = mix(diffuseColor.rgb,dyed,poodleRecolor);
       diffuseColor.rgb *= 1.0-.13*poodleShortCoat*smoothstep(.012,.09,tone);
       vec3 p = poodleRestPosition;
+      // Metallic coat: warm highlight on the curls plus sparse glints.
+      float glint = pow(max(0.0, sin(p.x*173.0+p.y*131.0)*sin(p.z*157.0-p.y*97.0)), 8.0);
+      diffuseColor.rgb += poodleSheen * smoothstep(.08,.5,tone) *
+        (vec3(.16,.11,.02) + vec3(.55,.46,.24)*glint);
       float patches = sin(p.z*38.0 + p.x*31.0 + sin(p.y*43.0)) * cos(p.x*49.0-p.y*31.0);
       float onCoat = (1.0-smoothstep(.79,1.01,p.y)*.65) * smoothstep(.006,.077,tone);
       float dirt = smoothstep(.9-poodleDirt*.145,.93,patches)*onCoat*min(1.0,poodleDirt*.27);

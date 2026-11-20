@@ -62,15 +62,17 @@ abstract final class DecorPainter {
     final v = s.view;
     switch (slot) {
       case DecorSlot.rug:
-        final w = ps * (id == 'rug.bone' ? 1.5 : 1.3);
-        final h = ps * (id == 'rug.bone' ? 0.36 : 0.32);
+        final wide = id == 'rug.bone' || id == 'rug.persian';
+        final w = ps * (wide ? 1.5 : 1.3);
+        final h = ps * (wide ? 0.36 : 0.32);
         return Rect.fromCenter(
           center: s.feet + Offset(0, ps * 0.02),
           width: w,
           height: h,
         );
       case DecorSlot.plant:
-        final h = math.min(ps * 0.62, v.height * 0.6);
+        final tall = id == 'plant.lights' || id == 'plant.sunflower';
+        final h = math.min(ps * (tall ? 0.8 : 0.62), v.height * 0.6);
         final w = h * 0.62;
         final margin = v.width * 0.05;
         // Junto al borde derecho, sin alejarse demasiado del caniche.
@@ -89,11 +91,19 @@ abstract final class DecorPainter {
         );
         final band = Rect.fromLTRB(v.left, bandTop, v.right, bandBottom);
         switch (id) {
-          case 'wall.frame':
-            final w = s.illustrated
-                ? math.min(ps * 0.34, v.width * 0.2)
-                : math.min(ps * 0.3, v.width * 0.14);
-            final h = w * 1.18;
+          case 'wall.frame' || 'wall.goldframe' || 'wall.clock':
+            // Cuelgan del mismo punto; el retrato dorado es más grande.
+            final k = switch (id) {
+              'wall.goldframe' => 1.3,
+              'wall.clock' => 0.95,
+              _ => 1.0,
+            };
+            final w =
+                k *
+                (s.illustrated
+                    ? math.min(ps * 0.34, v.width * 0.2)
+                    : math.min(ps * 0.3, v.width * 0.14));
+            final h = w * _hangAspect(id);
             final fx = s.illustrated ? 0.775 : 0.5;
             final fy = s.illustrated ? 0.33 : 0.2;
             final cx = (s.art.left + fx * s.art.width)
@@ -104,6 +114,17 @@ abstract final class DecorPainter {
               v.top + h / 2 + math.max(6.0, ps * 0.05),
             );
             return Rect.fromCenter(center: Offset(cx, cy), width: w, height: h);
+          case 'wall.rainbow':
+            final w = math.min(v.width * 0.46, ps * 1.1);
+            final h = math.min(w * 0.55, band.height * 0.6);
+            return Rect.fromCenter(
+              center: Offset(
+                v.center.dx,
+                v.top + math.max(6.0, band.height * 0.06) + h / 2,
+              ),
+              width: h / 0.55,
+              height: h,
+            );
           case 'wall.garland':
             final h = math.min(band.height * 0.45, ps * 0.32);
             return Rect.fromLTWH(
@@ -123,14 +144,22 @@ abstract final class DecorPainter {
     }
   }
 
+  /// Alto/ancho de las piezas que cuelgan en la pared.
+  static double _hangAspect(String id) => switch (id) {
+    'wall.goldframe' => 1.25,
+    'wall.clock' => 1.0,
+    _ => 1.18,
+  };
+
   /// Caja para una miniatura de [size] con la proporción del artículo.
   static Rect thumbBox(String id, Size size) {
     final aspect = switch (id.split('.').first) {
-      'rug' => id == 'rug.bone' ? 3.2 : 2.6,
+      'rug' => id == 'rug.bone' || id == 'rug.persian' ? 3.2 : 2.6,
       'plant' => 0.62,
       _ => switch (id) {
-        'wall.frame' => 1 / 1.18,
+        'wall.frame' || 'wall.goldframe' || 'wall.clock' => 1 / _hangAspect(id),
         'wall.garland' => 3.0,
+        'wall.rainbow' => 1 / 0.55,
         _ => 1.5,
       },
     };
@@ -179,8 +208,48 @@ abstract final class DecorPainter {
         _flowers(c, box);
       case 'plant.cactus':
         _cactus(c, box);
+      case 'rug.checks':
+        _rugChecks(c, box);
+      case 'rug.cloud':
+        _rugCloud(c, box);
+      case 'rug.persian':
+        _rugPersian(c, box);
+      case 'wall.rainbow':
+        _rainbow(c, box);
+      case 'wall.clock':
+        _clock(c, box);
+      case 'wall.goldframe':
+        _goldFrame(c, box, reducedMotion ? null : t);
+      case 'plant.sunflower':
+        _sunflower(c, box);
+      case 'plant.bonsai':
+        _bonsai(c, box);
+      case 'plant.lights':
+        _lightsTree(c, box, reducedMotion ? null : t);
     }
   }
+
+  /// ¿Dibuja algo este artículo? (los «none» y los desconocidos, no).
+  static bool paints(String id) => const {
+    'rug.round',
+    'rug.stripes',
+    'rug.bone',
+    'rug.checks',
+    'rug.cloud',
+    'rug.persian',
+    'wall.frame',
+    'wall.garland',
+    'wall.stars',
+    'wall.rainbow',
+    'wall.clock',
+    'wall.goldframe',
+    'plant.fern',
+    'plant.flowers',
+    'plant.cactus',
+    'plant.sunflower',
+    'plant.bonsai',
+    'plant.lights',
+  }.contains(id);
 
   // ---------------------------------------------------------------- Alfombras
 
@@ -642,5 +711,398 @@ abstract final class DecorPainter {
       );
     }
     c.drawCircle(top, w * 0.08, _p(0xFFE9B657));
+  }
+
+  // ------------------------------------------------- Ampliación del catálogo
+
+  static void _rugChecks(Canvas c, Rect r) {
+    _rugShadow(c, r);
+    final rr = RRect.fromRectAndRadius(r, Radius.circular(r.height * 0.18));
+    c.save();
+    c.clipRRect(rr);
+    c.drawRect(r, _p(0xFFFFF3E2));
+    const cols = 10, rows = 4;
+    final cw = r.width / cols, ch = r.height / rows;
+    for (var y = 0; y < rows; y++) {
+      for (var x = 0; x < cols; x++) {
+        if ((x + y).isEven) {
+          c.drawRect(
+            Rect.fromLTWH(r.left + x * cw, r.top + y * ch, cw + 0.5, ch + 0.5),
+            _p(0xFF8FB89A),
+          );
+        }
+      }
+    }
+    c.restore();
+    c.drawRRect(rr, _stroke(0xFF5E8C61, r.height * 0.05));
+  }
+
+  static Path _cloudPath(Rect r) {
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTRB(r.left, r.top + r.height * 0.3, r.right, r.bottom),
+          Radius.circular(r.height * 0.35),
+        ),
+      );
+    const bumps = [(0.22, 0.32), (0.45, 0.42), (0.7, 0.36)];
+    for (final (fx, rad) in bumps) {
+      path.addOval(
+        Rect.fromCircle(
+          center: Offset(r.left + fx * r.width, r.top + r.height * 0.42),
+          radius: r.height * rad,
+        ),
+      );
+    }
+    return path;
+  }
+
+  static void _rugCloud(Canvas c, Rect r) {
+    c.drawPath(_cloudPath(r.shift(Offset(0, r.height * 0.08))), _p(0x2234283B));
+    c.drawPath(_cloudPath(r), _p(0xFFB9D3EC));
+    c.drawPath(_cloudPath(r.deflate(r.height * 0.1)), _p(0xFFF2F7FC));
+    // Gotitas de lluvia bordadas.
+    final drop = _p(0xFF8FB3D9);
+    for (var i = 0; i < 5; i++) {
+      c.drawCircle(
+        Offset(
+          r.left + r.width * (0.2 + i * 0.15),
+          r.center.dy + r.height * 0.15,
+        ),
+        r.height * 0.035,
+        drop,
+      );
+    }
+  }
+
+  static void _rugPersian(Canvas c, Rect r) {
+    _rugShadow(c, r);
+    final outer = RRect.fromRectAndRadius(r, Radius.circular(r.height * 0.08));
+    c.drawRRect(outer, _p(0xFF7A1F2B));
+    final border = r.deflate(r.height * 0.09);
+    c.drawRect(border, _p(0xFFE2B45A));
+    final field = border.deflate(r.height * 0.06);
+    c.drawRect(field, _p(0xFF9E2A36));
+    c.drawRect(field.deflate(r.height * 0.05), _p(0xFF1F3F6E));
+    // Medallón central y esquinas.
+    final center = field.center;
+    final med = Path()
+      ..moveTo(center.dx - field.width * 0.22, center.dy)
+      ..lineTo(center.dx, center.dy - field.height * 0.42)
+      ..lineTo(center.dx + field.width * 0.22, center.dy)
+      ..lineTo(center.dx, center.dy + field.height * 0.42)
+      ..close();
+    c.drawPath(med, _p(0xFFE2B45A));
+    c.drawPath(
+      Path()
+        ..moveTo(center.dx - field.width * 0.13, center.dy)
+        ..lineTo(center.dx, center.dy - field.height * 0.26)
+        ..lineTo(center.dx + field.width * 0.13, center.dy)
+        ..lineTo(center.dx, center.dy + field.height * 0.26)
+        ..close(),
+      _p(0xFF9E2A36),
+    );
+    c.drawCircle(center, field.height * 0.1, _p(0xFFFFF3E2));
+    for (final corner in [
+      field.topLeft,
+      field.topRight,
+      field.bottomLeft,
+      field.bottomRight,
+    ]) {
+      c.drawCircle(corner, field.height * 0.18, _p(0xFFE2B45A));
+    }
+    // Flecos a los lados.
+    final fringe = _stroke(0xFFF3E7CC, math.max(1, r.height * 0.025));
+    for (var i = 1; i < 8; i++) {
+      final y = r.top + r.height * i / 8;
+      c.drawLine(Offset(r.left, y), Offset(r.left - r.height * 0.1, y), fringe);
+      c.drawLine(
+        Offset(r.right, y),
+        Offset(r.right + r.height * 0.1, y),
+        fringe,
+      );
+    }
+  }
+
+  static void _rainbow(Canvas c, Rect r) {
+    const colors = [
+      0xFFE0705A,
+      0xFFE9B657,
+      0xFFF2DC6B,
+      0xFF8FB89A,
+      0xFF6E8FD0,
+      0xFFB8A6D9,
+    ];
+    final band = r.height / (colors.length + 2);
+    final base = Offset(r.center.dx, r.bottom);
+    for (var i = 0; i < colors.length; i++) {
+      final radius = r.height - band * i - band / 2;
+      c.drawArc(
+        Rect.fromCircle(center: base, radius: radius),
+        math.pi,
+        math.pi,
+        false,
+        _stroke(colors[i], band)..strokeCap = StrokeCap.butt,
+      );
+    }
+    // Nubes en los extremos.
+    for (final x in [r.left + band * 2, r.right - band * 2]) {
+      for (final (dx, dy, k) in const [
+        (-1.0, 0.0, 1.0),
+        (1.0, 0.0, 1.0),
+        (0.0, -0.8, 1.2),
+      ]) {
+        c.drawCircle(
+          Offset(x + dx * band, r.bottom - band + dy * band),
+          band * 1.1 * k,
+          _p(0xFFFFFCF6),
+        );
+      }
+    }
+  }
+
+  static void _clock(Canvas c, Rect r) {
+    final center = r.center;
+    final radius = r.shortestSide / 2;
+    c.drawCircle(
+      center + Offset(radius * 0.06, radius * 0.08),
+      radius,
+      _p(0x2834283B),
+    );
+    c.drawCircle(center, radius, _p(0xFF8A5A3A));
+    c.drawCircle(center, radius * 0.86, _p(0xFFFFF8E9));
+    final tick = _stroke(0xFF5C354E, math.max(1, radius * 0.05));
+    for (var i = 0; i < 12; i++) {
+      final a = i / 12 * math.pi * 2;
+      final d = Offset(math.cos(a), math.sin(a));
+      c.drawLine(
+        center + d * radius * (i % 3 == 0 ? 0.62 : 0.7),
+        center + d * radius * 0.78,
+        tick,
+      );
+    }
+    // Agujas con forma de hueso.
+    void boneHand(double angle, double length, int color) {
+      final d = Offset(math.sin(angle), -math.cos(angle));
+      final tip = center + d * length;
+      c.drawLine(center, tip, _stroke(color, radius * 0.08));
+      final n = Offset(-d.dy, d.dx) * radius * 0.05;
+      c.drawCircle(tip + n, radius * 0.06, _p(color));
+      c.drawCircle(tip - n, radius * 0.06, _p(color));
+    }
+
+    boneHand(math.pi * 0.35, radius * 0.38, 0xFFC08A5A);
+    boneHand(-math.pi * 0.6, radius * 0.58, 0xFFE2B47E);
+    c.drawCircle(center, radius * 0.06, _p(0xFF5C354E));
+  }
+
+  /// Retrato con marco dorado; un destello recorre el marco con [t].
+  static void _goldFrame(Canvas c, Rect r, double? t) {
+    c.drawRRect(
+      RRect.fromRectAndRadius(
+        r.shift(Offset(r.width * 0.04, r.width * 0.05)),
+        Radius.circular(r.width * 0.05),
+      ),
+      _p(0x3034283B),
+    );
+    final outer = RRect.fromRectAndRadius(r, Radius.circular(r.width * 0.05));
+    c.drawRRect(
+      outer,
+      Paint()
+        ..shader = Gradient.linear(
+          r.topLeft,
+          r.bottomRight,
+          const [
+            Color(0xFFFFE9A8),
+            Color(0xFFD9A43A),
+            Color(0xFF9C6B1E),
+            Color(0xFFE9C060),
+          ],
+          const [0, 0.35, 0.7, 1],
+        ),
+    );
+    // Bolitas del marco tallado.
+    final bead = _p(0xFFFFE29A);
+    for (var i = 0; i < 8; i++) {
+      final k = (i + 0.5) / 8;
+      for (final p in [
+        Offset(r.left + r.width * k, r.top + r.width * 0.045),
+        Offset(r.left + r.width * k, r.bottom - r.width * 0.045),
+      ]) {
+        c.drawCircle(p, r.width * 0.022, bead);
+      }
+    }
+    final canvas = r.deflate(r.width * 0.12);
+    c.drawRect(canvas, _p(0xFF2F4A5C));
+    // Retrato: silueta de caniche con lazo, sobre fondo oscuro.
+    final fur = _p(0xFFE2A066);
+    final cx = canvas.center.dx;
+    final w = canvas.width;
+    c.drawOval(
+      Rect.fromCenter(
+        center: Offset(cx, canvas.bottom - w * 0.08),
+        width: w * 0.8,
+        height: w * 0.42,
+      ),
+      fur,
+    );
+    final head = Offset(cx, canvas.top + canvas.height * 0.42);
+    c.drawCircle(head, w * 0.24, fur);
+    c.drawCircle(head + Offset(0, -w * 0.2), w * 0.16, fur);
+    for (final side in [-1.0, 1.0]) {
+      c.drawOval(
+        Rect.fromCenter(
+          center: head + Offset(side * w * 0.25, w * 0.08),
+          width: w * 0.18,
+          height: w * 0.32,
+        ),
+        _p(0xFFC9884F),
+      );
+      c.drawCircle(
+        head + Offset(side * w * 0.08, -w * 0.02),
+        w * 0.025,
+        _p(0xFF2B1D1F),
+      );
+    }
+    c.drawCircle(head + Offset(0, w * 0.08), w * 0.035, _p(0xFF3A2526));
+    // Brillo del marco.
+    if (t != null) {
+      final k = (t * 0.25) % 1.0;
+      final p = Offset(r.left + r.width * k, r.top + r.height * (1 - k));
+      c.drawCircle(
+        p,
+        r.width * 0.05,
+        Paint()
+          ..color = const Color(0xAAFFFFFF)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, r.width * 0.03),
+      );
+    }
+  }
+
+  static void _sunflower(Canvas c, Rect r) {
+    final mouth = _pot(c, r, 0xFF6E8FD0, 0xFF8FA9DC);
+    final root = Offset(mouth.center.dx, mouth.top + mouth.height * 0.3);
+    final head = Offset(r.center.dx, r.top + r.height * 0.2);
+    c.drawLine(root, head, _stroke(0xFF4E7A55, math.max(1.5, r.width * 0.05)));
+    for (final side in [-1.0, 1.0]) {
+      final mid = Offset.lerp(root, head, side < 0 ? 0.45 : 0.62)!;
+      c.drawOval(
+        Rect.fromCenter(
+          center: mid + Offset(side * r.width * 0.14, 0),
+          width: r.width * 0.28,
+          height: r.width * 0.12,
+        ),
+        _p(0xFF7FAE7A),
+      );
+    }
+    final pr = r.width * 0.2;
+    for (var i = 0; i < 12; i++) {
+      final a = i / 12 * math.pi * 2;
+      c.drawOval(
+        Rect.fromCenter(
+          center: head + Offset(math.cos(a), math.sin(a)) * pr,
+          width: pr * 0.7,
+          height: pr * 0.7,
+        ),
+        _p(i.isEven ? 0xFFF2C43A : 0xFFE9B657),
+      );
+    }
+    c.drawCircle(head, pr * 0.7, _p(0xFF6B4330));
+    c.drawCircle(head, pr * 0.45, _p(0xFF8A5A3A));
+  }
+
+  static void _bonsai(Canvas c, Rect r) {
+    // Bandeja baja en lugar de maceta.
+    final tray = Rect.fromLTWH(
+      r.left + r.width * 0.05,
+      r.bottom - r.height * 0.14,
+      r.width * 0.9,
+      r.height * 0.14,
+    );
+    c.drawOval(
+      Rect.fromCenter(
+        center: Offset(r.center.dx, r.bottom),
+        width: r.width,
+        height: r.height * 0.05,
+      ),
+      _p(0x2834283B),
+    );
+    c.drawRRect(
+      RRect.fromRectAndRadius(tray, Radius.circular(tray.height * 0.3)),
+      _p(0xFF5C354E),
+    );
+    final trunk = _stroke(0xFF7A5236, math.max(2, r.width * 0.09));
+    final base = Offset(r.center.dx, tray.top);
+    final bend = Offset(r.center.dx - r.width * 0.18, r.top + r.height * 0.55);
+    final top = Offset(r.center.dx + r.width * 0.08, r.top + r.height * 0.32);
+    c.drawPath(
+      Path()
+        ..moveTo(base.dx, base.dy)
+        ..quadraticBezierTo(bend.dx, bend.dy, top.dx, top.dy),
+      trunk,
+    );
+    for (final (dx, dy, k) in const [
+      (0.08, 0.26, 1.0),
+      (-0.22, 0.4, 0.8),
+      (0.3, 0.42, 0.75),
+      (-0.02, 0.14, 0.7),
+    ]) {
+      final p = Offset(r.center.dx + dx * r.width, r.top + dy * r.height);
+      c.drawOval(
+        Rect.fromCenter(
+          center: p,
+          width: r.width * 0.42 * k,
+          height: r.width * 0.24 * k,
+        ),
+        _p(0xFF5E8C61),
+      );
+      c.drawOval(
+        Rect.fromCenter(
+          center: p - Offset(0, r.width * 0.03 * k),
+          width: r.width * 0.3 * k,
+          height: r.width * 0.14 * k,
+        ),
+        _p(0xFF7FAE7A),
+      );
+    }
+  }
+
+  /// Árbol con luces de colores; parpadean con [t] (null: fijas).
+  static void _lightsTree(Canvas c, Rect r, double? t) {
+    final mouth = _pot(c, r, 0xFFB8433C, 0xFFD9675E);
+    final apex = Offset(r.center.dx, r.top + r.height * 0.06);
+    final bottom = mouth.top - r.height * 0.02;
+    const tiers = 3;
+    for (var i = 0; i < tiers; i++) {
+      final y0 = apex.dy + (bottom - apex.dy) * i / tiers * 0.8;
+      final y1 = apex.dy + (bottom - apex.dy) * (i + 1) / tiers;
+      final half = r.width * (0.22 + 0.13 * i);
+      c.drawPath(
+        Path()
+          ..moveTo(r.center.dx, y0)
+          ..lineTo(r.center.dx + half, y1)
+          ..lineTo(r.center.dx - half, y1)
+          ..close(),
+        _p(i.isEven ? 0xFF3F7D4F : 0xFF4E8C5C),
+      );
+    }
+    c.drawPath(_star(apex, r.width * 0.09, r.width * 0.04), _p(0xFFF2C766));
+    const bulbs = [0xFFE0705A, 0xFFF2C766, 0xFF6E8FD0, 0xFFE8AAB6, 0xFFFFF3C4];
+    for (var i = 0; i < 14; i++) {
+      final u = (i + 1) / 15;
+      final y = apex.dy + (bottom - apex.dy) * u;
+      final half = r.width * 0.5 * u * 0.95;
+      final x = r.center.dx + half * math.sin(i * 2.3);
+      final on = t == null ? 1.0 : 0.55 + 0.45 * math.sin(t * 3 + i * 1.3);
+      final color = Color(bulbs[i % bulbs.length]);
+      c.drawCircle(
+        Offset(x, y),
+        r.width * 0.06,
+        Paint()
+          ..color = color.withValues(alpha: 0.35 * on)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, r.width * 0.03),
+      );
+      c.drawCircle(Offset(x, y), r.width * 0.03, Paint()..color = color);
+    }
   }
 }

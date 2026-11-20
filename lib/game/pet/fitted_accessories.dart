@@ -19,6 +19,8 @@ abstract final class FittedAccessories {
         _ribbon(c, pose, head, fur);
       case 'head.crown':
         _crown(c, pose, head, fur);
+      case 'head.crown_jewels':
+        _crown(c, pose, head, fur, jewels: true);
     }
   }
 
@@ -454,12 +456,14 @@ abstract final class FittedAccessories {
     Canvas c,
     String pose,
     Offset head,
-    void Function(Path) fur,
-  ) {
+    void Function(Path) fur, {
+    bool jewels = false,
+  }) {
     final profile = pose != 'front' && pose != 'back';
     final p = head + Offset(profile ? 0.008 : 0, 0.012);
     final w = profile ? 0.103 : 0.121;
-    final gold = const Color(0xFFDEAD47);
+    // Corona real: oro más claro y piedras de rubí, zafiro y esmeralda.
+    final gold = jewels ? const Color(0xFFF2C64E) : const Color(0xFFDEAD47);
     c.save();
     c.translate(p.dx, p.dy);
     _material(
@@ -510,8 +514,26 @@ abstract final class FittedAccessories {
               height: 0.023,
             ),
           ),
-          x == 0 ? const Color(0xFF804A99) : const Color(0xFF5C9A93),
+          jewels
+              ? (x == 0
+                    ? const Color(0xFFC81E3A)
+                    : x < 0
+                    ? const Color(0xFF2A5FD0)
+                    : const Color(0xFF1E9A5A))
+              : x == 0
+              ? const Color(0xFF804A99)
+              : const Color(0xFF5C9A93),
           metal: true,
+        );
+      }
+    }
+    if (jewels) {
+      // Perlas en las puntas, sobre los remates.
+      for (final x in [-w, 0.0, w]) {
+        c.drawCircle(
+          Offset(x, (x == 0 ? -0.11 : -0.078) - 0.016),
+          0.008,
+          Paint()..color = const Color(0xFFFFF8EE),
         );
       }
     }
