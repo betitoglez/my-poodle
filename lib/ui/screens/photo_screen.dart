@@ -84,6 +84,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       picture.dispose();
       final bytes = await composed.toByteData(format: ui.ImageByteFormat.png);
       await _album.save(bytes!.buffer.asUint8List());
+      if (mounted) AppScope.of(context).recordPhotoTaken().ignore();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: LText('Foto guardada en tu álbum.')),

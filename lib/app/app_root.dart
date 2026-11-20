@@ -26,6 +26,7 @@ import '../ui/screens/main_shell.dart';
 import '../ui/navigation.dart';
 import '../ui/music_route_observer.dart';
 import '../ui/theme.dart';
+import '../ui/widgets/stickers.dart';
 import 'app_controller.dart';
 import 'app_scope.dart';
 import 'feedback.dart';
@@ -258,7 +259,13 @@ class _MyPoodleAppState extends State<MyPoodleApp> with WidgetsBindingObserver {
             feedback: _feedback,
             child: ShellScope(
               controller: _shell,
-              child: PetPainterScope(painter: s.painter, child: child!),
+              child: PetPainterScope(
+                painter: s.painter,
+                child: StickerCelebrations(
+                  controller: s.controller,
+                  child: child!,
+                ),
+              ),
             ),
           ),
         );
