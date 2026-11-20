@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "我的貴賓犬";
 "CFBundleName" = "我的貴賓犬";
+"NSPhotoLibraryAddUsageDescription" = "用於將你選擇的貴賓犬照片儲存到照片圖庫。";

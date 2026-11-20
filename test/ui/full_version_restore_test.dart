@@ -17,12 +17,14 @@ class _RestoreStore extends SimulatedStore {
   int restoreCalls = 0;
   Completer<void>? waitForRestore;
   bool failRestore = false;
+  bool nothingFound = false;
 
   @override
   Future<void> restore() async {
     restoreCalls++;
     if (waitForRestore != null) await waitForRestore!.future;
     if (failRestore) throw StateError('offline');
+    if (nothingFound) return;
     await super.restore();
   }
 }
@@ -74,7 +76,7 @@ void main() {
     await scrollTo(t, find.text('Restaurar compras'));
     await tapText(t, 'Restaurar compras');
     expect(
-      find.text('No se ha podido restaurar. Inténtalo de nuevo.'),
+      find.text('No se ha podido completar. Inténtalo de nuevo.'),
       findsOneWidget,
     );
     expect(
@@ -83,6 +85,23 @@ void main() {
     );
     expect(backend.files[SaveStore.primary], before);
     expect(store.restoreCalls, 2);
+
+    store.failRestore = false;
+    store.nothingFound = true;
+    await scrollTo(t, find.text('Restaurar compras'));
+    await tapText(t, 'Restaurar compras');
+    expect(
+      find.text(
+        'No hay compras nuevas que restaurar. Tu versión completa sigue activa.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('¡Gracias! Ya tienes la versión completa'),
+      findsOneWidget,
+    );
+    expect(backend.files[SaveStore.primary], before);
+    expect(store.restoreCalls, 3);
     expect(t.takeException(), isNull);
   });
 }

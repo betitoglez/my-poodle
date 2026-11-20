@@ -172,6 +172,8 @@ class SimulatedStore implements StoreProvider {
   Future<StoreOwnership> queryOwnership(String id) async {
     await _wait();
     if (!online) return StoreOwnership.unknown;
+    // Como Google Play: la compra pendiente sigue en la lista, sin propiedad.
+    if (_pendingId != null) return StoreOwnership.unknown;
     return owned ? StoreOwnership.owned : StoreOwnership.notOwned;
   }
 

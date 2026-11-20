@@ -1,0 +1,33 @@
+{
+  "version": "0.5.0",
+  "build": 34,
+  "bundle_id": "com.betitoglez.mypoodle",
+  "source_commit": "48cb7c3bb36b846210dfb32505d55e403cef08ab",
+  "sha256": "ecfef666f34bab178a6cb58cf06df36ec0149d2814d772f0cc3ed501cc35f9a1",
+  "bytes": 81686215,
+  "signature": "strict distribution verification passed",
+  "internal_only": true,
+  "live_3d": true,
+  "purchase_qa": true,
+  "languages": 11,
+  "messages_per_language": 561,
+  "flutter_tests": 226,
+  "codex_review": "completed without findings on 48cb7c3",
+  "pull_request": "https://github.com/betitoglez/my-poodle/pull/11",
+  "merged_main_commit": "1830e259e8c9ab636c7e13129fadd8ff71148037",
+  "upload_evidence": {
+    "method": "Xcode Organizer, TestFlight Internal Only",
+    "result": "Upload completed with warnings; archive 0.5.0 (34) marked Uploaded with warnings",
+    "local_time": "2026-11-20 13:34 Europe/Madrid",
+    "warning": "SDK requirement starting April 2027"
+  },
+  "processed_in_testflight": true,
+  "testflight_status": "Testing",
+  "internal_group": "MVP Sandbox",
+  "testflight_build_id": "0ad61e06-ffd8-4cd1-b776-24637ebde6aa",
+  "date": "2026-11-20",
+  "device_installation": "Owner confirms installed/opened as update without account change; devicectl verifies bundle ID and 0.5.0 (34), 2026-11-20 14:18 Europe/Madrid",
+  "screenshot": "testflight-ready34.jpg",
+  "production_submission": false,
+  "source_scope": "Built from 48cb7c3, merged as main 1830e259. Later main e6d7c6d (PR 12) is not included in this IPA or its physical test acceptance."
+}

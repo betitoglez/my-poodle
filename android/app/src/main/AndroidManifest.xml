@@ -1,5 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- Copiar fotos del álbum al carrete en Android 7–9; desde Android 10
+         MediaStore no necesita permiso. La app no lee la galería. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <application
         android:label="${mypoodleAppLabel}"
         android:allowBackup="false"

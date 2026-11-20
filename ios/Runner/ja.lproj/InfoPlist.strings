@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "マイプードル";
 "CFBundleName" = "マイプードル";
+"NSPhotoLibraryAddUsageDescription" = "選んだプードルの写真を写真ライブラリに保存するために使用します。";

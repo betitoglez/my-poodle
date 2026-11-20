@@ -162,14 +162,17 @@ class _Status extends StatelessWidget {
 
     if (p.flow == PurchaseFlow.restoring) return busy('Restaurando compras…');
     if (p.full) {
+      final fullNotice = switch (p.notice) {
+        StoreNotice.error => 'No se ha podido completar. Inténtalo de nuevo.',
+        StoreNotice.nothingToRestore =>
+          'No hay compras nuevas que restaurar. Tu versión completa sigue activa.',
+        _ => null,
+      };
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (p.notice == StoreNotice.error) ...[
-            message(
-              Icons.info_outline_rounded,
-              'No se ha podido restaurar. Inténtalo de nuevo.',
-            ),
+          if (fullNotice != null) ...[
+            message(Icons.info_outline_rounded, fullNotice),
             const SizedBox(height: AppSpace.m),
           ],
           message(

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -5,6 +7,11 @@ plugins {
 }
 
 val wardrobePreview = providers.environmentVariable("MY_POODLE_WARDROBE_PREVIEW").orNull == "1"
+
+val releaseSigningFile = rootProject.file("key.properties")
+val releaseSigning = Properties().apply {
+    if (releaseSigningFile.exists()) releaseSigningFile.inputStream().use { load(it) }
+}
 
 android {
     namespace = "com.betitoglez.mypoodle"
@@ -17,7 +24,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = if (wardrobePreview) {
             "com.betitoglez.mypoodle.wardrobepreview"
         } else {
@@ -37,11 +43,22 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseSigningFile.exists()) {
+                keyAlias = releaseSigning.getProperty("keyAlias")
+                keyPassword = releaseSigning.getProperty("keyPassword")
+                // Rutas relativas a android/, donde vive key.properties.
+                storeFile = releaseSigning.getProperty("storeFile")?.let { rootProject.file(it) }
+                storePassword = releaseSigning.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Falla la validación de firma si falta key.properties; nunca usar debug para Release.
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

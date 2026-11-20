@@ -11,8 +11,8 @@ import 'widgets/common.dart';
 
 /// Puerta adulta (docs/UI-UX.md#puerta-adulta): escribir en cifras un número
 /// del 21 al 99 mostrado en letras. Protege la compra, «Restaurar compras»,
-/// la Zona adulta y los enlaces externos. Solo decide el paso: no emite
-/// ninguna intención por sí misma.
+/// la Zona adulta, los enlaces externos y copiar fotos al carrete. Solo decide
+/// el paso: no emite ninguna intención por sí misma.
 class ParentalGate {
   ParentalGate._();
 

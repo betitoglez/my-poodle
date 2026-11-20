@@ -11,15 +11,28 @@
 - **Celebraciones**: monedas que cuentan, confeti al comprar y al batir la marca, fundido entre pantallas y pestañas (en iOS se conserva la transición del sistema con el gesto de volver). Todo se desactiva con movimiento reducido.
 - **Accesibilidad**: iconos de estado como nodos propios con estado y acción, HUD con región viva solo en puntuación, títulos de resultado como encabezado, sin desbordes a 320×568 con texto ×1,6 en Casa, Juegos, Instrucciones y Resultado.
 - Corrección de traducción: «capturas» del Frisbee figuraba como «capturas de pantalla» en 10 idiomas; ahora es «atrapadas/catches».
-- Pruebas: `flutter analyze` sin incidencias; `validate_content` (12 decoraciones) y `validate_localizations` (11 × 616) correctos; **277/277 pruebas** (antes 226). Traducciones nuevas generadas por IA, pendientes de revisión lingüística. Sin build firmada ni comprobación en iPhone/Android ni con el visor 3D activo.
+- Pruebas: `flutter analyze` sin incidencias; `validate_content` (12 decoraciones) y `validate_localizations` (11 × 622 tras integrar main) correctos; **283/283 pruebas** tras integrar main `b9df9e8` (226 antes de la rama). Traducciones nuevas generadas por IA, pendientes de revisión lingüística. Sin build firmada ni comprobación en iPhone/Android ni con el visor 3D activo.
 
-## Pruebas rápidas avanzadas de compra · 20-11-2026 · en curso
+## Fotos al carrete del móvil · 20-11-2026 · implementado, sin probar en dispositivo
+
+- Tarea: copiar una foto del álbum privado al carrete de iOS y Android. Rama `feature/photo-mode-camera-roll` sobre main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas.
+- El detalle de la foto muestra «Guardar en el carrete» solo en Android/iOS. Pasa por la puerta adulta antes de pedir el permiso del sistema; cancelar no llama al canal. El álbum privado no cambia: la foto se copia, no se mueve.
+- Canal propio `my_poodle/photos` (`saveToGallery`, bytes PNG + nombre `MyPoodle-<id>`). iOS: `PHPhotoLibrary` con autorización `.addOnly` y `NSPhotoLibraryAddUsageDescription` en los 11 `InfoPlist.strings`. Android 10+: MediaStore en `Pictures/My Poodle` con `IS_PENDING`, sin permiso; Android 7–9: `WRITE_EXTERNAL_STORAGE` con `maxSdkVersion=28` y petición en tiempo de ejecución. No se lee la galería.
+- Mensajes de guardado, permiso denegado y fallo en 11 × 567 mensajes; el aviso del modo foto ya no dice «solo dentro de esta app».
+- Pruebas: `test/ui/photo_gallery_export_test.dart` (puerta, argumentos del canal, denegado, fallo con reintento y traducción de respuestas). `flutter analyze` limpio, validadores de idiomas y contenido correctos, **232/232 pruebas** tras rebasar sobre main. `flutter build apk --debug` y `flutter build ios --no-codesign --debug` con `POODLE_LIVE_3D=true` correctos.
+- Pendiente en dispositivo: guardar en iPhone y en Android (10+ y, si hay uno, 7–9), aceptar y denegar el permiso y ver la foto en Fotos/Galería. Revisión lingüística humana de los textos nuevos.
+
+## Pruebas rápidas avanzadas de compra · 20-11-2026 · sesión finalizada con casos abiertos
 
 - Se ejecutan 36 regresiones de compras existentes: correctas. Se prepara el iPhone con la cuenta Sandbox existente; no se reciben credenciales ni se borra historial. Copias originales de los dos archivos locales del derecho verificadas, en ubicación privada fuera de Git. Solo se vacía la caché primaria de compra, sin tocar partida ni fotos. Reinicio explícito del Bundle ID correcto deja visible el botón de compra.
-- Ask to Buy: relectura del derecho confirma pending, full=false y source=store. El propietario no ve la solicitud en Sandbox y confirma que Contenido y compras seguía iniciado con la cuenta habitual; se solicita corregir sesión. Aprobación/rechazo pendientes de evidencia con la cuenta correcta. No se consideran pasados por la primera respuesta manual de poder reintentar, que ocurrió con caché state=none.
+- Ask to Buy: relectura del derecho confirma pending, full=false y source=store. El propietario no ve la solicitud en Sandbox y confirma que Contenido y compras seguía iniciado con la cuenta habitual; el propietario confirma después cerrar Contenido y compras y reiniciar Sandbox. La primera respuesta de ver la solicitud queda aclarada por **«No hay solicitudes pendientes»** al buscar los botones. Aprobación/rechazo pendientes de evidencia con la cuenta correcta. No se consideran pasados por la primera respuesta manual de poder reintentar, que ocurrió con caché state=none. El propietario solicita aplazar Ask to Buy y pasar al reembolso; aprobación/rechazo quedan abiertos.
 - Regresión de interfaz reproduce el bloqueo tras pendiente sin evento de rechazo (Apple no lo notifica); corregido para iOS, manteniendo espera Android/demo. Dos tests nuevos, sin falsa entrega al solicitar otra vez y con desbloqueo solo al aprobar.
-- Candidata **0.5.0 (34)**: herramienta de reembolso visible solo con bandera QA interna en zona adulta iOS/full; el puente exige transacción verificada del producto fijo en Sandbox y no revocada. Solicitar no altera por sí solo el derecho; espera StoreKit. Tres tests del botón cubren duplicados, cancelación y error genérico sin datos privados. 11 × 561 mensajes, análisis limpio y **226/226 pruebas** correctas. Compilación/firma, revisión, distribución y comprobación física aún pendientes; la app del iPhone sigue siendo la build (33).
-- Los escenarios avanzados no se cierran por pasar estas pruebas automáticas. Restauración sin caché se registrará con ese alcance, sin llamarla reinstalación limpia. Al terminar debe restituirse la caché original y el propietario recuperará su sesión de compras habitual y desactivará controles Sandbox. Los archivos privados y cuentas no se versionan.
+- Candidata **0.5.0 (34)**: herramienta de reembolso visible solo con bandera QA interna en zona adulta iOS/full; el puente exige transacción verificada del producto fijo en Sandbox y no revocada. Solicitar no altera por sí solo el derecho; espera StoreKit. Tres tests del botón cubren duplicados, cancelación y error genérico sin datos privados. 11 × 561 mensajes, análisis limpio y **226/226 pruebas** correctas. PR #11 fusionada en main `1830e259` tras revisión Codex sin incidencias sobre `48cb7c3`. Compilación/exportación y firma estricta de distribución correctas. Subida de (34) a las 13:34 (Madrid); Apple termina procesamiento y la build figura **Testing** en **MVP Sandbox**. [Registro](reviews/testflight-20261120/upload34.json) y [captura](reviews/testflight-20261120/testflight-ready34.jpg). El propietario confirma instalada y abierta como actualización sin cambiar la cuenta; devicectl confirma Bundle ID y **0.5.0 (34)** a las 14:18 (Madrid). Resultados físicos y casos abiertos detallados a continuación.
+- **Restauración física en (34) superada:** principal sin derecho preparado con la app cerrada y bytes verificados; el propietario pulsa Restaurar y confirma completa con mascota, monedas, armario y fotos intactos. Relectura purchased/full=true/source=store. Backup retenido, sin reinstalar. **Reembolso bloqueado**: hoja Apple abre y muestra «No se puede conectar» antes del formulario, también tras cambiar de conexión; ninguna revocación observada. [Registro ampliado](reviews/testflight-20261120/iphone-sandbox-advanced.json).
+- **Inglés y otra divisa comprobados en (34):** país Sandbox temporal United States, sesión Sandbox renovada y selector interno English. El propietario confirma pantalla en inglés y precio en dólares. Comprobación puntual; revisión lingüística de todos los idiomas sigue pendiente.
+- **Fallo sin conexión comprobado en (34):** con modo avión y Wi-Fi apagado, Buy muestra error y mantiene gratuita; al recuperar conexión, Restaurar devuelve completa con mascota, monedas, armario y fotos. Relectura purchased/full=true/source=store. No acredita interrupción nativa durante confirmación ni errores forzados de facturación.
+- **Recuperación final completada:** ambos archivos originales del derecho restituidos con la app cerrada y verificados byte por byte; España guardada y verificada. El propietario confirma controles Sandbox apagados, sesión habitual, español y todo el estado conservado. No se borró historial de compras ni se modificaron partida/fotos por el agente.
+- Casos abiertos: aprobación/rechazo Ask to Buy aplazados por el propietario; reembolso/revocación bloqueados en la hoja Apple; interrupción nativa/cierre durante confirmación, errores forzados e instalación limpia completa sin probar. La sesión rápida termina, sin declarar superada toda la matriz.
 
 ## Comprobación física básica de beta interna superada · 20-11-2026
 
@@ -497,6 +510,117 @@ El teléfono se detectó en reposo durante el primer recorrido (`mWakefulness=As
 
 **Pendientes:** compra real de prueba, pendiente/cancelación/restauración/reembolso en Play Internal (producto y cuenta del propietario, F07.6); StoreKit local/sandbox iOS; offline/segundo plano iPhone; teclado real, transferencia/restauración de backup y rendimiento de 60 s por escena. Android SDK, APK, grafo y manifiesto dejan de estar bloqueados. La confirmación offline corresponde al Xiaomi y no acredita offline en iPhone.
 
+
+## Sesión 2026-11-17 · Identidad definitiva y compra preparada en Play (F07.6)
+
+**Base:** `fb4a500`, commit y push directo a `main` completados antes de comenzar el alta. El propietario confirmó **My Poodle** y **`com.betitoglez.mypoodle` en Android e iOS**. Se actualizan namespace/applicationId, paquete y ruta Kotlin de MainActivity y Bundle IDs de Runner/RunnerTests. El producto conserva `mypoodle.full_version`, no consumible. El nombre visible ya era My Poodle. Las pruebas físicas anteriores corresponden a los IDs provisionales: el nuevo ID crea otra app y no migra automáticamente la partida. Se conservan las instalaciones anteriores de los teléfonos.
+
+**Google Play:** ficha creada en la cuenta del propietario tras su autorización expresa de las declaraciones de políticas y exportación. Nombre My Poodle, paquete `com.betitoglez.mypoodle` (disponibilidad comprobada), idioma es-ES, juego gratuito. Google exigía subir una build con BILLING antes de habilitar el alta del producto. Tras procesar el AAB, el producto quedó creado y activo:
+
+| Dato | Configuración verificada en consola |
+|---|---|
+| Producto | `mypoodle.full_version` |
+| Nombre | Versión completa |
+| Descripción es-ES | Desbloquea el Huerto y 24 artículos para personalizar el armario de tu caniche. |
+| Opción de compra | `full-version-buy`, Comprar, **Activo**, **Retrocompatible** |
+| España | **1,99 EUR**, fila principal con IVA 21 % y 4 anulaciones de ubicación |
+| Estados Unidos | **1,99 USD**, fila principal sin IVA y 7 anulaciones de ubicación |
+| Resto de territorios y nuevos países | No disponibles hasta revisar los precios |
+| Unidades múltiples | Desactivadas |
+| Clasificación del contenido | Contenido digital; categoría fiscal predeterminada Ventas de apps digitales |
+
+**Detalle de precio observado:** el editor masivo aplicado a España transformó una entrada de 1,99 EUR en 2,39 EUR en la tabla final. Se corrigió la entrada a 1,64 EUR y se verificó **1,99 EUR** antes de activar. Para EE. UU. se eligió USD y 1,99; la tabla confirma **1,99 USD**. No se interpreta el número escrito en el editor como prueba del precio final. La hoja nativa y las anulaciones territoriales requieren verificación; no se ha acreditado el precio final en todos los estados/territorios. Resto de divisas pendiente de la regla de ENTREGA.
+
+**Compatibilidad del plugin:** in_app_purchase_android 0.5.5 convierte productos únicos desde `oneTimePurchaseOfferDetails` (oferta individual). Google devuelve en esa ruta la oferta compatible con versiones anteriores. La consola confirma **Retrocompatible** en la primera opción Comprar creada; no se han añadido ofertas múltiples ni alquiler. La dependencia nativa sigue siendo Billing 9.1.0. Fuente: [Google, opciones múltiples y ofertas](https://developer.android.com/google/play/billing/one-time-product-multi-purchase-options-offers), consultada el 17-11-2026. La configuración de consola no sustituye la compra física.
+
+**Canal interno:** lista exclusiva «My Poodle - prueba interna» con la cuenta del propietario confirmada por él como la usada en el Xiaomi, seleccionada y guardada en el canal. Añadida esa lista también a Licencia para testing, conservando las listas preexistentes y RESPOND_NORMALLY. Google confirmó los cambios guardados. La revisión inicial solo advertía que faltaban testers; tras asignarlos pasó a «Ya se puede publicar», sin advertencias. Versión **0.1.0+1** lanzada al canal interno: consola **Activo**, **Disponible para testers internos**, fecha mostrada 17 nov 21:53. Sin lanzamiento a producción. Nombre temporal de Play: `com.betitoglez.mypoodle (unreviewed)` hasta completar la ficha y revisión.
+
+Enlace para aceptar la prueba e instalar desde Play: https://play.google.com/apps/internaltest/4701341682215171492. El propietario confirma instalación desde Play en el Xiaomi y precio **1,99 €** visible en Zona adulta → Versión completa. Al abrir Comprar confirma que la hoja de Google Play muestra la tarjeta de prueba y el aviso de que no se cobrará. La consulta nativa y el entorno sin cargo quedan acreditados por su confirmación manual. El propietario confirma después compra con la tarjeta de prueba que siempre se aprueba, reconocimiento de la versión completa y acceso al Huerto. **Compra nativa y desbloqueo: pasa (confirmación manual del propietario)**. No se ha inspeccionado un pedido ni extraído recibos/tokens; la confirmación funcional no acredita por sí sola acknowledgement en la consola. El propietario confirma también cierre desde el selector, modo avión y Wi-Fi desactivado, reapertura y acceso al Huerto: **persistencia del derecho comprado y uso offline tras reinicio: pasa**. La restauración manual no llegó a ejecutarse en build 1 porque se ocultaba el botón al tener el derecho (corregido en la sesión siguiente). Restauración en instalación nueva o segundo dispositivo también pendiente. Solo usar el método de pago de prueba de la cuenta con licencia para acreditar una compra sin cargo.
+
+**Firma Android:** clave de subida RSA 2048, alias `upload`, validez 10.000 días, generada con autorización del propietario en `~/.config/my-poodle/signing/`; directorio 0700 y keystore/propiedades 0600. No hay contraseñas ni claves en Git/logs. `android/key.properties` ignorado; plantilla de ejemplo sin secretos. Gradle Release usa la configuración `release`, sin fallback a debug. Comprobado que, retirando temporalmente las propiedades, `:app:validateSigningRelease --offline` falla «Keystore file not set for signing config release»; propiedades restauradas. Copia segura fuera de este Mac a cargo del propietario, aún no acreditada.
+
+| Verificación local | Resultado |
+|---|---|
+| flutter analyze | Sin incidencias |
+| validate_content | 42 artículos, producto, 8 poses y 27 imágenes válidos |
+| APK Release de identidad | Compila, 58,0 MB; todavía debug firmado antes del cambio de firma. aapt confirma paquete/actividad definitivos, BILLING, minSdk 24 y targetSdk 36 |
+| AAB Release firmado | Compila, 57,7 MB, 0.1.0+1; procesado y aceptado por Google |
+| Firma AAB | jarsigner verifica la firma; certificado CN=My Poodle Upload |
+| iOS Release sin firma | Compila, 24,4 MB; Info.plist confirma `com.betitoglez.mypoodle` |
+| Xcode y diff | plutil -lint y git diff --check correctos |
+
+Huella SHA-256 del certificado de subida `77:9B:49:7A:BA:88:C2:60:CD:1D:A9:51:FF:99:56:A0:F8:29:CD:2C:8D:A2:60:D5:54:5B:15:94:F2:17:ED:B7`. SHA-256 del AAB `d510cd01b91f4d901c12660cba25fbdb81e92bb3573e18de9b9f3e7c9b448042`. El permiso interno AndroidX ahora usa `com.betitoglez.mypoodle.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. Evidencia resumida: [pruebas/google-play-2026-11-17.json](pruebas/google-play-2026-11-17.json).
+
+**Apple:** errores 502/504 durante el inicio de sesión. El formulario reapareció en un reintento, pero el propietario confirma que sigue fallando y pide continuar con Android. No se ha accedido a la cuenta ni creado Bundle ID, ficha o producto remoto. La compilación local con el ID definitivo no acredita registro ni firma de distribución Apple.
+
+**Pendientes F07.6:** pendiente/aprobación/rechazo, cancelación, restauración en instalación nueva/otro dispositivo y reembolso; revisión de precios/impuestos por territorios antes de ampliar disponibilidad; verificar pagos/acuerdos antes de producción; alta y sandbox Apple cuando vuelva el servicio. F07.5 y F07.7 conservan los pendientes físicos previos. Para acceso a producción, esta cuenta muestra además la exigencia de prueba cerrada con 12 testers durante 14 días; no bloqueó el canal interno.
+
+
+## Sesión 2026-11-17 · Restaurar compras accesible tras comprar
+
+**Hallazgo físico:** después de la compra y el reinicio offline comprobados, el propietario no encontraba «Restaurar compras» y veía «Reiniciar partida». Revisado el código: en 0.1.0+1 el botón de restauración solo se construía con `!p.full`, dentro de la pantalla Versión completa. La indicación de probarlo después de comprar era incorrecta. **La restauración física no se ejecutó en build 1.** Se indicó no pulsar Reiniciar partida; no se borra ni reinstala la app.
+
+**Corrección:** FullVersionScreen mantiene Restaurar compras visible con y sin derecho, detrás de la puerta adulta existente; se desactiva mientras la tienda está ocupada. El acceso desde Zona adulta pasa a «Ver versión completa y restaurar compras» al tenerla comprada. El estado Restaurando compras… tiene prioridad sobre el agradecimiento y, si falla, muestra un aviso junto al derecho conservado. Su texto puede ajustarse en pantallas estrechas, evitando el desborde detectado a 320 px. No se modifican reglas de derecho, importes, monedas, formato de guardado ni reinicio de partida.
+
+**Verificación local:** test/ui/full_version_restore_test.dart usa una tienda simulada controlable y el flujo real desde Zona adulta a 320×568: restaura con derecho ya existente, muestra progreso y desactiva el botón, termina con el derecho y archivo de partida intactos; después simula error y conserva ambos. Batería completa **127/127**, flutter analyze sin incidencias. Estas pruebas no acreditan restauración desde Google Play ni recuperación de una instalación nueva.
+
+**Distribución:** versión incrementada a **0.1.0+2** para una actualización por Google Play con el mismo applicationId y firma. AAB firmado compilado correctamente (57,7 MB), misma huella de certificado de subida comprobada con keytool y firma verificada con jarsigner. SHA-256 `8a03cc075f2af85c34ab9f9035cd8df5d5eb096854d6cfb2bbf424f0f2e2666d`. Google procesó y revisó el AAB sin incidencias («Ya se puede publicar»). **Build 2 disponible para testers internos**, canal Activo, fecha mostrada 17 nov 22:18. Misma lista de testers y compra integrada, sin lanzamiento a producción. **Validación física: pasa, confirmación manual del propietario en Xiaomi tras actualizar a build 2.** El botón aparece, la restauración termina sin error y conserva el Huerto, el caniche y las monedas. Es una restauración con un derecho existente en la misma instalación; no acredita recuperación en una instalación nueva ni otro teléfono. La compra y uso offline de build 1 ya confirmados se conservan como evidencia histórica.
+
+
+## Sesión 2026-11-17 · Cancelación, pendiente y reembolso Android
+
+**Entorno:** Xiaomi del propietario, build Play Internal 0.1.0+2 y cuenta con licencia ya confirmadas. Partida existente conservada; no se borra ni reinstala. El propietario solicita expresamente estas pruebas.
+
+**Reembolso en consola:** pedido original de My Poodle identificado por la etiqueta «Prueba: Versión completa», producto `mypoodle.full_version` y opción `full-version-buy`. Antes de la acción figuraba Procesado; su historial no mostraba reembolso automático. No se interpreta ese dato como una lectura directa del flag de acknowledgement. Reembolso de prueba al 100 %, motivo Otro y **Quitar acceso** seleccionado. La consola confirma **Reembolsado**, total 0,00 EUR, historial de reembolso del 17 nov 21:50:48 UTC. No se copia el token de compra ni se guardan IDs de pedido en el repositorio. Comprobación física confirmada por el propietario el **18-11-2026**: tras cerrar y reabrir con conexión vuelve el candado del Huerto, conservando caniche y monedas. **Reembolso con revocación: pasa**, con resultado de consola y confirmación manual en Xiaomi.
+
+**Siguientes casos:** con la propiedad retirada, cerrar la hoja de compra sin confirmar para probar cancelación; después usar las tarjetas de prueba lentas para pendiente y aprobación/rechazo. Durante pendiente el Huerto debe seguir bloqueado. Registrar cada resultado físico por separado. Fuente del protocolo: [Google, pruebas de Billing](https://developer.android.com/google/play/billing/test?hl=en), consultada el 17-11-2026. La fila inicial «Pendiente / Order received» de un pedido aprobado al instante no acredita una compra pendiente observada en la app.
+
+
+## Sesión 2026-11-18 · Continuación de aceptación Billing en Xiaomi
+
+El propietario confirma el resultado físico del reembolso iniciado el día anterior: Huerto otra vez bloqueado, caniche y monedas conservados tras reabrir con conexión. Se registra como prueba manual sobre build 2, distinta de la confirmación del reembolso en consola. **Cancelación física en build 2: falla.** El propietario cierra la hoja con Atrás sin confirmar y la app mantiene indefinidamente el spinner «Comprando…». No se da por pasada la cancelación; no se inicia la prueba pendiente hasta distribuir la corrección.
+
+
+### Corrección de cancelación y compras pendientes · build 3
+
+**Causa reproducida:** in_app_purchase_android 0.5.5 emite PurchaseDetails con `productID` vacío y estado canceled/error cuando no hay una transacción. IapStore filtraba esos eventos por no coincidir con el producto y StoreController quedaba en buying. Se aceptan solo errores/cancelaciones genéricos sin producto en Android; compras, restauraciones, pendientes sin producto y eventos con otro producto siguen descartados. Los fallos genéricos no se envían a confirmación nativa.
+
+**Pendientes revisadas antes de la prueba física:** restorePurchases de esa versión del plugin marca restored también en transacciones cuyo estado nativo sigue siendo pending. IapStore comprueba ahora PurchaseStateWrapper: una pendiente sigue siendo pending aunque se presente como restored y nunca se confirma; un éxito con estado nativo inválido se rechaza. La consulta de propiedad usa el estado nativo purchased. StoreController cancela una pendiente desaparecida solo ante consulta correcta sin propiedad; error/unknown conserva la pendiente. Al reanudar se consulta de nuevo la propiedad en proveedores con silentOwnershipQuery (Android), además del refresco de necesidades. iOS no inicia una restauración silenciosa.
+
+**Regresiones:** cinco casos nuevos fallan antes de la corrección: cancelación sin producto, error sin producto, pendiente marcada restored, pendiente ausente tras consulta correcta y propiedad cambiada durante segundo plano. Pasan después; también se comprueba que una pendiente cancelada no se confirma. El recorrido de reanudación conserva exactamente el archivo de partida. Batería completa **132/132**, flutter analyze sin incidencias. Son pruebas con clientes falsos/tienda simulada y eventos de ciclo de vida inyectados; no acreditan pendiente o cancelación física corregidas. Logs temporales `/private/tmp/my-poodle-build3-before.log`, `my-poodle-build3-after.log` y `my-poodle-build3-final-tests.log`.
+
+**Distribución:** versión 0.1.0+3 preparada para Play Internal, mismo paquete y firma. AAB compilado correctamente (57,8 MB), firma verificada con jarsigner y mismo certificado de subida. SHA-256 `72a0ebdee59afc839fcaff8309174234e9eaeaf6435bc053911c7eb45d5ec30f`. Google procesó y revisó sin incidencias («Ya se puede publicar»). **Disponible para testers internos**, canal Activo, fecha mostrada **18 nov 08:22**, versión **0.1.0 (3) - cancelación y compras pendientes**. **Cancelación física corregida: pasa**, confirmación manual del propietario en Xiaomi tras actualizar a build 3: al salir con Atrás desaparece Comprando…, aparece Compra cancelada, siguen el candado del Huerto, el caniche y las monedas. Aceptación de tarjetas lentas pendiente. No se borra la partida ni se modifica el catálogo o el precio.
+
+
+**Continuación manual 18-11-2026, build 3:** cancelación con Atrás confirmada sin bloqueo ni cambios de partida. Siguiente prueba solicitada: tarjeta de prueba lenta que rechaza tras unos minutos, empezando por aviso de espera, Huerto bloqueado y monedas conservadas. Inicio y resultado pendiente/rechazado aún sin confirmar; no se marca pasada por la cancelación anterior.
+
+
+**Tarjeta lenta que rechaza, estado inicial:** el propietario confirma en build 3 el aviso «Esperando la aprobación», Huerto bloqueado y monedas sin cambios tras confirmar la compra con el método de prueba. Esto acredita el estado pendiente sin entrega anticipada. Restauración durante la espera y resolución final del rechazo aún pendientes de confirmación.
+
+
+**Restauración durante pendiente:** el propietario pulsa Restaurar compras y comunica que continúa mostrando «Esperando la aprobación». No se observa desbloqueo anticipado; se interpreta como conservación del estado pendiente, que es el resultado esperado. No se acredita por ese reporte un indicador de progreso visible ni una inspección del token/acknowledgement. Se solicita esperar la resolución de la tarjeta lenta y volver desde el inicio de Android con conexión para verificar salida de pendiente y reintento.
+
+
+**Tarjeta lenta rechazada, resolución:** el propietario confirma que, tras unos minutos y volver a la app con conexión, desaparece la espera, permite volver a comprar y conserva Huerto bloqueado, caniche y monedas. **Pendiente → rechazada: pasa en build 3 (confirmación manual)**. Google Play muestra además el pedido de `mypoodle.full_version` del 18 nov 07:39 UTC como **Cancelado**, total **0,00 EUR**. No se registra el ID de pedido. La prueba anterior de reembolso sigue separada en consola como Reembolsado.
+
+**Tarjeta lenta que aprueba, estado inicial:** el propietario confirma espera, Huerto aún bloqueado y monedas conservadas antes de la aprobación. Resolución final y desbloqueo tras volver a la app pendientes de confirmación; no se marca aprobada por haber iniciado el pago.
+
+
+**Tarjeta lenta aprobada, resolución:** el propietario confirma que, tras esperar y volver a My Poodle con conexión, reconoce la versión completa, permite entrar al Huerto y conserva caniche y monedas. **Pendiente → aprobada: pasa en build 3 (confirmación manual)**. El estado inicial pendiente y su bloqueo se observaron antes de esta confirmación; no se atribuye compra instantánea a este caso.
+
+### Resultado de esta aceptación Android
+
+| Caso | Resultado físico acreditado |
+|---|---|
+| Cancelar la hoja con Atrás | Pasa en build 3: sale de Comprando…, aviso de cancelación, Huerto bloqueado y partida/monedas conservadas |
+| Pendiente con tarjeta lenta de rechazo | Pasa: aviso de espera y sin desbloqueo; Restaurar compras mantiene la espera; tras rechazo y reanudación permite reintentar sin alterar partida/monedas. Consola: Cancelado, 0,00 EUR |
+| Pendiente con tarjeta lenta de aprobación | Pasa: no desbloquea durante espera; tras aprobación y reanudación reconoce la versión completa y abre Huerto, conservando partida/monedas |
+| Reembolso con Quitar acceso | Pasa: consola Reembolsado y, al reabrir con conexión, Huerto bloqueado; caniche y monedas conservados |
+
+Resultados comunicados manualmente por el propietario en Xiaomi; consola del reembolso y rechazo observada por el agente. No se han leído archivos privados de partida, tokens o recibos en el teléfono. La batería automatizada de la corrección permanece en **132/132**; no se repite por incorporar estos resultados documentales. La instalación termina con la versión completa confirmada por la última compra de prueba, sin cargos reales y sin borrar ni reinstalar la app.
+
+**Pendientes actuales:** restauración del derecho en una instalación nueva/otro dispositivo; configuración y aceptación iOS; precios/impuestos internacionales, revisión de pagos/acuerdos y requisitos de publicación. Permanecen también los casos de F07.7 aún no acreditados. La prueba de restauración con derecho existente no equivale a recuperar una compra desde una instalación vacía, ni recupera la partida local.
+
 ## Sesión 2026-11-18 · PoC de vestuario 3D
 
 Malla texturizada generada en Meshy 7.1 a partir de tres vistas y vestuario articulado en Blender 5.3.0. Se revisan tres conjuntos, dos cortes y cinco poses en el worktree de `poc/vestuario-3d`. Se reabrió la escena con sus texturas empaquetadas y se verificaron los 16 huesos, las claves de forma, el bucle de 12 imágenes y el recuento de 147.704 a 153.368 triángulos por configuración. Los [resultados y archivos editables](reviews/wardrobe-3d/README.md) incluyen la comparación con el 2D.
@@ -564,3 +688,22 @@ La versión 0.4.0 (18) añade Frisbee 3D con 20 segundos y hasta cinco lanzamien
 El prototipo ajusta el peto verde, el pañuelo coral y las botas de lluvia con los cortes osito y pompón. Comparte la anatomía por vista y usa el mismo esqueleto de perfil para las fases de carrera. Se activa en desarrollo con `--dart-define=POODLE_ARTICULATED_PILOT=true`.
 
 Las [cinco poses de revisión](reviews/vestuario-articulado/cinco-poses.png) muestran frente, perfil, espalda y carrera en extensión y recogida. La [lámina de piezas](reviews/vestuario-articulado/piezas-por-separado.png) compara el peto con y sin pañuelo o botas. Se regeneran con `POODLE_REVIEW=1 flutter test --no-pub test/game/articulated_wardrobe_review_test.dart`. También quedan las comparativas de [varios conjuntos en 2D](reviews/combinaciones-2d/armario-2d.png) y del [mismo conjunto en varias poses](reviews/combinaciones-2d/mismo-conjunto.png).
+
+## Sesión 20-11-2026 · Revisión de código de la tienda (F07.5)
+
+**Tarea:** corregir los hallazgos de la revisión del trabajo de builds 2–3. Flutter 3.50.0 estable; sin cambios de dependencias.
+
+- Fallos genéricos Android sin producto: `IapStore` solo los acepta con una hoja de compra abierta y los emite sin producto. Las reglas del dominio ya no rebajan una compra pendiente ante cancelaciones/errores sin producto, ni ante errores del adaptador (`purchase_stream`, `invalid_android_purchase_state`…). Solo una cancelación o error del propio producto descarta la pendiente.
+- `SimulatedStore.queryOwnership` devuelve `unknown` mientras hay una pendiente, como Google Play; reanudar ya no la cancela en desarrollo.
+- Versión completa con derecho: avisa si la restauración no encuentra compras nuevas (mensaje nuevo en los 11 catálogos) y usa el texto de error genérico ya traducido.
+- Firma Android: se recupera la firma Release desde `android/key.properties` (sin respaldo debug), compatible con la variante de vestuario; `storeFile` relativo a `android/`. PRUEBAS documenta que Release exige la clave y la alternativa `--profile`.
+- Integración con main (0.5.0+34): se conservan las secciones de builds Android 2–3 de PRUEBAS/ESTADO y la evidencia de Play; TODO toma la versión de main.
+
+| Comando | Resultado |
+|---|---|
+| `flutter analyze` | Sin incidencias |
+| `dart run tool/validate_localizations.dart` | 11 idiomas × 562 mensajes |
+| `flutter test` | **227/227** pasan |
+| `./gradlew :app:validateSigningRelease` | Correcto con la clave de subida local; no se ha generado AAB |
+
+Implementado y probado de forma automatizada; no probado en dispositivo.

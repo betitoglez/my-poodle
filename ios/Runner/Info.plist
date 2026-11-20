@@ -80,5 +80,7 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>To save the photos of your poodle that you choose to your photo library.</string>
 </dict>
 </plist>

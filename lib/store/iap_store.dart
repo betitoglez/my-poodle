@@ -34,6 +34,10 @@ class IapStore implements StoreProvider {
   bool _disposed = false;
   int _sequence = 0;
 
+  /// Hay una hoja de compra abierta por [buy]. Solo entonces se aceptan los
+  /// fallos genéricos de Android sin producto.
+  bool _buying = false;
+
   @override
   Stream<StoreEvent> get events => _events.stream;
   @override
@@ -61,7 +65,7 @@ class IapStore implements StoreProvider {
       StoreEvent(
         StoreEventKind.error,
         eventId: 'iap-error-${++_sequence}',
-        productId: productId,
+        // Error del adaptador, no de una transacción: no cambia el derecho.
         code: code,
       ),
     );
@@ -74,10 +78,13 @@ class IapStore implements StoreProvider {
       // antes de crear una transacción. Nunca admitir éxitos sin producto.
       final genericFailure =
           android &&
+          _buying &&
           p.productID.isEmpty &&
           (p.status == PurchaseStatus.canceled ||
               p.status == PurchaseStatus.error);
       if (p.productID != productId && !genericFailure) continue;
+      // La respuesta a la hoja abierta (no una reentrega de la consulta).
+      if (p.status != PurchaseStatus.restored) _buying = false;
       var kind = switch (p.status) {
         PurchaseStatus.pending => StoreEventKind.pending,
         PurchaseStatus.purchased => StoreEventKind.purchased,
@@ -151,7 +158,7 @@ class IapStore implements StoreProvider {
         StoreEvent(
           kind,
           eventId: eventId,
-          productId: productId,
+          productId: genericFailure ? null : productId,
           code: p.error?.code,
         ),
       );
@@ -184,8 +191,14 @@ class IapStore implements StoreProvider {
     final product = _product;
     if (product == null) throw StateError('Producto no disponible');
     // No limitar la duración de la hoja nativa: puede pedir aprobación adulta.
-    if (!await _client.buy(product)) {
-      throw StateError('La tienda no ha iniciado la compra');
+    _buying = true;
+    try {
+      if (!await _client.buy(product)) {
+        throw StateError('La tienda no ha iniciado la compra');
+      }
+    } catch (_) {
+      _buying = false;
+      rethrow;
     }
   }
 

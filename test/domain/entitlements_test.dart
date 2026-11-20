@@ -135,6 +135,12 @@ void main() {
     expect(step(StoreEventKind.pending, 'p1').changed, isTrue);
     expect(e.pending, isTrue);
     expect(e.full, isFalse);
+    // Un fallo genérico sin producto no descarta la compra pendiente.
+    for (final k in [StoreEventKind.canceled, StoreEventKind.error]) {
+      final generic = ent.apply(e, StoreEvent(k, eventId: 'g-$k'), t0);
+      expect(generic.changed, isFalse);
+      expect(generic.next.pending, isTrue);
+    }
     expect(step(StoreEventKind.canceled, 'c1').changed, isTrue);
     expect(e.state, EntitlementState.none);
     expect(step(StoreEventKind.error, 'x1').changed, isFalse);

@@ -269,6 +269,58 @@ void main() {
   }
 
   test(
+    'Android: fallos sin producto fuera de una compra no cambian una pendiente',
+    () async {
+      final android = IapStore(productId: id, android: true, client: client);
+      final backend = MemoryBackend();
+      final entitlements = EntitlementStore(backend, productId: id);
+      await entitlements.write(
+        const Entitlement(state: EntitlementState.pending, updatedUtc: 1),
+      );
+      final controller = StoreController(
+        provider: android,
+        entitlements: entitlements,
+        clock: FakeClock(t0),
+      );
+      addTearDown(controller.dispose);
+      addTearDown(android.dispose);
+      final seen = <StoreEvent>[];
+      android.events.listen(seen.add);
+      // Consulta inconclusa: la pendiente se conserva al arrancar.
+      client.queryError = IAPError(
+        source: 'google_play',
+        code: 'service_unavailable',
+        message: 'sin servicio',
+      );
+      await controller.start();
+      await flush();
+      expect(controller.pending, isTrue);
+      client.updates.add([
+        PurchaseDetails(
+          purchaseID: '',
+          productID: '',
+          transactionDate: null,
+          verificationData: PurchaseVerificationData(
+            localVerificationData: '',
+            serverVerificationData: '',
+            source: 'google_play',
+          ),
+          status: PurchaseStatus.canceled,
+        ),
+      ]);
+      client.updates.addError(StateError('native error'));
+      await flush();
+      expect(seen.map((e) => e.kind), [StoreEventKind.error]);
+      expect(seen.single.productId, isNull);
+      expect(controller.pending, isTrue);
+      expect(
+        (await EntitlementStore(backend, productId: id).load()).pending,
+        isTrue,
+      );
+    },
+  );
+
+  test(
     'Android: restaurar una transacción pendiente no la desbloquea ni confirma',
     () async {
       final android = IapStore(productId: id, android: true, client: client);
