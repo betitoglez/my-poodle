@@ -1,0 +1,21 @@
+{
+  "version": "0.5.0",
+  "build": 33,
+  "bundle_id": "com.betitoglez.mypoodle",
+  "source_commit": "793f62ab0eaa3ed5bd2512a3855c4c034a52659b",
+  "merged_main_commit": "bbdee915b67b6a79a14260514530fb1f576a9af4",
+  "ipa_sha256": "9ec48847bc4cdfa70767fd23e9780ba6c5e823692fb97947eac0a4b2abd33073",
+  "method": "Xcode Organizer - TestFlight Internal Only",
+  "upload": {
+    "verified": true,
+    "local_time": "2026-11-20 08:16:41 Europe/Madrid",
+    "content_delivery_result": "UPLOAD SUCCEEDED with no errors, 1 warning",
+    "organizer_result": "Upload completed with warnings",
+    "warning_code": 90725,
+    "warning_summary": "iOS 27 SDK required starting April 2027"
+  },
+  "testflight_processing_verified": false,
+  "distributed_to_group": false,
+  "installed_on_iphone": false,
+  "sandbox_purchase_verified": false
+}

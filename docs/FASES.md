@@ -1,6 +1,6 @@
 # Planning vigente · My Poodle / Mi Caniche
 
-Actualizado el 19-11-2026. Sustituye las fichas antiguas centradas en un juego exclusivamente 2D. Flutter gestiona interfaz y dominio; el caniche y las actividades móviles usan el visor 3D local, con respaldo 2D. Los registros históricos de ESTADO no se reescriben como éxitos actuales.
+Actualizado el 20-11-2026. Sustituye las fichas antiguas centradas en un juego exclusivamente 2D. Flutter gestiona interfaz y dominio; el caniche y las actividades móviles usan el visor 3D local, con respaldo 2D. Los registros históricos de ESTADO no se reescriben como éxitos actuales.
 
 ## Alcance y decisiones confirmadas
 
@@ -24,8 +24,8 @@ Actualizado el 19-11-2026. Sustituye las fichas antiguas centradas en un juego e
 | F07.5 · Correcciones de compra | Integrado en main | PR #5 (`f08fb2d`): restauración, cancelación/pending Android y reconciliación al reanudar | 193 pruebas y análisis correctos; Codex sin incidencias. Compra iPhone Sandbox aún sin aceptación física |
 | F07.6 · Apple Sandbox | Pendiente | App Store Connect, producto, precios, testers y compra física | Precio/hoja Sandbox, compra/cancelación/pendiente/restauración/revocación y persistencia acreditados |
 | F07.7 · Aceptación móvil | Parcial | Offline iPhone, interrupciones, accesibilidad, rendimiento y cobertura 3D | Dispositivo, build y evidencia por caso; no confundir prueba automática con física |
-| F08 · TestFlight | En preparación | Exportación de distribución y prueba nativa de fotos verificadas; acceso a Xcode/precio/nombre de ficha pendientes para distribución beta | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
-| F09 · Idiomas MVP | Implementado y probado automáticamente | es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans, zh-Hant; nombre y selector | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
+| F08 · TestFlight | En preparación | IPA 0.5.0 (33) verificada y PR #6 integrada con Codex limpio; precio 1,99 € y título español autorizados. Subida correcta confirmada por ContentDelivery; renovar sesión web/desbloquear Mac y verificar procesamiento y distribución | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
+| F09 · Idiomas MVP | Implementado y probado automáticamente | Completar y verificar títulos de ficha de tienda en las 11 variantes; catálogos, nombres nativos y selector ya implementados | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
 | F10 · Modo foto MVP | Implementado; aceptación física pendiente | Posado/giro, captura 3D, álbum privado, vista y borrado | Imagen real del render; fotos conservadas tras reiniciar; sin acceso a fotos ajenas |
 | F11 · Juegos nuevos | Por definir | Parejas, Simón de perritos y laberinto | Reglas, premios, tier y alcance aprobados antes de implementar |
 
