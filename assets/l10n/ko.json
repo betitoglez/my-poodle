@@ -559,5 +559,6 @@
   "gratuita": "무료",
   "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame.\n3D 푸들과 배경: 프로젝트 리소스.\n음악: 소유자가 제공한 트랙. 음악과 효과는 설정에서 끌 수 있음.",
   "Reembolso de prueba": "테스트 환불",
-  "Solicitud enviada": "요청을 보냈습니다"
+  "Solicitud enviada": "요청을 보냈습니다",
+  "No hay compras nuevas que restaurar. Tu versión completa sigue activa.": "복원할 새 구매가 없습니다. 전체 버전은 계속 사용할 수 있어요."
 }
