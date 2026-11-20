@@ -29,7 +29,8 @@ class StoreEvent {
   /// Identificador estable del evento (resumen del ID de transacción).
   final String eventId;
 
-  /// Producto al que se refiere; null en cancelaciones y errores genéricos.
+  /// Producto al que se refiere; null en cancelaciones y errores genéricos,
+  /// que nunca cambian el derecho.
   final String? productId;
 
   /// Código de error de la tienda, solo informativo.
@@ -130,9 +131,9 @@ class EntitlementRules {
       StoreEventKind.canceled ||
       StoreEventKind.error => e.pending ? EntitlementState.none : null,
     };
-    final generic =
-        ev.kind == StoreEventKind.canceled || ev.kind == StoreEventKind.error;
-    final mine = ev.productId == productId || (generic && ev.productId == null);
+    // Cancelaciones y errores genéricos (sin producto) solo terminan el flujo:
+    // no demuestran que la tienda haya descartado una compra pendiente.
+    final mine = ev.productId == productId;
     if (target == null || !mine) return EntitlementChange(e, changed: false);
     final ids = [...e.lastEventIds, ev.eventId];
     final next = e.copyWith(

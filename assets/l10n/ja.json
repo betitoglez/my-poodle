@@ -559,5 +559,6 @@
   "gratuita": "無料",
   "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame。\nプードル3Dとステージ：プロジェクトのリソース。\n音楽：オーナー提供のトラック。音楽と効果音は設定でオフにできます。",
   "Reembolso de prueba": "テスト返金",
-  "Solicitud enviada": "リクエストを送信しました"
+  "Solicitud enviada": "リクエストを送信しました",
+  "No hay compras nuevas que restaurar. Tu versión completa sigue activa.": "復元する新しい購入はありません。フルバージョンは引き続き使えます。"
 }

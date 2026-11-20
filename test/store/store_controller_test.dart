@@ -180,21 +180,33 @@ void main() {
     'pendiente desaparecida se cancela solo ante ausencia confirmada',
     () async {
       final c = make();
-      addTearDown(c.dispose);
       await c.start();
       await settle();
       store.next = SimulatedOutcome.pending;
       await c.buy();
       await settle();
       expect(c.pending, isTrue);
-      store.online = false;
+      // La tienda conserva la pendiente: consultar (p. ej. al reanudar) no la
+      // cancela.
       await c.checkOwnership();
       expect(c.pending, isTrue);
+      c.dispose();
+
+      // Reapertura: la pendiente se rechazó fuera de la app y la tienda ya no
+      // la devuelve.
+      store = SimulatedStore(delay: Duration.zero, silentOwnershipQuery: false);
+      final reopened = make();
+      addTearDown(reopened.dispose);
+      await reopened.start();
+      expect(reopened.pending, isTrue);
+      store.online = false;
+      await reopened.checkOwnership();
+      expect(reopened.pending, isTrue);
       store.online = true;
-      await c.checkOwnership();
-      expect(c.pending, isFalse);
-      expect(c.full, isFalse);
-      expect(c.notice, StoreNotice.canceled);
+      await reopened.checkOwnership();
+      expect(reopened.pending, isFalse);
+      expect(reopened.full, isFalse);
+      expect(reopened.notice, StoreNotice.canceled);
     },
   );
 

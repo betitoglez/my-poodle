@@ -559,5 +559,6 @@
   "gratuita": "kostenlos",
   "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame.\n3D-Pudel und Szenarien: Projektressourcen.\nMusik: vom Besitzer bereitgestellte Tracks. Musik und Effekte können in den Einstellungen deaktiviert werden.",
   "Reembolso de prueba": "Test-Erstattung",
-  "Solicitud enviada": "Anfrage gesendet"
+  "Solicitud enviada": "Anfrage gesendet",
+  "No hay compras nuevas que restaurar. Tu versión completa sigue activa.": "Keine neuen Käufe zum Wiederherstellen. Deine vollständige Version ist weiterhin aktiv."
 }
