@@ -1,6 +1,6 @@
 # Recursos de Parejas y Memory
 
-Generados el 20-11-2026 con la herramienta integrada `image_gen` (ocho llamadas independientes). Los PNG originales están empaquetados en `assets/images/poodles/`; no se descargan ni generan durante el juego. Inspección visual de los ocho retratos realizada antes de integrarlos.
+Generados el 20-11-2026 con la herramienta integrada `image_gen` (ocho llamadas independientes). Se empaquetan en `assets/images/poodles/` como WebP de 512 px (calidad 85, 228 KB en total; los PNG originales de 1254 px sumaban 18 MB); no se descargan ni generan durante el juego. Inspección visual de los ocho retratos realizada antes de integrarlos.
 
 Prompt común, con sustitución de `{subject}`:
 

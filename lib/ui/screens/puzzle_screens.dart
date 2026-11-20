@@ -59,7 +59,7 @@ class _PairsScreenState extends State<PairsScreen>
     await Future.wait([
       for (final dog in PuzzleDeals.poodles)
         precacheImage(
-          ResizeImage(AssetImage('assets/images/poodles/$dog.png'), width: 320),
+          ResizeImage(AssetImage('assets/images/poodles/$dog.webp'), width: 320),
           context,
         ),
     ]);
@@ -154,7 +154,7 @@ class _PairsScreenState extends State<PairsScreen>
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
                                   child: Image.asset(
-                                    'assets/images/poodles/$dog.png',
+                                    'assets/images/poodles/$dog.webp',
                                     fit: BoxFit.cover,
                                     cacheWidth: 320,
                                   ),
@@ -284,7 +284,7 @@ class _MemoryScreenState extends State<MemoryScreen>
     await Future.wait([
       for (final dog in _memoryDogs)
         precacheImage(
-          ResizeImage(AssetImage('assets/images/poodles/$dog.png'), width: 400),
+          ResizeImage(AssetImage('assets/images/poodles/$dog.webp'), width: 400),
           context,
         ),
     ]);
@@ -416,7 +416,7 @@ class _MemoryScreenState extends State<MemoryScreen>
                                   fit: StackFit.expand,
                                   children: [
                                     Image.asset(
-                                      'assets/images/poodles/${_memoryDogs[index]}.png',
+                                      'assets/images/poodles/${_memoryDogs[index]}.webp',
                                       fit: BoxFit.cover,
                                       cacheWidth: 400,
                                     ),
