@@ -1,5 +1,18 @@
 # Estado de la implementación
 
+## Mejoras de juego en rama `feature/mejoras-juego` · 20-11-2026 · implementado, sin probar en dispositivo
+
+- Tarea: siete mejoras propuestas en la revisión del 20-11-2026 (ver [TODO](../TODO.md#mejoras-de-juego-propuestas-revisión-del-20-11-2026)). Flutter 3.50.0 / Dart 3.14. Rama aparte; no fusionada en main.
+- **Variedad**: semilla por partida (`runSeed`, FNV-1a) a partir de la semilla del caniche y la sesión. El Frisbee toma cuatro objetivos de `targetPool` (el primero fijo); el Huerto elige tres frutas doradas con halo en 2D y 3D. Las monedas no cambian.
+- **Estrellas**: 0–3 por partida (`starsFor`), mejor marca `bestStars` guardada, retos en Instrucciones, estrellas animadas y «¡Nueva mejor marca!» en el resultado.
+- **Decoración del salón**: 12 artículos en tres huecos (alfombra, pared, planta), `applyDecor` con las reglas del armario, pantalla «Decorar el salón» desde Casa, dibujo vectorial provisional bajo el caniche 3D y también en el modo foto. Partidas antiguas cargan con huecos vacíos.
+- **Caniche más vivo**: corazones al acariciar (uno estático con movimiento reducido) y reposos variados en 2D. **No hecho:** seguir la mirada del dedo, que requiere pose de cabeza en el pintor y en el visor 3D.
+- **Guía de la primera partida**: comer → jugar → estrenar, deducida del estado, con «Saltar guía». Tocar la tarjeta ya no acaricia al caniche (`SceneTapShield`).
+- **Celebraciones**: monedas que cuentan, confeti al comprar y al batir la marca, fundido entre pantallas y pestañas (en iOS se conserva la transición del sistema con el gesto de volver). Todo se desactiva con movimiento reducido.
+- **Accesibilidad**: iconos de estado como nodos propios con estado y acción, HUD con región viva solo en puntuación, títulos de resultado como encabezado, sin desbordes a 320×568 con texto ×1,6 en Casa, Juegos, Instrucciones y Resultado.
+- Corrección de traducción: «capturas» del Frisbee figuraba como «capturas de pantalla» en 10 idiomas; ahora es «atrapadas/catches».
+- Pruebas: `flutter analyze` sin incidencias; `validate_content` (12 decoraciones) y `validate_localizations` (11 × 616) correctos; **277/277 pruebas** (antes 226). Traducciones nuevas generadas por IA, pendientes de revisión lingüística. Sin build firmada ni comprobación en iPhone/Android ni con el visor 3D activo.
+
 ## Pruebas rápidas avanzadas de compra · 20-11-2026 · en curso
 
 - Se ejecutan 36 regresiones de compras existentes: correctas. Se prepara el iPhone con la cuenta Sandbox existente; no se reciben credenciales ni se borra historial. Copias originales de los dos archivos locales del derecho verificadas, en ubicación privada fuera de Git. Solo se vacía la caché primaria de compra, sin tocar partida ni fotos. Reinicio explícito del Bundle ID correcto deja visible el botón de compra.

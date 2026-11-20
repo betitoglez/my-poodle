@@ -31,7 +31,11 @@ void main() {
       final rule = balance.frisbee;
       final layouts = <String>{};
       for (var i = 0; i < 40; i++) {
-        final t = frisbeeTargetsFor(i * 7919, rule.targetsField, rule.targetPool);
+        final t = frisbeeTargetsFor(
+          i * 7919,
+          rule.targetsField,
+          rule.targetPool,
+        );
         expect(t.length, rule.throws);
         expect(t.first, rule.targetsField.first);
         expect(t.toSet().length, t.length, reason: 'sin repetidos');
@@ -90,14 +94,7 @@ void main() {
 
     test('el premio en monedas no cambia con las estrellas', () {
       final a = rules.finishGame(adopt(), GameId.fruit, 16, 'a', t0);
-      final b = rules.finishGame(
-        adopt(),
-        GameId.fruit,
-        16,
-        'b',
-        t0,
-        golden: 3,
-      );
+      final b = rules.finishGame(adopt(), GameId.fruit, 16, 'b', t0, golden: 3);
       expect(a.coinsEarned, b.coinsEarned);
       expect(a.coinsEarned, 2 + 2 * 16);
       expect((a.stars, b.stars), (2, 3));
@@ -165,39 +162,51 @@ void main() {
         rules.applyDecor(rich(39), 'rug.round', 'd', t0, fullVersion: false),
         isA<InsufficientCoins>().having((o) => o.missing, 'missing', 1),
       );
-      final exact =
-          rules.applyDecor(rich(40), 'rug.round', 'd', t0, fullVersion: false)
-              as Purchased;
+      final exact = rules.applyDecor(
+        rich(40),
+        'rug.round',
+        'd',
+        t0,
+        fullVersion: false,
+      ) as Purchased;
       expect(exact.cost, 40);
       expect(exact.receipt.after.coins, 0);
       expect(exact.receipt.after.decor[DecorSlot.rug], 'rug.round');
       expect(exact.receipt.after.owned, contains('rug.round'));
-      final more =
-          rules.applyDecor(rich(41), 'rug.round', 'd', t0, fullVersion: false)
-              as Purchased;
+      final more = rules.applyDecor(
+        rich(41),
+        'rug.round',
+        'd',
+        t0,
+        fullVersion: false,
+      ) as Purchased;
       expect(more.receipt.after.coins, 1);
     });
 
     test('recolocar lo propio o quitarlo cuesta cero', () {
-      final bought =
-          (rules.applyDecor(rich(40), 'rug.round', 'a', t0, fullVersion: false)
-                  as Purchased)
-              .receipt
-              .after;
-      final removed =
-          (rules.applyDecor(bought, 'rug.none', 'b', t0, fullVersion: false)
-                  as Purchased);
+      final bought = (rules.applyDecor(
+        rich(40),
+        'rug.round',
+        'a',
+        t0,
+        fullVersion: false,
+      ) as Purchased).receipt.after;
+      final removed = (rules.applyDecor(
+        bought,
+        'rug.none',
+        'b',
+        t0,
+        fullVersion: false,
+      ) as Purchased);
       expect(removed.cost, 0);
       expect(removed.receipt.after.decor[DecorSlot.rug], 'rug.none');
-      final again =
-          rules.applyDecor(
-                removed.receipt.after,
-                'rug.round',
-                'c',
-                t0,
-                fullVersion: false,
-              )
-              as Purchased;
+      final again = rules.applyDecor(
+        removed.receipt.after,
+        'rug.round',
+        'c',
+        t0,
+        fullVersion: false,
+      ) as Purchased;
       expect(again.cost, 0);
       expect(again.receipt.after.coins, 0);
     });
@@ -207,9 +216,13 @@ void main() {
         rules.applyDecor(rich(500), 'wall.stars', 'd', t0, fullVersion: false),
         isA<RequiresFull>(),
       );
-      final full =
-          rules.applyDecor(rich(500), 'wall.stars', 'd', t0, fullVersion: true)
-              as Purchased;
+      final full = rules.applyDecor(
+        rich(500),
+        'wall.stars',
+        'd',
+        t0,
+        fullVersion: true,
+      ) as Purchased;
       // Tras un reembolso lo comprado se sigue pudiendo colocar.
       final reuse = rules.applyDecor(
         full.receipt.after.copyWith(
@@ -225,14 +238,20 @@ void main() {
 
     test('colocar otro hueco conserva los demás', () {
       var s = rich(200);
-      s = (rules.applyDecor(s, 'rug.round', 'a', t0, fullVersion: false)
-              as Purchased)
-          .receipt
-          .after;
-      s = (rules.applyDecor(s, 'plant.fern', 'b', t0, fullVersion: false)
-              as Purchased)
-          .receipt
-          .after;
+      s = (rules.applyDecor(
+        s,
+        'rug.round',
+        'a',
+        t0,
+        fullVersion: false,
+      ) as Purchased).receipt.after;
+      s = (rules.applyDecor(
+        s,
+        'plant.fern',
+        'b',
+        t0,
+        fullVersion: false,
+      ) as Purchased).receipt.after;
       expect(s.decor[DecorSlot.rug], 'rug.round');
       expect(s.decor[DecorSlot.plant], 'plant.fern');
       expect(s.coins, 200 - 40 - 35);
@@ -242,10 +261,13 @@ void main() {
   group('V04 guardado compatible', () {
     test('estrellas y decoración sobreviven a guardar y cargar', () {
       var s = rich(100);
-      s = (rules.applyDecor(s, 'plant.fern', 'a', t0, fullVersion: false)
-              as Purchased)
-          .receipt
-          .after;
+      s = (rules.applyDecor(
+        s,
+        'plant.fern',
+        'a',
+        t0,
+        fullVersion: false,
+      ) as Purchased).receipt.after;
       s = rules.finishGame(s, GameId.frisbee, 4, 'g', t0).after;
       final back = codec.decode(codec.encode(s));
       expect(back.decor, s.decor);
@@ -254,10 +276,9 @@ void main() {
     });
 
     test('una partida anterior carga con salón vacío y sin estrellas', () {
-      final j =
-          jsonDecode(codec.encode(adopt())) as Map<String, dynamic>
-            ..remove('decor')
-            ..remove('bestStars');
+      final j = jsonDecode(codec.encode(adopt())) as Map<String, dynamic>
+        ..remove('decor')
+        ..remove('bestStars');
       final back = codec.decode(jsonEncode(j));
       expect(back.decor, balance.initialDecor);
       expect(back.bestStars, isEmpty);
@@ -273,7 +294,10 @@ void main() {
     test('estrellas fuera de rango invalidan el documento', () {
       final j = jsonDecode(codec.encode(adopt())) as Map<String, dynamic>;
       j['bestStars'] = {'fruit': 4};
-      expect(() => codec.decode(jsonEncode(j)), throwsA(isA<SaveFormatException>()));
+      expect(
+        () => codec.decode(jsonEncode(j)),
+        throwsA(isA<SaveFormatException>()),
+      );
     });
   });
 

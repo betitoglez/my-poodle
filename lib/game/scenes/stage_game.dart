@@ -9,9 +9,11 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
 import '../../app/feedback.dart';
+import '../../domain/balance.dart' show DecorSlot;
 import '../pet/appearance_catalog.dart';
 import '../pet/pet_component.dart';
 import '../pet/pet_painter.dart';
+import 'decor_painter.dart';
 import 'room_painter.dart';
 
 /// Componente que delega el dibujo en una función (capas de escena).
@@ -275,6 +277,14 @@ class HomeGame extends StageGame {
 
   final bed = BedProp();
 
+  /// Decoración del salón colocada (o en vista previa): un ID por hueco.
+  Map<DecorSlot, String> decor = const {};
+
+  /// Cambia la decoración pintada; no guarda nada (eso es del dominio).
+  void setDecor(Map<DecorSlot, String> decor) {
+    this.decor = Map.unmodifiable(decor);
+  }
+
   @override
   Set<Sfx> get soundLoops =>
       resting ? const {Sfx.sleepBreath} : super.soundLoops;
@@ -282,6 +292,11 @@ class HomeGame extends StageGame {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // Orden: sala (0) < pared (1) < alfombra (2) < planta (3) < cama (5) <
+    // caniche (10). En 3D el visor va encima de Flame y tapa lo mismo.
+    add(Painted((c) => _paintDecor(c, DecorSlot.wall), priority: 1));
+    add(Painted((c) => _paintDecor(c, DecorSlot.rug), priority: 2));
+    add(Painted((c) => _paintDecor(c, DecorSlot.plant), priority: 3));
     // La cama llega sin bloquear la escena; mientras, cojín vectorial.
     bed.load(this);
     add(Painted(_bedBack, priority: 5));
@@ -298,6 +313,32 @@ class HomeGame extends StageGame {
   }
 
   Rect get _bedRect => bed.rect(pet.position.toOffset(), pet.petSize);
+
+  /// Sala visible y caniche, para situar la decoración.
+  DecorScene get decorScene {
+    final scene = Offset.zero & size.toSize();
+    final art = roomImage == null ? scene : imageRect;
+    return DecorScene(
+      art: art,
+      view: art.intersect(scene),
+      feet: pet.position.toOffset(),
+      petSize: pet.petSize,
+      illustrated: roomImage != null,
+    );
+  }
+
+  void _paintDecor(Canvas c, DecorSlot slot) {
+    final id = decor[slot];
+    if (id == null || size.x <= 0 || size.y <= 0) return;
+    DecorPainter.paint(
+      c,
+      slot,
+      id,
+      decorScene,
+      t: time,
+      reducedMotion: reducedMotion,
+    );
+  }
 
   void _bedBack(Canvas c) {
     if (resting && !useLiveBed) bed.paintBack(c, _bedRect);

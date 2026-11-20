@@ -288,7 +288,9 @@ class Balance {
       }
     }
     if (frisbee.targetPool.isNotEmpty &&
-        frisbee.targetPool.where((p) => p != frisbee.targetsField.first).length <
+        frisbee.targetPool
+                .where((p) => p != frisbee.targetsField.first)
+                .length <
             frisbee.throws - 1) {
       throw BalanceFormatException('Reserva de objetivos insuficiente');
     }

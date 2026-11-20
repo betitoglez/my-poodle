@@ -42,6 +42,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       reducedMotion: c.reducedMotion,
     );
     _game!.setLook(c.look);
+    _game!.setDecor(c.pet.decor);
   }
 
   bool get _showModel =>

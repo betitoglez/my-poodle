@@ -124,9 +124,9 @@ class OrchardSim {
     this.timeLimit = 60,
     this.golden = const {},
   }) : x = level.startX,
-      y = 0,
-      safeX = level.startX,
-      safeY = 0;
+       y = 0,
+       safeX = level.startX,
+       safeY = 0;
 
   static const double dt = 1 / 120;
   static const double speed = 3;

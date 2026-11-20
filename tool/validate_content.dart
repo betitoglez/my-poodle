@@ -237,6 +237,39 @@ void main() {
       }
     });
   }
+  // Decoración del salón: IDs únicos con el prefijo de su hueco y distintos
+  // de los del armario, un artículo vacío inicial y gratuito por hueco, al
+  // menos uno gratuito comprable por hueco y precio positivo en lo comprable.
+  if (balance != null) {
+    final styleIds = {for (final s in balance.styles) s.id};
+    final decorIds = <String>{};
+    for (final d in balance.decor) {
+      if (!decorIds.add(d.id)) errors.add('decor: ID repetido ${d.id}');
+      if (styleIds.contains(d.id)) {
+        errors.add('decor: ${d.id} coincide con un artículo del armario');
+      }
+      if (!d.id.startsWith('${d.slot.name}.')) {
+        errors.add('decor: ${d.id} no empieza por «${d.slot.name}.»');
+      }
+      if (d.initial && (d.cost != 0 || d.tier != Tier.free)) {
+        errors.add('decor: el inicial ${d.id} debe ser gratis');
+      }
+      if (!d.initial && d.cost <= 0) {
+        errors.add('decor: ${d.id} necesita un precio positivo');
+      }
+    }
+    for (final slot in DecorSlot.values) {
+      final items = balance.decorFor(slot);
+      if (items.where((d) => d.initial).length != 1) {
+        errors.add('decor: el hueco ${slot.name} necesita un inicial');
+      }
+      if (!items.any((d) => !d.initial && d.tier == Tier.free)) {
+        errors.add(
+          'decor: el hueco ${slot.name} sin artículo gratis comprable',
+        );
+      }
+    }
+  }
   for (final a in assets) {
     if (!File(a).existsSync()) errors.add('recurso ausente: $a');
   }
@@ -244,6 +277,7 @@ void main() {
     final free = balance!.styles.where((s) => s.tier == Tier.free).length;
     stdout.writeln(
       'Contenido válido: ${balance.styles.length} artículos ($free gratis, ${balance.styles.length - free} de la versión completa), '
+      '${balance.decor.length} de decoración, '
       'producto ${balance.fullVersionProductId}, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
     );
   } else {

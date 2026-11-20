@@ -238,6 +238,7 @@ class _OrchardScreenState extends State<OrchardScreen>
             : null,
       ),
       hud: GameHud(
+        live: const {'Frutas', 'Doradas'},
         items: [
           (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
           (
@@ -262,7 +263,7 @@ class _OrchardScreenState extends State<OrchardScreen>
                         ? 'Caída −${OrchardSim.fallPenaltySeconds} s. Vuelves al último apoyo.'
                         : 'Choque −${OrchardSim.fallPenaltySeconds} s.'
                   : waiting
-                  ? 'Salta los bancales y recoge las frutas.'
+                  ? 'Salta los bancales y recoge las frutas. Busca las doradas.'
                   : def.gesture,
               style: AppText.body.copyWith(fontWeight: FontWeight.w700),
             ),
@@ -495,6 +496,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
         },
       ),
       hud: GameHud(
+        live: const {'Aciertos'},
         items: [
           (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
           (
