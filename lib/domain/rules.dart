@@ -34,6 +34,8 @@ class Receipt {
     this.coinsEarned = 0,
     this.score = 0,
     this.newBest = false,
+    this.stars = 0,
+    this.newBestStars = false,
   });
 
   final String opId;
@@ -42,6 +44,10 @@ class Receipt {
   final int coinsEarned;
   final int score;
   final bool newBest;
+
+  /// Estrellas de la partida (0..3) y si mejoran la mejor marca.
+  final int stars;
+  final bool newBestStars;
 
   int needChange(Need n) => after.needPoints(n) - before.needPoints(n);
 }
@@ -259,27 +265,60 @@ class Rules {
     return r.baseCoins + r.coinsPerPoint * catches;
   }
 
-  /// Minijuego terminado: monedas + ánimo/energía + récord.
+  /// Estrellas de una partida: retos que no cambian el premio en monedas.
+  /// Huerto: 1.ª y 2.ª por frutas; 3.ª con la 2.ª y todas las doradas.
+  /// Frisbee: una por cada umbral de capturas alcanzado.
+  int starsFor(GameId game, int score, {int golden = 0}) {
+    switch (game) {
+      case GameId.fruit:
+        final r = balance.fruit;
+        var stars = 0;
+        for (final t in r.starFruits) {
+          if (score >= t) stars++;
+        }
+        if (stars == r.starFruits.length && golden >= r.starGolden) stars++;
+        return stars;
+      case GameId.frisbee:
+        return balance.frisbee.starCatches.where((t) => score >= t).length;
+    }
+  }
+
+  /// Minijuego terminado: monedas + ánimo/energía + récord y estrellas.
+  /// [golden] son las frutas doradas recogidas (solo en el Huerto).
   Receipt finishGame(
     PetState s,
     GameId game,
     int score,
     String opId,
-    int nowUtc,
-  ) {
+    int nowUtc, {
+    int golden = 0,
+  }) {
     final coins = switch (game) {
       GameId.fruit => fruitCoins(score),
       GameId.frisbee => frisbeeCoins(score),
     };
+    final maxGolden = game == GameId.fruit ? balance.fruit.starGolden : 0;
+    if (golden < 0 || golden > maxGolden || golden > score) {
+      throw RuleException('Frutas doradas fuera de rango: $golden');
+    }
+    final stars = starsFor(game, score, golden: golden);
     final before = clock.advance(s, nowUtc);
     final best = game == GameId.fruit ? before.bestFruit : before.bestFrisbee;
     final newBest = score > best;
+    final previousStars = before.bestStars[game.name];
+    final newBestStars = stars > (previousStars ?? 0);
     final after = _commit(
       before.copyWith(
         needs100: _applyDelta(before, balance.gameCompleteDelta),
         coins: before.coins + coins,
         bestFruit: game == GameId.fruit && newBest ? score : null,
         bestFrisbee: game == GameId.frisbee && newBest ? score : null,
+        bestStars: {
+          ...before.bestStars,
+          game.name: newBestStars || previousStars == null
+              ? stars
+              : previousStars,
+        },
       ),
       opId,
     );
@@ -290,6 +329,8 @@ class Rules {
       coinsEarned: coins,
       score: score,
       newBest: newBest,
+      stars: stars,
+      newBestStars: newBestStars,
     );
   }
 
@@ -350,6 +391,36 @@ class Rules {
         coins: before.coins - cost,
         owned: owned,
         appearance: target,
+      ),
+      opId,
+    );
+    return Purchased(Receipt(opId: opId, before: before, after: after), cost);
+  }
+
+  /// Coloca [id] en su hueco del salón; compra antes lo que no se posea.
+  /// Mismas reglas que el armario: lo poseído se usa gratis y lo de la
+  /// versión completa sin derecho no se compra.
+  PurchaseOutcome applyDecor(
+    PetState s,
+    String id,
+    String opId,
+    int nowUtc, {
+    required bool fullVersion,
+  }) {
+    final item = balance.decorItem(id);
+    if (item == null) throw RuleException('Decoración desconocida: $id');
+    final owned = item.initial || s.owned.contains(id);
+    final cost = owned ? 0 : item.cost;
+    if (!owned && item.tier == Tier.full && !fullVersion) {
+      return RequiresFull([id]);
+    }
+    if (cost > s.coins) return InsufficientCoins(cost - s.coins, cost);
+    final before = clock.advance(s, nowUtc);
+    final after = _commit(
+      before.copyWith(
+        coins: before.coins - cost,
+        owned: {...before.owned, if (!item.initial) id},
+        decor: {...before.decor, item.slot: id},
       ),
       opId,
     );

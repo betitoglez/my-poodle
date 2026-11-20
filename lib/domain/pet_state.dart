@@ -58,9 +58,18 @@ class PetState {
     this.premiumTrialStartedUtc = const {},
     this.restingSinceUtc,
     this.restEnergyCursorUtc,
+    this.bestStars = const {},
+    this.decor = const {},
   });
 
   static const int schemaVersion = 1;
+
+  /// Mejor número de estrellas (0..3) por juego. Una clave presente indica
+  /// que se ha terminado al menos una partida de ese juego.
+  final Map<String, int> bestStars;
+
+  /// Decoración colocada en el salón: un ID por hueco ocupado.
+  final Map<DecorSlot, String> decor;
 
   final Map<String, int> careCompletedUtc;
   final List<int> gameStartedUtc;
@@ -121,7 +130,11 @@ class PetState {
     int? restEnergyCursorUtc,
     bool wake = false,
     int? lastSickUtc,
+    Map<String, int>? bestStars,
+    Map<DecorSlot, String>? decor,
   }) => PetState(
+    bestStars: Map.unmodifiable(bestStars ?? this.bestStars),
+    decor: Map.unmodifiable(decor ?? this.decor),
     revision: revision ?? this.revision,
     lastCommitId: lastCommitId ?? this.lastCommitId,
     careCompletedUtc: Map.unmodifiable(
@@ -169,6 +182,7 @@ class PetState {
       bestFruit: 0,
       bestFrisbee: 0,
       prefs: const Preferences(),
+      decor: Map.unmodifiable(balance.initialDecor),
       // El primer día no enferma: el último «enfermó» se fija para que el
       // primer plazo de una semana termine pasado el periodo de gracia.
       lastSickUtc:
