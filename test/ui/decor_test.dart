@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -75,6 +76,32 @@ void main() {
       expect(find.text(name), findsOneWidget, reason: name);
     }
     expect(t.takeException(), isNull);
+  });
+
+  testWidgets('lector de pantalla: pestañas y fichas se pueden activar', (
+    t,
+  ) async {
+    final semantics = t.ensureSemantics();
+    final backend = backendWith((s) => s.copyWith(coins: 100));
+    await boot(t, backend);
+    await openDecor(t);
+    Future<void> activate(String label) async {
+      final node = t.getSemantics(find.bySemanticsLabel(label).first);
+      expect(
+        node.getSemanticsData().hasAction(SemanticsAction.tap),
+        isTrue,
+        reason: '«$label» debe exponer la acción de activar',
+      );
+      t.semantics.tap(find.semantics.byLabel(label));
+      await idle(t);
+    }
+
+    await activate('Pared');
+    expect(find.text('Cuadro de huella'), findsOneWidget);
+    await activate('Cuadro de huella');
+    expect(previewGame(t).decor[DecorSlot.wall], 'wall.frame');
+    expect(saved(backend).coins, 100);
+    semantics.dispose();
   });
 
   testWidgets('tocar una ficha solo previsualiza, sin gastar', (t) async {

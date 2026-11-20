@@ -391,6 +391,7 @@ class _SlotTab extends StatelessWidget {
       selected: selected,
       label: label,
       excludeSemantics: true,
+      onTap: onTap,
       child: Material(
         color: selected ? AppColors.plum : Colors.white,
         borderRadius: BorderRadius.circular(AppRadii.s),
@@ -460,6 +461,7 @@ class _DecorTile extends StatelessWidget {
       label: label,
       value: state,
       excludeSemantics: true,
+      onTap: onTap,
       child: Material(
         color: selected ? AppColors.plumSoft : Colors.white,
         shape: RoundedRectangleBorder(
