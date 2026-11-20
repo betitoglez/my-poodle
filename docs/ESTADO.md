@@ -717,3 +717,13 @@ Inicio de implementación en `codex/minijuegos-parejas-memory`, desde main `0baa
 ## Sincronización de minijuegos con main · 20-11-2026
 
 Integración de main remoto `ed77192` (PR #14 exportación de fotos al carrete y PR #15 variedad, estrellas, decoración, guía y celebraciones) en `codex/minijuegos-parejas-memory`, conservando el commit original `f3b87c7`. Conflictos de traducciones y guardado combinados sin perder campos. `GameSession` conserva semilla por sesión y frutas doradas, y Parejas/Memory se integran en las estrellas y sus retos. Verificación de la combinación: análisis limpio, **310 pruebas correctas**, contenido válido (12 artículos de decoración y 73 imágenes), 11 × 671 traducciones validadas y build web Release con `POODLE_LIVE_3D=true`. Aceptación física pendiente.
+
+## Álbum, logros y economía · 21-11-2026
+
+Rama `feature/album-logros-economia`, desde `codex/minijuegos-parejas-memory` (`76712ee`, imágenes de Parejas/Memory reducidas a WebP 512 px). Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas. Tres incrementos combinados:
+
+- **Álbum de pegatinas y logros**: 23 logros en 5 páginas con bono por página completa (40/50/60/30/80 monedas), botón en la cabecera de Juegos y celebración al conseguir una pegatina. Campos nuevos de partida con valores por defecto; partidas antiguas compatibles.
+- **Decorar foto**: editor tras «Hacer foto» con pegatinas, marcos y texto. Guardar es gratis; las monedas desbloquean packs una vez (0–250). El texto no se guarda en la partida. Cada foto guardada cuenta una vez para los logros.
+- **Catálogo ampliado**: 16 artículos de armario y 9 de decoración nuevos, cinco colores por prenda y artículos de lujo (≥ 250, hasta 520) con insignia y aviso «Te faltan N monedas». IDs y precios anteriores intactos.
+
+Verificación: `flutter analyze` limpio; contenido válido (59 artículos, 21 de decoración, 9 packs de fotos, 73 imágenes); balance de `assets/` y `docs/` idéntico; 11 × 826 traducciones validadas; **374 pruebas correctas**. Implementado y probado en pruebas y Chrome headless; **no probado en dispositivo** (brillo dorado y joyas en 3D, editor de fotos en iPhone). Pendiente: el texto de venta «24 artículos más» debería pasar a 36 (requiere clave nueva y ficha de tienda).

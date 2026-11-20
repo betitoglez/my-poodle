@@ -148,10 +148,206 @@ Segundo uso de las monedas, para cuando el armario ya está completo. Tres hueco
 | plant.cactus | Planta | 100 | completa |
 | wall.stars | Pared | 110 | completa |
 
-Totales: 125 monedas en la versión gratuita y 510 en la completa. Precios en `docs/datos/balance-v1.json` (bloque `decor`). En 3D la decoración se dibuja en la escena 2D, bajo el visor transparente del caniche.
+Totales: 620 monedas en la versión gratuita y 2135 en la completa (ampliado el 21-11-2026). Precios en `docs/datos/balance-v1.json` (bloque `decor`). En 3D la decoración se dibuja en la escena 2D, bajo el visor transparente del caniche.
 
 **Ejemplo reproducible.** Con 40 monedas, «Comprar y colocar» la alfombra redonda deja 0 y la muestra tras reiniciar; volver a «Sin alfombra» y recolocarla cuesta 0. Con 39 monedas se indica que falta 1.
 
 ## Estrellas por partida · 20-11-2026
 
 Cada partida terminada da de 0 a 3 estrellas además de las monedas, que no cambian. La tarjeta de cada juego muestra la mejor marca guardada (`bestStars`), y el resultado anuncia «¡Nueva mejor marca de estrellas!» cuando la supera. Umbrales en [Minijuegos](JUEGOS.md). Las estrellas solo son reto: no desbloquean nada ni cambian la economía.
+
+## Logros y álbum de pegatinas · 21-11-2026
+
+Cada logro es una pegatina del **Álbum de pegatinas**, que se abre desde el botón de la cabecera de **Juegos**. Se eligió Juegos porque la mayoría de pegatinas salen de jugar y porque la cabecera de Casa ya tiene tres botones (decorar, foto y ajustes); a 320 px un cuarto botón recortaría el título. Un punto coral en el botón avisa de que hay un bono por recoger.
+
+Hay cinco páginas desplazables, cada una con su cuadrícula. Las pegatinas conseguidas se ven a color, con la fecha en que se consiguieron. Las pendientes se ven en silueta gris con candado y una pista. Las pegatinas se dibujan en código (`CustomPainter` con borde ondulado e icono Material). No se descarga ni se genera ningún recurso.
+
+Los logros se guardan para siempre: no se retiran aunque luego cambie el catálogo de artículos.
+
+### Catálogo (IDs inmutables)
+
+| ID | Página | Condición |
+|---|---|---|
+| ach.care.feed | Cuidados | Terminar un cuidado de comida |
+| ach.care.bath | Cuidados | Terminar un baño |
+| ach.care.walk | Cuidados | Terminar un paseo |
+| ach.care.vet | Cuidados | Terminar una visita al veterinario |
+| ach.care.sleep | Cuidados | Terminar el cuidado de cama |
+| ach.care.days3 | Cuidados | Cuidar 3 días UTC distintos |
+| ach.care.days7 | Cuidados | Cuidar 7 días UTC distintos |
+| ach.game.fruit.first | Juegos | Terminar una partida del Huerto |
+| ach.game.frisbee.first | Juegos | Terminar una partida de Frisbee |
+| ach.game.pairs.first | Juegos | Terminar una partida de Parejas |
+| ach.game.fruit.stars3 | Juegos | 3 estrellas en el Huerto |
+| ach.game.frisbee.stars3 | Juegos | 3 estrellas en Frisbee |
+| ach.game.pairs.stars3 | Juegos | 3 estrellas en Parejas |
+| ach.wardrobe.first | Armario y salón | Tener 1 artículo del armario comprado (no inicial) |
+| ach.wardrobe.ten | Armario y salón | Tener 10 artículos del armario comprados |
+| ach.wardrobe.allFree | Armario y salón | Tener todos los artículos no iniciales de la versión gratuita del armario |
+| ach.decor.first | Armario y salón | Tener una decoración no vacía colocada en un hueco del salón |
+| ach.photo.first | Fotos | Guardar 1 foto en el modo foto |
+| ach.photo.ten | Fotos | Guardar 10 fotos |
+| ach.game.memory.first | Especiales | Terminar una partida de Memory |
+| ach.game.memory.stars3 | Especiales | 3 estrellas en Memory |
+| ach.game.allStars | Especiales | 3 estrellas en los cuatro juegos |
+| ach.coins.200 | Especiales | Ganar 200 monedas jugando, en total |
+
+Notas sobre las condiciones:
+
+- **Cuidados.** Los días de cuidado se cuentan en UTC (`segundo ~/ 86400`). Sirve cualquier cuidado terminado; el saludo no cuenta.
+- **Juegos.** «Terminar una partida» incluye las que dan 0 monedas.
+- **Armario.** El logro «todos los gratuitos» se evalúa con el catálogo vigente. Si se añade después un artículo gratuito, el logro ya conseguido se conserva.
+- **Monedas.** Cuentan solo las monedas de los minijuegos. El bono del álbum no suma.
+- **Versión completa.** La página Especiales necesita Memory, así que su bono solo se puede completar con la versión completa. Las otras cuatro páginas se pueden completar con la versión gratuita (el Huerto, con su partida gratuita cada 24 h).
+
+### Bonos de página
+
+| Página (ID guardado) | Pegatinas | Bono |
+|---|---:|---:|
+| Cuidados (`care`) | 7 | 40 |
+| Juegos (`games`) | 6 | 50 |
+| Armario y salón (`wardrobe`) | 4 | 60 |
+| Fotos (`photos`) | 2 | 30 |
+| Especiales (`special`) | 4 | 80 |
+
+Total: 260 monedas, 180 de ellas con la versión gratuita. Las cifras están en `docs/datos/balance-v1.json`, en el bloque `album.pageBonus`. La copia empaquetada es idéntica, y `tool/validate_content.dart` comprueba que cada página tiene logros y un bono positivo.
+
+Al completar una página aparece el botón **«Recoger N monedas»**. Pulsarlo cobra el bono **una sola vez** (`albumCollected`) y lanza confeti. Es la única forma de ganar monedas aparte de jugar. Nunca se paga sin esa acción explícita.
+
+### Evaluación y celebración
+
+`Achievements.newlyUnlocked(before, after)` es una función pura. Devuelve los logros que se cumplen en `after` y que no estaban guardados.
+
+`Rules` la aplica dentro de las operaciones confirmadas (`finishCare`, `finishGame`, `applyLook`, `applyDecor` y `recordPhoto`). Así, el logro se guarda en la misma escritura, con el segundo UTC de la operación, y viaja en `Receipt.newAchievements`. Repetir la operación no repite el logro ni cambia su fecha.
+
+Cuando se confirma una escritura con pegatinas nuevas, la capa superior de la app muestra el aviso **«¡Nueva pegatina!»** con el nombre de la pegatina, o «¡N pegatinas nuevas!» si hay varias, durante unos 3 s, acompañado de confeti. El aviso se anuncia como región viva y no intercepta toques. Con movimiento reducido (en Ajustes o en el sistema), el aviso aparece sin confeti ni animación.
+
+### Partida y compatibilidad
+
+`PetState` incorpora estos campos opcionales en el esquema v1:
+
+- `achievements`: ID → segundo UTC.
+- `albumCollected`: lista de IDs de página.
+- `coinsEarnedTotal`
+- `careDayCount` y `lastCareDay`
+- `photosTaken`
+
+Al leer una partida, un campo con forma inválida (un tipo distinto o un número negativo) se rechaza como partida dañada. Si falta un campo, se deduce:
+
+- Los días de cuidado se calculan con los días distintos de `careCompletedUtc`.
+- Las monedas ganadas se estiman como cota inferior: saldo + precio de los artículos y decoraciones comprados − saldo inicial.
+- Las fotos empiezan en 0, porque el álbum de fotos está separado de la partida.
+
+**Partida antigua.** Al abrirse, guarda en una escritura propia (`album-sync-…`) los logros que ya cumple. Esa escritura no paga nada, no celebra nada y no avanza las necesidades. Las páginas que queden completas se pueden cobrar después con «Recoger», una vez por página, como cualquier otra. No hay bonos automáticos ni pagos de golpe. Si esa escritura falla, el juego sigue con lo leído y la siguiente operación confirmada registra los logros.
+
+**Ejemplo reproducible.** Una partida nueva no tiene pegatinas. Terminar una comida guarda `ach.care.feed` y muestra «¡Nueva pegatina! Primera comida». Guardar 10 fotos completa la página Fotos, y «Recoger 30 monedas» suma 30 al saldo una sola vez; después la página muestra «Bono recogido: 30 monedas.».
+
+## Decorar foto · 21-11-2026
+
+Tras «Hacer foto», el modo foto abre **Decorar foto** (`lib/ui/screens/photo_editor_screen.dart`) antes de guardar. Hacer, decorar y guardar fotos es gratis y sin límite (más allá del álbum de 24). Las monedas solo se gastan al **desbloquear un pack, una vez**. «Descartar» o volver no guarda ni cobra nada.
+
+- **Pegatinas**: se ponen tocando su ficha (máximo 12 por foto), se arrastran con un dedo y con dos se giran y cambian de tamaño (escala 0,4–3). La pegatina elegida tiene botones accesibles: mover ←↑↓→ (5 % de la foto por toque), más grande / más pequeña (×1,2), girar (22,5°) y borrar. Cada pegatina colocada tiene etiqueta «Pegatina: <nombre>» y las mismas acciones como acciones accesibles.
+- **Marcos**: uno a la vez, o «Sin marco».
+- **Texto**: una línea al pie de la foto, con estilo (simple, con borde, en cinta) y cuatro colores gratuitos (blanco, morado, coral, amarillo).
+
+Todo se dibuja en vector (`lib/ui/widgets/photo_art.dart`), empaquetado; nada se genera ni descarga durante la partida. Guardar compone el PNG capturado (escena Flutter + visor 3D) con marco, texto y pegatinas mediante `PictureRecorder`, a la resolución de la captura, y lo añade al álbum privado con el flujo existente.
+
+### Packs
+
+Bloque `photoPacks` de `docs/datos/balance-v1.json` (copia idéntica en `assets/data`). Cada pack: `id` (`photo.*`), `kind` (`sticker` | `frame` | `text`), `cost`, `tier` y `pieces`.
+
+| ID inmutable | Pack | Tipo | Coste | Versión | Piezas |
+|---|---|---|---:|---|---|
+| photo.basic | Pegatinas básicas | pegatinas | 0 | gratuita | corazón, estrella, hueso, huella, sonrisa |
+| photo.party | Fiesta | pegatinas | 60 | gratuita | globo, tarta, gorro de fiesta, confeti, regalo |
+| photo.nature | Naturaleza | pegatinas | 60 | completa | flor, hoja, sol, arcoíris, nube |
+| photo.bubbles | Bocadillos de diálogo | pegatinas | 80 | completa | «¡Guau!», «¡Hola!», «¡Te quiero!», «¡Ñam!» |
+| photo.frames_basic | Marco sencillo | marcos | 0 | gratuita | marco blanco |
+| photo.frames_color | Marcos de colores | marcos | 50 | gratuita | rosa, celeste, menta, lunares |
+| photo.frames_luxury | Marcos de lujo | marcos | 250 | completa | dorado, polaroid, sello |
+| photo.text_basic | Texto sencillo | texto | 0 | gratuita | texto simple |
+| photo.text_styles | Texto con estilos | texto | 40 | gratuita | texto con borde, texto en cinta |
+
+Totales: 150 monedas comprables en la versión gratuita y 390 en la completa (540 en total). IDs de pieza: `sticker.heart`, `sticker.star`, `sticker.bone`, `sticker.paw`, `sticker.smile`, `sticker.balloon`, `sticker.cake`, `sticker.party_hat`, `sticker.confetti`, `sticker.gift`, `sticker.flower`, `sticker.leaf`, `sticker.sun`, `sticker.rainbow`, `sticker.cloud`, `sticker.bubble_woof`, `sticker.bubble_hello`, `sticker.bubble_love`, `sticker.bubble_yum`, `frame.white`, `frame.pink`, `frame.sky`, `frame.mint`, `frame.dots`, `frame.gold`, `frame.polaroid`, `frame.stamp`, `text.plain`, `text.outline`, `text.ribbon`. Las palabras de los bocadillos se pintan traducidas al idioma activo.
+
+**Reglas** (`Rules.buyPhotoPack`, mismo patrón que armario y decoración):
+
+1. Un pack con coste 0 está disponible desde el principio; uno de pago, tras comprarlo una vez. La propiedad se guarda en `PetState.owned` con el ID del pack.
+2. Comprar lo ya poseído cuesta 0 (`Purchased`, coste 0).
+3. Sin monedas suficientes: `InsufficientCoins` con la diferencia exacta y acceso a Juegos.
+4. Un pack de la versión completa no poseído, sin la compra: `RequiresFull`; la ficha lleva candado y tocarla abre «Pide ayuda a un adulto». Lo comprado se conserva si se revoca la versión completa.
+5. Comprar con coste muestra confirmación con precio, saldo actual y restante; al confirmar suena `Sfx.coins` y sale confeti (estático con movimiento reducido). Guardado con `commitOrRecover`.
+6. Validación del balance: IDs `photo.*` únicos y distintos de armario/decoración, piezas con el prefijo de su tipo y sin repetir, coste ≥ 0, coste 0 solo en la versión gratuita, un pack gratuito de pegatinas y otro de texto, y al menos un pack de pago en la versión gratuita.
+
+**Texto del jugador** (`lib/domain/photo_caption.dart`): se recortan extremos, se compone NFC como el nombre de adopción, se rechazan controles, saltos de línea/párrafo y marcas de dirección bidireccional, y se admiten de 1 a 24 grafemas (vacío = foto sin texto). Se pinta siempre como texto plano, sin traducir ni interpretar formato, y **no se guarda en la partida**: solo queda dentro del PNG local de la foto.
+
+**Compatibilidad.** Una partida anterior carga sin packs comprados (los gratuitos siguen disponibles); no hay campos nuevos en la partida ni cambio de `schemaVersion`. Un balance sin bloque `photoPacks` carga sin packs. Un ID de pack retirado se conserva en `owned` sin efecto.
+
+**Ejemplo reproducible.** Con 60 monedas, desbloquear «Fiesta» deja 0; volver a usar sus pegatinas cuesta 0. Con 45 monedas, «Marcos de colores» indica que faltan 5. Sin la versión completa, «Marcos de lujo» muestra el candado aunque haya 500 monedas.
+
+### Entrada propuesta para docs/ESTADO.md
+
+Tarea: fotos premium (Decorar foto con packs de monedas). Rama `feature/ale-fotos`. Flutter 3.50.0. Pruebas: `test/domain/photo_packs_test.dart` (13) y `test/ui/photo_editor_test.dart` (8); `flutter test` completo 331/331, `flutter analyze` sin incidencias, `dart run tool/validate_content.dart` válido (9 packs de fotos). Implementado y probado en widget tests; no probado en dispositivo (falta comprobar la composición con el PNG del visor 3D y gestos de dos dedos en iPhone/Android). Traducciones de 67 textos nuevos pendientes de fusionar en `assets/l10n`.
+
+## Catálogo ampliado: variedad y metas de lujo · 21-11-2026
+
+Ningún ID, precio ni versión anterior cambia; las partidas antiguas se abren igual (prueba `test/domain/catalog_luxury_test.dart`). Lujo = precio ≥ 250 (`luxuryCost` en `lib/domain/balance.dart`): ficha con borde e insignia dorada «Lujo», y «Te faltan N monedas» cuando el saldo no llega.
+
+### Artículos nuevos
+
+| ID | Nombre | Precio | Versión | Lujo |
+|---|---|---:|---|---|
+| coat.cream | Crema | 60 | gratis | no |
+| coat.chocolate | Chocolate | 75 | completa | no |
+| coat.cinnamon | Rojo canela | 90 | completa | no |
+| coat.latte | Café con leche | 110 | completa | no |
+| coat.slate | Azul pizarra | 130 | completa | no |
+| coat.golden | Pelaje dorado | 500 | completa | sí |
+| outfit.overalls_denim | Peto vaquero | 18 | gratis | no |
+| outfit.overalls_pink | Peto rosa | 18 | gratis | no |
+| outfit.sweater_green | Jersey verde | 32 | completa | no |
+| outfit.sweater_purple | Jersey morado | 32 | completa | no |
+| outfit.raincoat_red | Impermeable rojo | 46 | completa | no |
+| outfit.raincoat_green | Impermeable verde | 46 | completa | no |
+| outfit.dress_yellow | Vestido amarillo | 64 | completa | no |
+| outfit.dress_coral | Vestido coral | 64 | completa | no |
+| head.crown_jewels | Corona real con joyas | 350 | completa | sí |
+| collar.pearls_gold | Collar de perlas doradas | 280 | gratis | sí |
+| rug.checks | Alfombra de cuadros | 115 | completa | no |
+| rug.cloud | Alfombra nube | 135 | completa | no |
+| rug.persian | Alfombra persa | 380 | gratis | sí |
+| wall.rainbow | Arcoíris de pared | 120 | completa | no |
+| wall.clock | Reloj de hueso | 140 | completa | no |
+| wall.goldframe | Retrato con marco dorado | 450 | completa | sí |
+| plant.sunflower | Girasol | 115 | gratis | no |
+| plant.bonsai | Bonsái | 145 | completa | no |
+| plant.lights | Árbol con luces | 520 | completa | sí |
+
+Cada prenda (peto, jersey, impermeable, vestido) pasa de 3 a 5 colores al mismo precio de la familia. Metas de lujo del modo gratuito: collar de perlas doradas (armario) y alfombra persa (salón).
+
+### Totales (suma de precios)
+
+| | Antes gratis | Antes todo | Después gratis | Después todo |
+|---|---:|---:|---:|---:|
+| Armario | 190 (19 art.) | 1228 (43) | 566 (23) | 3143 (59) |
+| Salón | 125 | 635 (12) | 620 | 2755 (21) |
+| **Total** | **315** | **1863** | **1186** | **5898** |
+
+Partidas estimadas a ~25 monedas por partida: todo lo gratuito pasa de ~13 a ~48 partidas; todo el catálogo, de ~75 a ~236 partidas. La meta de lujo más cara (árbol con luces, 520) son ~21 partidas.
+
+### Arte
+
+- 3D (visor `assets/wardrobe_live`): todos los artículos nuevos del armario tienen 3D sin malla nueva. Pelajes: paleta en `shade` (dorado con brillo `poodleSheen` en el shader). Colores de prenda: entradas nuevas en `colourways`. Corona con joyas y perlas doradas: reestilo de materiales de la corona y del collar de perlas (`accessoryLooks`). 16 miniaturas nuevas en `assets/images/wardrobe_thumbs/`.
+- 2D de respaldo: pelajes por paleta; colores de prenda por familia teñida; perlas doradas y corona con gemas (rubí, zafiro, esmeralda) dibujadas en vectores.
+- Decoración: dibujo vectorial provisional en `lib/game/scenes/decor_painter.dart` (el reloj y el retrato cuelgan donde el cuadro; el árbol con luces parpadea salvo con movimiento reducido; el marco dorado tiene un destello).
+- Sin arte final:
+  - Vestido de gala: descartado. Sería un color más del vestido y rompería la regla de mismo precio, y una silueta propia necesita malla nueva.
+  - Pelaje dorado: en 2D no tiene destello, solo la paleta dorada.
+  - Corona con joyas: en la rama 2D no piloto se ve igual que la corona normal.
+  - Las 9 decoraciones nuevas son vectoriales provisionales, igual que las existentes.
+
+### Pendiente
+
+- Integrar las traducciones de `l10n-catalogo.json` en `assets/l10n/*.json` (30 claves; hasta entonces se ven en español).
+- Los textos «24 artículos más del armario» (`lib/ui/full_version_view.dart:118`, `lib/ui/screens/settings_screens.dart:253`, `docs/FUNCIONAL.md:75`) y la descripción de tienda (`docs/ENTREGA.md:59`, `docs/ESTADO.md:524`) se han quedado cortos: ahora son 36 del armario. Hay que cambiarlos junto con sus traducciones y con la ficha de la tienda.
+- Hay que probar en un dispositivo el brillo del pelaje dorado y las joyas en el visor 3D. Solo se ha comprobado en Chrome headless con la herramienta de miniaturas.
