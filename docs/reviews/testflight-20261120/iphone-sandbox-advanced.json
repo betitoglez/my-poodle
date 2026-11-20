@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-20",
+  "timezone": "Europe/Madrid",
+  "app": {
+    "bundle_id": "com.betitoglez.mypoodle",
+    "version": "0.5.0",
+    "build": 34
+  },
+  "device": {
+    "model": "iPhone 16 Pro",
+    "ios": "27.2.1"
+  },
+  "installation": {
+    "status": "passed",
+    "evidence": "Owner confirms update installed/opened without changing account; devicectl confirms bundle ID and build at 14:18"
+  },
+  "cases": {
+    "ask_to_buy": {
+      "status": "deferred_by_owner",
+      "observed": "Pending state with full=false on build 33. Account corrected; owner ultimately reports no pending requests in Sandbox settings. No approval or rejection observed.",
+      "decision": "Owner requests skipping this case and continuing with refund."
+    },
+    "refund": {
+      "status": "blocked_in_apple_sheet",
+      "observed": "Owner confirms Apple refund sheet opens but shows No se puede conectar before reason form; same result after switching network. Readback remains purchased/full=true/source=store; no revocation observed.",
+      "scope": "Native Sandbox only; request submission is not proof of revocation.",
+      "next_step": "Retry native Sandbox refund in later session; no code cause confirmed.",
+      "similar_report": "https://developer.apple.com/forums/thread/846103 (third-party firsthand report; not confirmation of this case cause)"
+    },
+    "restore_without_purchase_cache": {
+      "status": "passed",
+      "scope": "Purchase-cache reset in existing installation; does not prove whole-app clean installation.",
+      "evidence": "App closed; primary entitlement.json replaced with valid none/full=false and byte-verified. Owner presses Restaurar compras and confirms full restored with pet, coins, wardrobe and photos intact. Readback confirms purchased/full=true/source=store.",
+      "limitations": "Existing installation; backup entitlement retained. Not a whole-app clean installation."
+    },
+    "other_language_and_currency": {
+      "status": "passed",
+      "observed": "Owner renews Sandbox session after temporary storefront change to United States, selects English, and confirms English screen with price in dollars on build 34.",
+      "limitations": "Manual spot check of English and USD; not linguistic acceptance of all 11 variants. Exact price amount not recorded."
+    },
+    "failed_connection_purchase": {
+      "status": "passed",
+      "observed": "Owner attempts Buy with airplane mode and Wi-Fi off: error, remains free. Reconnects and presses Restore; full version and pet, coins, wardrobe and photos recovered. Readback purchased/full=true/source=store.",
+      "limitations": "Connection failure only; native interrupted approval, forced billing failures and closing during confirmation not exercised."
+    },
+    "interrupted_purchase": {
+      "status": "pending",
+      "scope": "Native interrupted transaction or close during confirmation; not covered by the connection failure test."
+    },
+    "whole_app_clean_reinstallation": {
+      "status": "pending",
+      "scope": "Not performed to preserve the owner's only game installation; purchase-primary reset is narrower."
+    }
+  },
+  "data_handling": {
+    "game_and_photos_modified_by_agent": false,
+    "purchase_cache_originals_backed_up": true,
+    "purchase_cache_cleanup": "Completed: both original purchase files restored and byte-for-byte verified against private backups before reopening.",
+    "account_cleanup": "Completed: Spain saved and verified in App Store Connect. Owner confirms Ask to Buy and interruptions off, Sandbox signed out, normal Media & Purchases account restored, Spanish selected, full version and game/photos preserved.",
+    "purchase_history_cleared": false
+  },
+  "production_submission": false,
+  "session_status": "finished_with_open_cases"
+}
