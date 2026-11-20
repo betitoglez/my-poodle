@@ -490,5 +490,16 @@
     { "id": "plant.fern", "slot": "plant", "cost": 35, "initial": false, "tier": "free" },
     { "id": "plant.flowers", "slot": "plant", "cost": 80, "initial": false, "tier": "full" },
     { "id": "plant.cactus", "slot": "plant", "cost": 100, "initial": false, "tier": "full" }
+  ],
+  "photoPacks": [
+    { "id": "photo.basic", "kind": "sticker", "cost": 0, "tier": "free", "pieces": ["sticker.heart", "sticker.star", "sticker.bone", "sticker.paw", "sticker.smile"] },
+    { "id": "photo.party", "kind": "sticker", "cost": 60, "tier": "free", "pieces": ["sticker.balloon", "sticker.cake", "sticker.party_hat", "sticker.confetti", "sticker.gift"] },
+    { "id": "photo.nature", "kind": "sticker", "cost": 60, "tier": "full", "pieces": ["sticker.flower", "sticker.leaf", "sticker.sun", "sticker.rainbow", "sticker.cloud"] },
+    { "id": "photo.bubbles", "kind": "sticker", "cost": 80, "tier": "full", "pieces": ["sticker.bubble_woof", "sticker.bubble_hello", "sticker.bubble_love", "sticker.bubble_yum"] },
+    { "id": "photo.frames_basic", "kind": "frame", "cost": 0, "tier": "free", "pieces": ["frame.white"] },
+    { "id": "photo.frames_color", "kind": "frame", "cost": 50, "tier": "free", "pieces": ["frame.pink", "frame.sky", "frame.mint", "frame.dots"] },
+    { "id": "photo.frames_luxury", "kind": "frame", "cost": 250, "tier": "full", "pieces": ["frame.gold", "frame.polaroid", "frame.stamp"] },
+    { "id": "photo.text_basic", "kind": "text", "cost": 0, "tier": "free", "pieces": ["text.plain"] },
+    { "id": "photo.text_styles", "kind": "text", "cost": 40, "tier": "free", "pieces": ["text.outline", "text.ribbon"] }
   ]
 }

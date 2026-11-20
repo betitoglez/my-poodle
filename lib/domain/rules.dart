@@ -600,6 +600,40 @@ class Rules {
     );
   }
 
+  /// Un pack de fotos gratuito está disponible desde el principio; los de
+  /// pago, después de comprarlos una vez (su ID queda en `owned`).
+  bool photoPackOwned(PetState s, PhotoPack pack) =>
+      pack.free || s.owned.contains(pack.id);
+
+  /// Desbloquea un pack de decoración de fotos una sola vez. Lo poseído
+  /// cuesta cero; lo de la versión completa sin derecho no se compra. Hacer
+  /// y decorar fotos nunca cobra: solo se paga al desbloquear un pack.
+  PurchaseOutcome buyPhotoPack(
+    PetState s,
+    String id,
+    String opId,
+    int nowUtc, {
+    required bool fullVersion,
+  }) {
+    final pack = balance.photoPack(id);
+    if (pack == null) throw RuleException('Pack de fotos desconocido: $id');
+    final owned = photoPackOwned(s, pack);
+    final cost = owned ? 0 : pack.cost;
+    if (!owned && pack.tier == Tier.full && !fullVersion) {
+      return RequiresFull([id]);
+    }
+    if (cost > s.coins) return InsufficientCoins(cost - s.coins, cost);
+    final before = clock.advance(s, nowUtc);
+    final after = _commit(
+      before.copyWith(
+        coins: before.coins - cost,
+        owned: {...before.owned, if (!pack.free) id},
+      ),
+      opId,
+    );
+    return Purchased(Receipt(opId: opId, before: before, after: after), cost);
+  }
+
   /// Iconos que deben estar encendidos en el visor.
   Set<PetCondition> conditions(PetState s) {
     final st = balance.status;

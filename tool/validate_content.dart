@@ -307,6 +307,7 @@ void main() {
     stdout.writeln(
       'Contenido válido: ${balance.styles.length} artículos ($free gratis, ${balance.styles.length - free} de la versión completa), '
       '${balance.decor.length} de decoración, '
+      '${balance.photoPacks.length} packs de fotos, '
       'producto ${balance.fullVersionProductId}, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
     );
   } else {
