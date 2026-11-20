@@ -37,7 +37,7 @@ const slotSections = {
   Slot.paws: 'paws',
 };
 final assets = [
-  for (final dog in PuzzleDeals.poodles) 'assets/images/poodles/$dog.png',
+  for (final dog in PuzzleDeals.poodles) 'assets/images/poodles/$dog.webp',
   'assets/images/cards/kitchen.jpg',
   'assets/images/cards/bath.jpg',
   'assets/images/cards/walk.jpg',

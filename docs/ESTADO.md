@@ -722,3 +722,5 @@ Integración de main remoto `ed77192` (PR #14 exportación de fotos al carrete y
 ## Revisión de PR #16: controles accesibles · 20-11-2026
 
 Corregido P2 de Codex sobre `ff2073c`: las cartas de Parejas y los pulsadores de Memory carecían de acción para VoiceOver/TalkBack. Ahora `LSemantics` e `InkWell` comparten la misma acción con comprobación dinámica de pausa/finalización y estado habilitado. Dos regresiones reproducen el fallo original y completan interacciones mediante acciones semánticas. **312 pruebas correctas**, análisis limpio, validadores correctos y web Release con POODLE_LIVE_3D=true. Comprobación de revisión remota y head en PR #16; prueba física con los lectores de pantalla y nueva beta pendientes.
+
+La comprobación accesible parte de las tarjetas del catálogo, cuya acción semántica también se expone, y del botón Jugar. Se incorpora sin sobrescribir el commit remoto `76712ee` de retratos WebP de 512 px (228 KB). Se comprueba el conjunto antes de pedir revisión del head resultante.

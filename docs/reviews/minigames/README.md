@@ -29,3 +29,5 @@ Merge de `ed77192` (PR #14 y #15), conservando el commit original de los minijue
 ## Corrección de accesibilidad · PR #16
 
 Codex detectó que `excludeSemantics` ocultaba la acción del `InkWell` en cartas y pulsadores. Los dos controles comparten ahora una acción guardada entre la semántica y el toque, exponen su estado habilitado y vuelven a comprobar pausa/finalización al ejecutar una acción encolada. Dos pruebas reproducían el fallo antes del cambio y verifican Parejas hasta su premio y una ronda de Memory mediante acciones del lector de pantalla, con bloqueo durante pausa/muestra. Análisis limpio, 312 pruebas, validadores y web Release correctos. El resultado de la revisión remota se registra en [PR #16](https://github.com/betitoglez/my-poodle/pull/16).
+
+El recorrido accesible también cubre la tarjeta del catálogo y Jugar, antes de llegar al tablero. Se conserva el commit remoto `76712ee` que sustituye los ocho retratos PNG por WebP de 512 px; referencias y validación usan los WebP.

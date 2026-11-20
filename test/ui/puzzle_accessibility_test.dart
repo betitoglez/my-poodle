@@ -8,7 +8,7 @@ import 'package:my_poodle/ui/widgets/activity_frame.dart';
 
 import 'app_flow_test.dart' show boot, frames, idle, saved, scrollTo, tapText;
 import 'features_test.dart' show backendWith;
-import 'puzzle_games_test.dart' show openPuzzle, ready;
+import 'puzzle_games_test.dart' show ready;
 
 Finder card(int index) =>
     find.bySemanticsLabel(RegExp('^Carta ${index + 1}(?:,|:)'));
@@ -18,9 +18,15 @@ bool hasTap(WidgetTester t, Finder finder) =>
     t.getSemantics(finder).getSemanticsData().hasAction(SemanticsAction.tap);
 
 Future<void> start(WidgetTester t, String title) async {
-  await openPuzzle(t, title);
+  await tapText(t, 'Juegos');
+  await scrollTo(t, find.text(title));
+  final cardLabel = RegExp('^${RegExp.escape(title)}\\.');
+  expect(hasTap(t, find.bySemanticsLabel(cardLabel)), isTrue);
+  t.semantics.tap(find.semantics.byLabel(cardLabel));
+  await idle(t);
   await scrollTo(t, find.text('Jugar'));
-  await tapText(t, 'Jugar');
+  t.semantics.tap(find.semantics.byLabel('Jugar'));
+  await idle(t);
   await ready(t);
 }
 
