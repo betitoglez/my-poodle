@@ -17,9 +17,10 @@
   "testflight_processing_verified": true,
   "distributed_to_group": true,
   "installed_on_iphone": true,
-  "sandbox_purchase_verified": false,
+  "sandbox_purchase_verified": true,
   "testflight_status": "Ready to Test",
   "group": "MVP Sandbox",
   "physical_installation_evidence": "owner confirms installed/opened; devicectl confirms 0.5.0 (33)",
-  "sandbox_purchase_status": "product/price unavailable on initial query and retry after metadata configuration"
+  "sandbox_purchase_status": "owner confirms cancellation and purchase unlocking full version; restart/offline/restore and advanced scenarios pending",
+  "physical_acceptance_record": "docs/reviews/testflight-20261120/iphone-sandbox.json"
 }

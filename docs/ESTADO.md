@@ -1,5 +1,12 @@
 # Estado de la implementación
 
+## Compra Sandbox física confirmada · 20-11-2026
+
+- El propietario confirma a las 10:08 (Madrid): «ya sale el precio» en la beta **0.5.0 (33)**. Después confirma: **«La cancelación funciona y la compra desbloquea la versión completa»**. Entorno de la app instalada: TestFlight/Sandbox. Resultado manual del propietario, sin capturar credenciales ni recibos.
+- La incidencia inicial de producto no disponible queda resuelta sin cambiar código, build ni reinstalar. Compatible con propagación de metadatos de Apple; no se demuestra la causa por ese resultado.
+- Solicitada la prueba de cerrar/reabrir sin conexión y restaurar con conexión conservando la partida, y la captura/álbum físico de dos poses. Pendientes hasta recibir resultado; no se acreditan por la compra básica ni por pruebas de simulador. Casos de pendiente/rechazo, restauración limpia y revocación/reembolso siguen pendientes en entorno dedicado.
+- [Registro de aceptación física](reviews/testflight-20261120/iphone-sandbox.json). Las entradas anteriores conservan el estado observado antes de esta confirmación.
+
 ## Beta instalada, títulos y precio guardados · 20-11-2026
 
 - Los 11 títulos de ficha están guardados y comprobados en una vista recargada: [tabla](IDIOMAS.md) y [registro](reviews/testflight-20261120/apple-configuration.json). Español: Mi Caniche: mascota virtual; francés: Mon Caniche : animal virtuel. Alemán/portugués conservan nombre corto; errores repetidos de una vista anterior resueltos desde estado actualizado, sin retirar localizaciones.
