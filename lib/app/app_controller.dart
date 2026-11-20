@@ -466,6 +466,30 @@ class AppController extends ChangeNotifier {
     };
   }
 
+  /// Pack de fotos disponible (gratuito o ya desbloqueado).
+  bool photoPackOwned(PhotoPack pack) => rules.photoPackOwned(pet, pack);
+
+  /// Pack de la versión completa sin derecho ni propiedad: candado.
+  bool photoPackLocked(PhotoPack pack) =>
+      !photoPackOwned(pack) && !canAccess(pack.tier);
+
+  /// Desbloquea un pack de decoración de fotos (una sola vez).
+  Future<ActionResult<PurchaseOutcome>> buyPhotoPack(String id) async {
+    if (_confirmed == null) return const Ignored();
+    final opId = 'photo-pack-${clock.nowUtcSeconds()}-${_confirmed!.revision}';
+    final outcome = rules.buyPhotoPack(
+      _confirmed!,
+      id,
+      opId,
+      clock.nowUtcSeconds(),
+      fullVersion: fullVersion,
+    );
+    return switch (outcome) {
+      InsufficientCoins() || RequiresFull() => Done(outcome),
+      Purchased(:final receipt) => _commit(receipt.after, outcome),
+    };
+  }
+
   Future<ActionResult<Preferences>> updatePrefs(Preferences p) {
     final c = _confirmed!;
     final next = c.copyWith(
