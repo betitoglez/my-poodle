@@ -25,7 +25,7 @@ Actualizado el 20-11-2026. Este documento recoge el alcance confirmado; [FASES](
 - [x] Tres músicas locales por contexto, 37 efectos activos y ajustes persistentes; PR #4 fusionada, 187 pruebas correctas y revisión final de Codex sin incidencias.
 - [x] Bundle ID definitivo `com.betitoglez.mypoodle`; compra única `mypoodle.full_version`; sin anuncios ni venta de monedas.
 - [x] Guardado local, adopción, necesidades/salud y puerta adulta. El guardado de la compra se conserva separado de la partida.
-- [x] Compra y aceptación Android documentadas en el clon original: compra, cancelación, pendientes aprobada/rechazada, restauración con derecho existente, reembolso y reinicio offline. Incorporar las correcciones a main y repetir la candidata actual.
+- [x] Compra y aceptación Android documentadas en el clon original: compra, cancelación, pendientes aprobada/rechazada, restauración con derecho existente, reembolso y reinicio offline. Correcciones integradas en main por PR #5 y PR #12; repetir aceptación de la candidata actual sigue pendiente.
 
 ## Minijuegos nuevos: definición pendiente
 
@@ -38,9 +38,14 @@ Son candidatos del MVP ampliado, no juegos ya implementados. Antes de construirl
 
 ## Aceptación y preparación de publicación
 
-- [ ] Terminar sesión avanzada Sandbox: corregir sesión de compras, verificar aprobación/rechazo, restauración sin caché, reembolso, interrupciones y otra divisa. Candidata interna (34) en preparación con corrección de espera iOS y reembolso limitado a Sandbox; 226 pruebas correctas. Restablecer estado original del iPhone al terminar.
-
-- [ ] Completar pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en instalación/cuenta de pruebas. No borrar la partida personal para crear esos casos.
+- [x] Distribuir e instalar actualización interna **0.5.0 (34)** en MVP Sandbox, con corrección de espera iOS y reembolso limitado a Sandbox; 226 pruebas y Codex sin incidencias. Versión instalada confirmada por propietario y devicectl.
+- [x] Finalizar sesión rápida (34) y recuperar iPhone: ambos archivos originales de compra restituidos y verificados byte por byte; España guardada; propietario confirma cuenta habitual, controles de prueba apagados, español y estado conservado. Sesión finalizada con casos abiertos, no toda la matriz superada.
+- [x] Compra sin conexión (modo avión y Wi-Fi apagado): error sin entrega; reconectar y Restaurar recupera completa con todos los datos conservados.
+- [x] Comprobar pantalla de compra en inglés y precio en dólares con país temporal United States; cuenta devuelta a España. No equivale a comprar en otra divisa ni revisar todas las traducciones.
+- [x] Restaurar en (34) con archivo principal de compra sin derecho: recupera la completa y conserva mascota, monedas, armario y fotos; readback purchased/full=true. Backup retenido y sin reinstalación.
+- [ ] Ask to Buy: aprobación/rechazo aplazados por el propietario tras lista de solicitudes vacía. No acreditados por la regresión automática.
+- [ ] Reembolso/revocación: bloqueados por «No se puede conectar» en la hoja Apple, incluso con otra conexión; repetir cuando el entorno permita cargar el formulario.
+- [ ] Interrupción nativa o cierre durante confirmación, errores forzados de facturación e instalación limpia completa en entorno de pruebas. No borrar la partida personal para crear esos casos.
 - [ ] Comprobar borrado de una foto de prueba en iPhone; captura de dos poses y persistencia del álbum ya confirmadas.
 - [ ] Revisar los 11 idiomas en adopción, cuidados, juegos, compras, modo foto, ajustes, ayuda, privacidad y estados de error; precios localizados por la tienda.
 - [ ] Matriz 3D: colores, cortes y prendas, giro, descanso, cuidados y juegos; verificar que la carga o el respaldo se identifican correctamente durante QA.
