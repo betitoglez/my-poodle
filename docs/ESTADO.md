@@ -1,5 +1,12 @@
 # Estado de la implementación
 
+## Comprobación física básica de beta interna superada · 20-11-2026
+
+- **iPhone / TestFlight 0.5.0 (33)**: tras compra y cancelación correctas, el propietario confirma **«Todo correcto: reinicio, offline y restauración conservan el estado»**. Recorrido solicitado: cierre completo, modo avión y reapertura con versión completa; reconectar y Restaurar compras, conservando mascota, monedas y armario. Es restauración con derecho existente, no instalación limpia.
+- Foto/álbum: confirma **«Sí, las dos fotos 3D se guardan y conservan»** para el recorrido de caniche vestido con giro, foto de pie y tumbado, cierre/reapertura y consulta/ampliación en el álbum. Borrado físico de fotos sigue pendiente. No se han recogido fotos personales, recibos ni credenciales.
+- Primera beta interna funcional disponible con 11 variantes, prueba diaria premium y modo foto. Comprobación básica de compra y foto superada; no se declara cerrada la matriz ampliada: pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en entorno dedicado, revisión lingüística/accesibilidad, rendimiento, audio/interrupciones y catálogo 3D.
+- [Registro físico actualizado](reviews/testflight-20261120/iphone-sandbox.json). Solo documentación/evidencia; la app instalada y la IPA siguen siendo la build (33), sin recompilar ni reinstalar.
+
 ## Compra Sandbox física confirmada · 20-11-2026
 
 - El propietario confirma a las 10:08 (Madrid): «ya sale el precio» en la beta **0.5.0 (33)**. Después confirma: **«La cancelación funciona y la compra desbloquea la versión completa»**. Entorno de la app instalada: TestFlight/Sandbox. Resultado manual del propietario, sin capturar credenciales ni recibos.

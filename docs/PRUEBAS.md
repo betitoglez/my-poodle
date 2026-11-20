@@ -151,3 +151,7 @@ flutter drive --driver=test_driver/photo_test.dart --target=integration_test/pho
 ```
 
 Usa mascota y álbum en memoria, sin compras. Comprueba píxeles del PNG nativo, giro visible por botón, captura/composición de las dos poses y conservación de aspecto/monedas. El driver guarda PNG y métricas en `.build/photo-evidence/` (o `POODLE_PHOTO_EVIDENCE`). No ejecutar sobre un dispositivo que tenga otra sesión de QA en curso. La evidencia de simulador del 20-11-2026 está en `reviews/testflight-20261120/`.
+
+## Comprobación manual TestFlight 0.5.0 (33) · 20-11-2026
+
+El propietario confirma en iPhone: precio visible, cancelación, compra Sandbox con desbloqueo, reinicio y modo avión con derecho conservado, restauración con derecho existente conservando mascota/monedas/armario, y dos fotos 3D (de pie/tumbado) conservadas tras reabrir el álbum. [Registro por caso](reviews/testflight-20261120/iphone-sandbox.json). Estas comprobaciones manuales de TestFlight no cambian el resultado fallido de StoreKitTest local registrado arriba ni acreditan restauración limpia, pendiente/rechazo o revocación/reembolso. Borrado físico de fotos y QA lingüística, de accesibilidad y rendimiento siguen pendientes.

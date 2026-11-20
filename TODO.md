@@ -7,7 +7,7 @@ Actualizado el 20-11-2026. Este documento recoge el alcance confirmado; [FASES](
 - [x] Integrar en main las correcciones de compras (PR #5, `f08fb2d`; 193 pruebas y Codex sin incidencias): restauración siempre visible, cancelación Android sin producto, pendientes nativas y reconciliación al reanudar. Mantener partida y monedas.
 - [x] Implementar los catálogos locales (11 × 559 mensajes) y selector persistente; 221 pruebas correctas. Localizar toda la app en **11 variantes**: español (es), inglés (en, respaldo), francés (fr), alemán (de), portugués de Brasil (pt-BR), italiano (it), ruso (ru), coreano de Corea del Sur (ko), japonés (ja), chino simplificado (zh-Hans) y chino tradicional (zh-Hant). Selección persistente y detección del sistema; revisar textos largos y accesibilidad.
 - [x] Localizar el nombre bajo el icono y en la app: **Mi Caniche** en español, **My Poodle** en inglés/respaldo, y nombre equivalente en cada idioma. No cambiar Bundle ID ni producto de compra.
-- [x] **Modo foto del MVP implementado** (pendiente aceptación física de la captura 3D en la beta): posar/girar al caniche con su aspecto actual, capturar el render 3D y conservar fotos en un álbum privado dentro de la app. No exige compartir ni acceso a las fotos personales del dispositivo.
+- [x] **Modo foto del MVP implementado y probado físicamente en iPhone (33)**: caniche vestido con giro y poses de pie/tumbado, captura 3D y fotos conservadas tras reabrir el álbum privado. Borrado físico pendiente. No exige compartir ni acceso a las fotos personales del dispositivo.
 - [x] **Prueba premium gratuita implementada y probada**: una partida por cada minijuego de la versión completa cada 24 horas, guardada al comenzar. Reiniciar el proceso no renueva el cupo; abandono consume el intento; guardar fallido no lo consume. Se mantienen las reglas generales de energía y descanso. La compra completa quita este límite de prueba.
 - [x] Traducir y verificar tras recargar los títulos de ficha de App Store en las 11 variantes, además de los nombres nativos ya implementados. Español aprobado: **Mi Caniche: mascota virtual**; francés con calificador por colisión: **Mon Caniche : animal virtuel**. [Tabla de nombres](docs/IDIOMAS.md).
 - [x] Configurar los datos mínimos Sandbox de Apple: `com.betitoglez.mypoodle`, no consumible `mypoodle.full_version`, 11 nombres/descripciones, precio base España **1,99 €** y disponibilidad **175 territorios**, ambos autorizados y guardados; acuerdo de pago activo.
@@ -16,9 +16,8 @@ Actualizado el 20-11-2026. Este documento recoge el alcance confirmado; [FASES](
 - [x] Procesamiento Ready to Test y build (33) en **MVP Sandbox**, con el propietario como único tester; instalada y abierta en iPhone, versión confirmada por devicectl.
 - [x] Consulta de producto Sandbox disponible: el propietario confirma que aparece el precio; incidencia inicial resuelta sin cambiar la build ni reinstalar. [Registro](docs/TESTFLIGHT.md#incidencia-inicial-de-producto-no-disponible--resuelta).
 - [x] Compra y cancelación físicas en iPhone/TestFlight **0.5.0 (33)**: el propietario confirma que cancelar funciona y comprar desbloquea la versión completa.
-- [ ] Confirmar reinicio, offline y restauración con derecho existente, conservando mascota, monedas y armario; prueba manual solicitada.
-- [ ] Completar pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en instalación/cuenta de pruebas. No borrar la partida personal para crear esos casos.
-- [ ] La primera beta incluye idiomas y modo foto; no se declara lista con esos requisitos pendientes. El alta remota y una compilación local tampoco acreditan una compra Sandbox correcta.
+- [x] Reinicio, offline y restauración con derecho existente en iPhone (33): el propietario confirma que se conserva la versión completa, mascota, monedas y armario.
+- [x] Primera beta interna funcional **0.5.0 (33)** disponible e instalada: 11 variantes incluidas, compra/cancelación, reinicio/offline/restauración y foto 3D/álbum con comprobación física básica. La revisión lingüística y la aceptación ampliada continúan pendientes.
 
 ## Implementado y verificado previamente
 
@@ -39,6 +38,8 @@ Son candidatos del MVP ampliado, no juegos ya implementados. Antes de construirl
 
 ## Aceptación y preparación de publicación
 
+- [ ] Completar pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en instalación/cuenta de pruebas. No borrar la partida personal para crear esos casos.
+- [ ] Comprobar borrado de una foto de prueba en iPhone; captura de dos poses y persistencia del álbum ya confirmadas.
 - [ ] Revisar los 11 idiomas en adopción, cuidados, juegos, compras, modo foto, ajustes, ayuda, privacidad y estados de error; precios localizados por la tienda.
 - [ ] Matriz 3D: colores, cortes y prendas, giro, descanso, cuidados y juegos; verificar que la carga o el respaldo se identifican correctamente durante QA.
 - [ ] Pruebas físicas de música/efectos, silencio, llamadas/interrupciones y segundo plano en iPhone y Android.

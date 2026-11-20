@@ -23,13 +23,20 @@
       "owner_statement": "La cancelación funciona y la compra desbloquea la versión completa"
     },
     "restart_and_offline": {
-      "status": "pending"
+      "status": "passed",
+      "owner_statement": "Todo correcto: reinicio, offline y restauración conservan el estado",
+      "scope": "existing purchased entitlement; preserves pet, coins and wardrobe"
     },
     "restore_existing_entitlement_preserves_game": {
-      "status": "pending"
+      "status": "passed",
+      "owner_statement": "Todo correcto: reinicio, offline y restauración conservan el estado",
+      "scope": "existing purchased entitlement; preserves pet, coins and wardrobe"
     },
     "native_photo_two_poses_and_album_persistence": {
-      "status": "pending"
+      "status": "passed",
+      "owner_statement": "Sí, las dos fotos 3D se guardan y conservan",
+      "requested_steps": "rotate dressed poodle; standing and lying captures; close/reopen; album persistence and zoom",
+      "evidence_kind": "manual confirmation by owner"
     },
     "pending_approval_rejection": {
       "status": "pending"
@@ -39,8 +46,13 @@
     },
     "revocation_refund": {
       "status": "pending"
+    },
+    "photo_deletion_on_device": {
+      "status": "pending"
     }
   },
   "initial_product_unavailable": "resolved without code/build change or reinstallation; propagation is compatible with observations but not proven as cause",
-  "credentials_receipts_or_personal_save_collected": false
+  "credentials_receipts_or_personal_save_collected": false,
+  "basic_internal_beta_acceptance": "passed: product query, cancel, purchase, restart/offline, restore existing entitlement, two 3D photos retained in album",
+  "remaining_acceptance": "advanced purchase scenarios, clean restoration, photo deletion, linguistic/accessibility/performance and broader device QA"
 }
