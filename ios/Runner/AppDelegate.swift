@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import StoreKit
+import Photos
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -15,6 +16,9 @@ import StoreKit
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodleStorage") {
       StorageChannel.register(messenger: registrar.messenger())
+    }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodlePhotos") {
+      PhotoGalleryChannel.register(messenger: registrar.messenger())
     }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodlePurchaseQA") {
       PurchaseQAChannel.register(messenger: registrar.messenger())
@@ -52,6 +56,41 @@ enum StorageChannel {
   }
 }
 
+/// Copia un PNG del álbum privado a Fotos con permiso de solo añadir
+/// (NSPhotoLibraryAddUsageDescription). No lee la fototeca.
+enum PhotoGalleryChannel {
+  static func register(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "my_poodle/photos", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "saveToGallery" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let args = call.arguments as? [String: Any],
+            let typed = args["bytes"] as? FlutterStandardTypedData,
+            !typed.data.isEmpty else {
+        result(FlutterError(code: "invalid", message: nil, details: nil))
+        return
+      }
+      let data = typed.data
+      let name = args["name"] as? String
+      let reply: (Any?) -> Void = { value in DispatchQueue.main.async { result(value) } }
+      PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+        guard status == .authorized || status == .limited else {
+          reply("denied")
+          return
+        }
+        PHPhotoLibrary.shared().performChanges({
+          let options = PHAssetResourceCreationOptions()
+          if let name = name { options.originalFilename = "\(name).png" }
+          PHAssetCreationRequest.forAsset().addResource(with: .photo, data: data, options: options)
+        }) { success, _ in
+          reply(success ? "saved" : FlutterError(code: "failed", message: nil, details: nil))
+        }
+      }
+    }
+  }
+}
 
 /// Herramienta de la beta interna; nunca solicita reembolsos de producción.
 enum PurchaseQAChannel {

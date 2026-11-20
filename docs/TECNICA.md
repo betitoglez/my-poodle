@@ -142,7 +142,7 @@ Decisión del 17 de noviembre de 2026; reglas de producto en [FUNCIONAL](FUNCION
 
 El documento v1 añade opcionalmente `premiumTrialStartedUtc: {gameId: utcSeconds}`. Los guardados antiguos empiezan sin consumos. `beginGame` serializa la confirmación del inicio y del cupo, y solo entrega sesión después de guardar; fallo de disco conserva el intento. El reloj UTC define 86.400 segundos, sin desbloquear por retroceso. No requiere servicio remoto. Reiniciar la partida desde la zona adulta crea una partida nueva; el cupo local no es un sistema antifraude de cuenta.
 
-`PhotoScreen` compone el fondo Flutter y una captura PNG del canvas 3D mediante el canal nativo `snapshot`. `PhotoAlbum` guarda imágenes y un índice separados de partida y compras; límite de 24 fotos, temporales y sustitución del índice. No solicita cámara ni acceso a Fotos, no comparte ni sube imágenes. Ver [TestFlight](TESTFLIGHT.md) para el build verificable y [Idiomas](IDIOMAS.md).
+`PhotoScreen` compone el fondo Flutter y una captura PNG del canvas 3D mediante el canal nativo `snapshot`. `PhotoAlbum` guarda imágenes y un índice separados de partida y compras; límite de 24 fotos, temporales y sustitución del índice. No solicita cámara ni lee la fototeca, y no sube imágenes. Desde el detalle, tras la puerta adulta, `PhotoGallery` copia el PNG al carrete por el canal `my_poodle/photos`: iOS con permiso de solo añadir (`NSPhotoLibraryAddUsageDescription`), Android 10+ con MediaStore en `Pictures/My Poodle` sin permiso, y Android 7–9 con `WRITE_EXTERNAL_STORAGE` limitado a `maxSdkVersion=28`. Denegar o fallar no altera el álbum privado. Ver [TestFlight](TESTFLIGHT.md) para el build verificable y [Idiomas](IDIOMAS.md).
 
 ## Compras pendientes iOS y herramienta interna de reembolso
 

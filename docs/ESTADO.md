@@ -1,5 +1,14 @@
 # Estado de la implementación
 
+## Fotos al carrete del móvil · 20-11-2026 · implementado, sin probar en dispositivo
+
+- Tarea: copiar una foto del álbum privado al carrete de iOS y Android. Rama `feature/photo-mode-camera-roll` sobre main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas.
+- El detalle de la foto muestra «Guardar en el carrete» solo en Android/iOS. Pasa por la puerta adulta antes de pedir el permiso del sistema; cancelar no llama al canal. El álbum privado no cambia: la foto se copia, no se mueve.
+- Canal propio `my_poodle/photos` (`saveToGallery`, bytes PNG + nombre `MyPoodle-<id>`). iOS: `PHPhotoLibrary` con autorización `.addOnly` y `NSPhotoLibraryAddUsageDescription` en los 11 `InfoPlist.strings`. Android 10+: MediaStore en `Pictures/My Poodle` con `IS_PENDING`, sin permiso; Android 7–9: `WRITE_EXTERNAL_STORAGE` con `maxSdkVersion=28` y petición en tiempo de ejecución. No se lee la galería.
+- Mensajes de guardado, permiso denegado y fallo en 11 × 567 mensajes; el aviso del modo foto ya no dice «solo dentro de esta app».
+- Pruebas: `test/ui/photo_gallery_export_test.dart` (puerta, argumentos del canal, denegado, fallo con reintento y traducción de respuestas). `flutter analyze` limpio, validadores de idiomas y contenido correctos, **232/232 pruebas** tras rebasar sobre main. `flutter build apk --debug` y `flutter build ios --no-codesign --debug` con `POODLE_LIVE_3D=true` correctos.
+- Pendiente en dispositivo: guardar en iPhone y en Android (10+ y, si hay uno, 7–9), aceptar y denegar el permiso y ver la foto en Fotos/Galería. Revisión lingüística humana de los textos nuevos.
+
 ## Pruebas rápidas avanzadas de compra · 20-11-2026 · sesión finalizada con casos abiertos
 
 - Se ejecutan 36 regresiones de compras existentes: correctas. Se prepara el iPhone con la cuenta Sandbox existente; no se reciben credenciales ni se borra historial. Copias originales de los dos archivos locales del derecho verificadas, en ubicación privada fuera de Git. Solo se vacía la caché primaria de compra, sin tocar partida ni fotos. Reinicio explícito del Bundle ID correcto deja visible el botón de compra.

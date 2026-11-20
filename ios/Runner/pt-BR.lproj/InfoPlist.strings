@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Meu Poodle";
 "CFBundleName" = "Meu Poodle";
+"NSPhotoLibraryAddUsageDescription" = "Para salvar na sua fototeca as fotos do seu poodle que você escolher.";
