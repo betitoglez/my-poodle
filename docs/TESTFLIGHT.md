@@ -7,11 +7,13 @@
 ## Identidad y situación de Apple · 20-11-2026
 
 - Team `79KBLB95KX`, Bundle ID `com.betitoglez.mypoodle`, Apple ID app `6836995483`, SKU `mypoodle-ios`; ficha creada e inglés principal.
-- Producto **no consumible** `mypoodle.full_version`, Apple ID `6837002992`, creado. 11 nombres/descripciones de idioma guardados; precio real aún sin guardar por confirmación pendiente del propietario.
-- «Mi Caniche» se conserva dentro de la app y bajo el icono. Apple rechaza ese nombre exacto de ficha por estar ocupado; variante pendiente de elección.
-- PR #5 de compras integrada en main (`f08fb2d`), 193 pruebas y Codex sin incidencias. IPA 0.5.0 (32) exportada manualmente y firma estricta verificada; la candidata 0.5.0 (33) añade las correcciones de la revisión #6. Subida bloqueada por Mac bloqueado y ausencia de sesión en Xcode. Compra iPhone Sandbox, subida/procesamiento y aceptación física todavía sin acreditar.
+- Producto **no consumible** `mypoodle.full_version`, Apple ID `6837002992`, creado. 11 nombres/descripciones de idioma guardados; precio base real de **1,99 € autorizado expresamente por el propietario**, todavía pendiente de guardar en Apple con España (EUR) como territorio base.
+- «Mi Caniche» se conserva dentro de la app y bajo el icono. Apple rechaza ese nombre exacto de ficha por estar ocupado; el propietario ha elegido **Mi Caniche: mascota virtual** para la ficha española. Los títulos de ficha deben traducirse en las 11 variantes; ver [IDIOMAS](IDIOMAS.md).
+- PR #5 de compras integrada en main (`f08fb2d`), 193 pruebas y Codex sin incidencias. PR #6 fusionada en main (`bbdee915`) tras corregir los tres P2 y recibir una segunda revisión de Codex sin incidencias sobre `793f62a`. Candidata **0.5.0 (33)** exportada, firma estricta, 3D y 11 catálogos/nombres nativos verificados; 221 pruebas correctas. La sesión de Xcode reconoce cuenta y equipo; la subida se inició desde Organizer sobre el Archive correcto. El Mac volvió a bloquearse durante la respuesta de Apple y la sesión web de App Store Connect caducó. ContentDelivery confirma **subida correcta sin errores y con una advertencia** a las 08:16:41 del 20-11-2026. Procesamiento en TestFlight, distribución y compra Sandbox aún sin acreditar.
 
 El grupo interno **MVP Sandbox** está preparado con selección manual de builds; no tiene una build distribuida. El perfil **My Poodle App Store 20261120** está creado para el App ID y coincide con el certificado de distribución disponible. La cuenta en el navegador no inicia automáticamente una sesión de Xcode.
+
+La IPA (33) tiene SHA-256 `9ec48847bc4cdfa70767fd23e9780ba6c5e823692fb97947eac0a4b2abd33073`. El árbol de la candidata revisada coincide con main fusionado; las actualizaciones de documentación o metadatos de tienda no requieren recompilarla. El aviso de Apple 90725 sobre el SDK exigido a partir de abril de 2027 es una advertencia futura. La transferencia correcta se acredita por «UPLOAD SUCCEEDED with no errors, 1 warning» en ContentDelivery; no acredita procesamiento.
 
 ## Generación y comprobación
 

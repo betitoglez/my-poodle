@@ -1,5 +1,12 @@
 # Estado de la implementación
 
+## Títulos localizados y subida de beta · 20-11-2026
+
+- El propietario exige el título traducido también en la ficha de tienda de las 11 variantes. Los nombres dentro de la app y bajo el icono ya están empaquetados. Elige **Mi Caniche: mascota virtual** para la ficha española y autoriza expresamente el precio base real de **1,99 €**. El precio todavía no está guardado en Apple. Francés requiere **Mon Caniche : animal virtuel** por colisión del nombre corto; verificar persistencia remota tras renovar sesión.
+- PR #6 fusionada en main `bbdee915` tras segunda revisión de Codex sin incidencias sobre `793f62a`, con tres hilos anteriores resueltos. **221 pruebas** correctas y prueba nativa de foto en las dos poses. IPA **0.5.0 (33)** firmada y verificada; SHA-256 `9ec48847bc4cdfa70767fd23e9780ba6c5e823692fb97947eac0a4b2abd33073`. El árbol de código de main coincide con el revisado y empaquetado.
+- El propietario desbloqueó el Mac e inició sesión en Xcode. Organizer reconoce la cuenta/equipo y se abrió explícitamente el Archive correcto (33); no se recompiló el workspace antiguo abierto en Xcode. Se inició distribución **TestFlight Internal Only** y se observó la espera de respuesta de análisis de App Store Connect. El Mac se volvió a bloquear antes de comprobar el resultado final. La sesión web caducó; se solicita renovarla para títulos/precio.
+- El registro ContentDelivery del Archive (33) confirma **UPLOAD SUCCEEDED with no errors, 1 warning** a las 08:16:41 (hora local). Organizer indica «Upload completed with warnings»: el aviso 90725 trata del requisito de SDK que empieza en abril de 2027. La transferencia queda acreditada por ese registro; procesamiento en TestFlight, grupo con build distribuida, instalación y compra Sandbox continúan sin acreditar. Última versión física confirmada: **0.4.13 (31)**.
+
 ## Revisión de la candidata 0.5.0 (33) · 20-11-2026
 
 - Codex #6 detectó tres P2: giro de foto expresado en radianes frente a píxeles, etiquetas sin traducir al comprar varios artículos y colisión entre colas de escritura de dos pantallas del álbum. Corregidos: giro visible por toque, traducción individual y cola compartida por backend mediante referencias débiles.
