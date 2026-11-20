@@ -2,7 +2,7 @@
 
 Rama `codex/minijuegos-parejas-memory`, base inicial `0baabdd`, main integrado `ed77192`, Flutter 3.50.0 / Dart 3.14.0. [Resultados](results.json).
 
-- Análisis sin incidencias; **310 pruebas correctas** (24 nuevas de reglas, simulación y recorridos de los tableros).
+- Análisis sin incidencias; **312 pruebas correctas** (26 nuevas de reglas, simulación y recorridos de los tableros).
 - Contenido y catálogos completos: 11 idiomas × 671 mensajes; ocho retratos nuevos y cuatro notas locales.
 - Compilación web Release correcta con `POODLE_LIVE_3D=true`; sin nuevas dependencias.
 - Comprobados premios exactos, rangos de puntuación, pago idempotente, guardados antiguos, historial tras reinicio/abandono, descarte de colisiones, inicio fallido/concurrente, acceso gratuito/completo, pausa/segundo plano, límite de diez segundos por turno completo y juego sin sonido.
@@ -25,3 +25,7 @@ Aceptación física de los dos juegos y nueva distribución TestFlight pendiente
 ## Actualización con main
 
 Merge de `ed77192` (PR #14 y #15), conservando el commit original de los minijuegos `f3b87c7`. Se combinan traducciones, guardados, semilla por sesión y frutas doradas; la nueva decoración y las estrellas conviven con el historial de Parejas/Memory. Retos de estrellas de Parejas: 4/6/8 parejas; de Memory: 3/6/10 pasos. Dos regresiones adicionales verifican estrellas/premios y guardado simultáneo de decoración, estrellas e historial. La prueba de tarjetas recorre los cuatro juegos mediante desplazamiento.
+
+## Corrección de accesibilidad · PR #16
+
+Codex detectó que `excludeSemantics` ocultaba la acción del `InkWell` en cartas y pulsadores. Los dos controles comparten ahora una acción guardada entre la semántica y el toque, exponen su estado habilitado y vuelven a comprobar pausa/finalización al ejecutar una acción encolada. Dos pruebas reproducían el fallo antes del cambio y verifican Parejas hasta su premio y una ronda de Memory mediante acciones del lector de pantalla, con bloqueo durante pausa/muestra. Análisis limpio, 312 pruebas, validadores y web Release correctos. El resultado de la revisión remota se registra en [PR #16](https://github.com/betitoglez/my-poodle/pull/16).

@@ -717,3 +717,8 @@ Inicio de implementación en `codex/minijuegos-parejas-memory`, desde main `0baa
 ## Sincronización de minijuegos con main · 20-11-2026
 
 Integración de main remoto `ed77192` (PR #14 exportación de fotos al carrete y PR #15 variedad, estrellas, decoración, guía y celebraciones) en `codex/minijuegos-parejas-memory`, conservando el commit original `f3b87c7`. Conflictos de traducciones y guardado combinados sin perder campos. `GameSession` conserva semilla por sesión y frutas doradas, y Parejas/Memory se integran en las estrellas y sus retos. Verificación de la combinación: análisis limpio, **310 pruebas correctas**, contenido válido (12 artículos de decoración y 73 imágenes), 11 × 671 traducciones validadas y build web Release con `POODLE_LIVE_3D=true`. Aceptación física pendiente.
+
+
+## Revisión de PR #16: controles accesibles · 20-11-2026
+
+Corregido P2 de Codex sobre `ff2073c`: las cartas de Parejas y los pulsadores de Memory carecían de acción para VoiceOver/TalkBack. Ahora `LSemantics` e `InkWell` comparten la misma acción con comprobación dinámica de pausa/finalización y estado habilitado. Dos regresiones reproducen el fallo original y completan interacciones mediante acciones semánticas. **312 pruebas correctas**, análisis limpio, validadores correctos y web Release con POODLE_LIVE_3D=true. Comprobación de revisión remota y head en PR #16; prueba física con los lectores de pantalla y nueva beta pendientes.
