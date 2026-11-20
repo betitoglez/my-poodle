@@ -3,6 +3,7 @@ import 'balance.dart';
 import 'care_options.dart';
 import 'entitlements.dart';
 import 'food.dart';
+import 'games/puzzle_deals.dart';
 import 'needs_clock.dart';
 import 'pet_state.dart';
 
@@ -23,7 +24,7 @@ enum PetCondition {
   final Need? need;
 }
 
-enum GameId { fruit, frisbee }
+enum GameId { fruit, frisbee, pairs, memory }
 
 /// Recibo de una operación confirmada. El mismo opId devuelve el mismo recibo.
 class Receipt {
@@ -163,7 +164,7 @@ class Rules {
   static const premiumTrialWindow = 24 * 60 * 60;
 
   int premiumTrialRemaining(PetState s, GameId game, int nowUtc) {
-    if (gameTier(game) != Tier.full) return 0;
+    if (!offersGameTrial(game)) return 0;
     final last = s.premiumTrialStartedUtc[game.name];
     if (last == null) return 0;
     final remaining = premiumTrialWindow - (nowUtc - last);
@@ -176,16 +177,34 @@ class Rules {
     int nowUtc, {
     required GameId game,
     bool fullVersion = false,
+    int pairs = 4,
   }) {
     final before = clock.advance(s, nowUtc);
     final blocked = gameBlocked(before, nowUtc);
     if (blocked != null) throw RuleException(blocked);
-    final trial = gameTier(game) == Tier.full && !fullVersion;
+    if (game == GameId.memory && !fullVersion) {
+      throw RuleException('Memory necesita la versión completa.');
+    }
+    final trial = offersGameTrial(game) && !fullVersion;
     if (trial && premiumTrialRemaining(before, game, nowUtc) > 0) {
       throw RuleException('La prueba gratuita se renueva cada 24 horas.');
     }
+    final deals = before.puzzleDeals;
+    final key = game == GameId.pairs ? PuzzleDeals.pairsKey(pairs) : 'memory';
+    final used = deals[key] ?? const <String>[];
+    final signature = switch (game) {
+      GameId.pairs => PuzzleDeals.pairs(pairs, used),
+      GameId.memory => PuzzleDeals.memory(used),
+      _ => null,
+    };
     return _commit(
       before.copyWith(
+        puzzleDeals: signature == null
+            ? deals
+            : {
+                ...deals,
+                key: [...used, signature],
+              },
         wake: true,
         gameStartedUtc: [
           ...before.gameStartedUtc.where((t) => nowUtc - t < activityWindow),
@@ -259,6 +278,30 @@ class Rules {
     return r.baseCoins + r.coinsPerPoint * catches;
   }
 
+  int pairsCoins(int score) => switch (score) {
+    0 => 0,
+    4 => 5,
+    6 => 15,
+    8 => 25,
+    _ => throw RuleException('Parejas fuera de rango: $score'),
+  };
+
+  int memoryCoins(int score) {
+    if (score != 0 && (score < 3 || score > 10)) {
+      throw RuleException('Memory fuera de rango: $score');
+    }
+    return score == 0 ? 0 : (score - 2) * 5;
+  }
+
+  int gameBest(PetState s, GameId game) => switch (game) {
+    GameId.fruit => s.bestFruit,
+    GameId.frisbee => s.bestFrisbee,
+    GameId.pairs => s.bestPairs,
+    GameId.memory => s.bestMemory,
+  };
+
+  bool offersGameTrial(GameId game) => game == GameId.fruit;
+
   /// Minijuego terminado: monedas + ánimo/energía + récord.
   Receipt finishGame(
     PetState s,
@@ -270,9 +313,11 @@ class Rules {
     final coins = switch (game) {
       GameId.fruit => fruitCoins(score),
       GameId.frisbee => frisbeeCoins(score),
+      GameId.pairs => pairsCoins(score),
+      GameId.memory => memoryCoins(score),
     };
     final before = clock.advance(s, nowUtc);
-    final best = game == GameId.fruit ? before.bestFruit : before.bestFrisbee;
+    final best = gameBest(before, game);
     final newBest = score > best;
     final after = _commit(
       before.copyWith(
@@ -280,6 +325,8 @@ class Rules {
         coins: before.coins + coins,
         bestFruit: game == GameId.fruit && newBest ? score : null,
         bestFrisbee: game == GameId.frisbee && newBest ? score : null,
+        bestPairs: game == GameId.pairs && newBest ? score : null,
+        bestMemory: game == GameId.memory && newBest ? score : null,
       ),
       opId,
     );
@@ -297,6 +344,8 @@ class Rules {
   Tier gameTier(GameId game) => switch (game) {
     GameId.fruit => balance.fruit.tier,
     GameId.frisbee => balance.frisbee.tier,
+    GameId.pairs => Tier.free,
+    GameId.memory => Tier.full,
   };
 
   /// Artículos de [target] que no se poseen y exigen la versión completa.

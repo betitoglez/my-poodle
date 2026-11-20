@@ -43,6 +43,9 @@ class SaveCodec {
     'appearance': s.appearance.toJson(),
     'bestFruit': s.bestFruit,
     'bestFrisbee': s.bestFrisbee,
+    'bestPairs': s.bestPairs,
+    'bestMemory': s.bestMemory,
+    'puzzleDeals': s.puzzleDeals,
     'muted': s.prefs.muted,
     'music': s.prefs.music,
     'effects': s.prefs.effects,
@@ -129,6 +132,11 @@ class SaveCodec {
         trialTimes.values.any((v) => v is! int || v < 0)) {
       throw SaveFormatException('Pruebas premium inválidas');
     }
+    final deals = j['puzzleDeals'] ?? <String, dynamic>{};
+    if (deals is! Map<String, dynamic> ||
+        deals.values.any((v) => v is! List || v.any((e) => e is! String))) {
+      throw SaveFormatException('Repartos inválidos');
+    }
     final restStart = j['restingSinceUtc'];
     final restCursor = j['restEnergyCursorUtc'];
     if (careTimes is! Map<String, dynamic> ||
@@ -163,6 +171,12 @@ class SaveCodec {
       appearance: appearance,
       bestFruit: (j['bestFruit'] as int?) ?? 0,
       bestFrisbee: (j['bestFrisbee'] as int?) ?? 0,
+      bestPairs: (j['bestPairs'] as int?) ?? 0,
+      bestMemory: (j['bestMemory'] as int?) ?? 0,
+      puzzleDeals: Map.unmodifiable({
+        for (final e in deals.entries)
+          e.key: List<String>.unmodifiable((e.value as List).cast<String>()),
+      }),
       prefs: Preferences(
         language: j['language'] is String ? j['language'] as String : null,
         music: optBool('music', !muted),

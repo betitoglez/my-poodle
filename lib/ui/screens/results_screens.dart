@@ -273,8 +273,12 @@ class GameResultScreen extends StatefulWidget {
     super.key,
     required this.game,
     required this.receipt,
+    this.maxScore,
+    this.message,
   });
   final GameId game;
+  final int? maxScore;
+  final String? message;
   final Receipt receipt;
   @override
   State<GameResultScreen> createState() => _GameResultScreenState();
@@ -291,23 +295,28 @@ class _GameResultScreenState extends State<GameResultScreen> {
     final r = widget.receipt;
     final balance = AppScope.read(context).balance;
     final def = GameCatalog.of(widget.game, balance);
-    final max = widget.game == GameId.fruit
-        ? balance.fruit.maxScore
-        : balance.frisbee.targetsField.length;
+    final max =
+        widget.maxScore ??
+        switch (widget.game) {
+          GameId.fruit => balance.fruit.maxScore,
+          GameId.frisbee => balance.frisbee.targetsField.length,
+          GameId.pairs => 8,
+          GameId.memory => 10,
+        };
     return _ResultLayout(
       room: RoomKind.living,
       kicker: def.title,
-      title: _title,
+      title: widget.message ?? _title,
       body: Column(
         children: [
           Row(
             children: [
-              Icon(
-                widget.game == GameId.fruit
-                    ? Icons.apple_rounded
-                    : Icons.album_rounded,
-                color: AppColors.coral,
-              ),
+              Icon(switch (widget.game) {
+                GameId.fruit => Icons.apple_rounded,
+                GameId.frisbee => Icons.album_rounded,
+                GameId.pairs => Icons.grid_view_rounded,
+                GameId.memory => Icons.repeat_rounded,
+              }, color: AppColors.coral),
               const SizedBox(width: AppSpace.s),
               Expanded(
                 child: LText(

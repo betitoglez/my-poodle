@@ -104,14 +104,15 @@ class AppController extends ChangeNotifier {
   /// Derecho confirmado (o el de la demostración).
   bool get fullVersion => purchases.full;
   bool canAccess(Tier tier) => purchases.canAccess(tier);
-  bool isGameTrial(GameId game) =>
-      !fullVersion && rules.gameTier(game) == Tier.full;
+  bool isGameTrial(GameId game) => !fullVersion && rules.offersGameTrial(game);
   int trialRemaining(GameId game) => _confirmed == null
       ? 0
       : rules.premiumTrialRemaining(pet, game, clock.nowUtcSeconds());
   bool canPlay(GameId game) =>
       canAccess(rules.gameTier(game)) ||
-      (_confirmed != null && trialRemaining(game) == 0);
+      (_confirmed != null &&
+          rules.offersGameTrial(game) &&
+          trialRemaining(game) == 0);
   String? trialLabel(GameId game) {
     if (!isGameTrial(game)) return null;
     final seconds = trialRemaining(game);
@@ -316,7 +317,7 @@ class AppController extends ChangeNotifier {
 
   /// Guarda el inicio y el cupo premium en una sola escritura antes de jugar.
   /// Un fallo no consume la prueba; abandonar una sesión iniciada sí.
-  Future<String?> beginGame(GameId game) => _serial(() async {
+  Future<String?> beginGame(GameId game, {int pairs = 4}) => _serial(() async {
     if (!canPlay(game) || gameBlocked != null || hasPending || saving) {
       return null;
     }
@@ -327,6 +328,7 @@ class AppController extends ChangeNotifier {
       clock.nowUtcSeconds(),
       game: game,
       fullVersion: fullVersion,
+      pairs: pairs,
     );
     saving = true;
     notifyListeners();

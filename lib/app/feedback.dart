@@ -41,12 +41,17 @@ enum Sfx {
   sleepBreath('sleep_breath', .8),
   pant('pant', .85),
   parkAmbience('park_ambience', .64),
-  fountain('fountain', .85);
+  fountain('fountain', .85),
+  memoryRed('memory_red', .8, 'wav'),
+  memoryBlue('memory_blue', .8, 'wav'),
+  memoryGreen('memory_green', .8, 'wav'),
+  memoryYellow('memory_yellow', .8, 'wav');
 
-  const Sfx(this.file, this.volume);
+  const Sfx(this.file, this.volume, [this.extension = 'mp3']);
   final String file;
   final double volume;
-  String get asset => 'audio/sfx/$file.mp3';
+  final String extension;
+  String get asset => 'audio/sfx/$file.$extension';
 }
 
 abstract interface class EffectPlayback {

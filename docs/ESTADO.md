@@ -685,3 +685,8 @@ Las [cinco poses de revisión](reviews/vestuario-articulado/cinco-poses.png) mue
 | `./gradlew :app:validateSigningRelease` | Correcto con la clave de subida local; no se ha generado AAB |
 
 Implementado y probado de forma automatizada; no probado en dispositivo.
+
+
+## Parejas y Memory · 20-11-2026
+
+Inicio de implementación en `codex/minijuegos-parejas-memory`, desde main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; dependencias conservadas. Parejas gratuito con 4/6/8 parejas, 60 segundos, cinco fallos y premios 5/15/25. Memory exclusivo de versión completa, cuatro señales, secuencias de 3 a 10 y premios totales 5 a 40; diez segundos por turno. Repartos aleatorios reservados con el inicio y persistidos para no repetir partidas. Verificación final: `flutter analyze` limpio, validadores de contenido/localizaciones correctos (11 × 605), **249 pruebas** y build web Release con `POODLE_LIVE_3D=true` correctos. Ocho fotos y cuatro notas nuevas empaquetadas. [Evidencia y capturas](reviews/minigames/README.md). Aceptación física y nueva beta pendientes.

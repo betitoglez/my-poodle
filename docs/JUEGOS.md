@@ -2,7 +2,7 @@
 
 ## Acceso y próximos juegos · 19-11-2026
 
-Los minijuegos de tier full ofrecen una partida gratuita por juego cada 24 h a jugadores sin la compra. Guardar la reserva junto al inicio confirmado; no consumir en instrucciones ni por un fallo de escritura. Abandonar sí consume. La compra completa quita este cupo, manteniendo las restricciones generales de energía/descanso. Nuevos candidatos: memory de parejas, secuencias tipo Simón con perritos y laberinto. Reglas, premios, tier y entrada exacta en el MVP/beta por definir.
+Huerto ofrece una partida gratuita cada 24 h a jugadores sin la compra. Guardar la reserva junto al inicio confirmado; no consumir en instrucciones ni por un fallo de escritura. Abandonar sí consume. Memory de caniches requiere la versión completa sin prueba diaria, por decisión explícita del propietario del 20-11-2026. Parejas y Frisbee son gratuitos. Todos conservan los límites generales de energía y tres inicios por cinco minutos. Laberinto continúa por definir.
 
 
 ## Contrato común
@@ -47,3 +47,36 @@ Estados Apuntar → Vuelo → Atrapa/Recoge → Devuelve → Apuntar o Terminado
 2. Crear un GameDefinition (con `tier`), miniatura y explicación de un gesto. Registrar una factory por clave en GameRegistry, la definición en el catálogo y sus recursos en pubspec.yaml.
 3. Añadir al dominio límites y fórmula de recompensa, un caso mínimo, uno máximo y un evento duplicado. Rechazar métricas inválidas.
 4. Probar cancelación, pausa, modo avión, estilo equipado y resultado tras reinicio. Probar también la tarjeta con candado sin versión completa. La tarjeta debe aparecer sin modificar la pantalla de casa ni la tienda.
+
+
+## Juego de parejas · 20-11-2026
+
+Gratuito. Antes de iniciar se elige nivel:
+
+| Parejas | Cartas | Premio al completar |
+|---|---|---|
+| 4 | 8 | 5 monedas |
+| 6 | 12 | 15 monedas |
+| 8 | 16 | 25 monedas |
+
+60 segundos activos y cinco fallos permitidos. Cada error consume un intento; acertar o tocar de nuevo la misma carta no consume. Solo se descubren dos cartas a la vez. Un fallo deja ver ambas durante 0,85 s antes de ocultarlas, salvo al terminar. El premio exige completar el tablero; al agotar tiempo o intentos se obtiene cero. Las cartas acertadas permanecen visibles.
+
+Los niveles 4 y 6 seleccionan al azar caniches entre ocho retratos distintos. El nivel 8 usa los ocho. Se barajan todas las posiciones y se rechazan tableros ya jugados en ese nivel. El historial se guarda con el inicio confirmado y se mantiene al abandonar o reiniciar. Un fallo de guardado no reserva el tablero. Sin cargo de monedas al iniciar.
+
+## Memory de caniches · 20-11-2026
+
+Solo versión completa, sin prueba de 24 h. Cuatro controles mantienen asociación fija de color, forma, foto y nota para poder aprenderla. El juego reproduce una secuencia aleatoria y el jugador la repite; empieza con tres pasos y añade uno en cada ronda hasta diez. Los valores de la secuencia pueden repetirse (regla de Simón); las pausas separan señales iguales. Los controles no admiten respuestas durante la muestra.
+
+| Pasos completados | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|
+| Premio total | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 |
+
+El límite es de diez segundos activos **para repetir la secuencia completa del turno**. Un toque correcto no reinicia el contador; la ronda siguiente recibe otros diez segundos. El contador no corre mientras se muestra la secuencia. Un error o tiempo agotado termina y entrega el premio de la última ronda completada; antes de completar tres pasos, cero. No se suman los premios intermedios: se paga una sola vez al acabar. Abandonar cancela sin premio.
+
+Se elige al azar la secuencia completa de diez señales entre 4^10 posibilidades; se rechazan secuencias completas usadas anteriormente en la instalación. Los prefijos cortos pueden coincidir. Se reserva y guarda al iniciar, con la misma atomicidad que Parejas. Fotos, formas y luces permiten jugar con Efectos desactivados.
+
+## Implementación y verificación de tableros
+
+Dominio Dart puro: `PairsSim`, `MemorySim`, `PuzzleDeals` y validación de premios en `Rules`. Flutter representa los tableros, con reloj `PuzzleGame` en Flame y el `ActivityFrame` existente para pausa, segundo plano, continuación y abandono. Las imágenes se precargan antes de iniciar cronómetros. `GameSession` comparte confirmación de premio idempotente y recuperación de errores de guardado con Huerto/Frisbee. Los campos opcionales `bestPairs`, `bestMemory` y `puzzleDeals` conservan el esquema v1 y permiten leer partidas anteriores.
+
+[Recursos y prompts](arte/minigames/FUENTES.md) · [Capturas y comprobaciones](reviews/minigames/README.md). No incluido aún en TestFlight; aceptación física pendiente.

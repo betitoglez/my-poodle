@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:my_poodle/domain/appearance.dart';
 import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/entitlements.dart';
+import 'package:my_poodle/domain/games/puzzle_deals.dart';
 
 const requiredLayers = {
   'shadow',
@@ -36,6 +37,7 @@ const slotSections = {
   Slot.paws: 'paws',
 };
 final assets = [
+  for (final dog in PuzzleDeals.poodles) 'assets/images/poodles/$dog.png',
   'assets/images/cards/kitchen.jpg',
   'assets/images/cards/bath.jpg',
   'assets/images/cards/walk.jpg',
@@ -236,6 +238,10 @@ void main() {
         errors.add('pet-sprites: la variante $id usa «$of», que no tiene capa');
       }
     });
+  }
+  for (final color in ['red', 'blue', 'green', 'yellow']) {
+    final path = 'assets/audio/sfx/memory_$color.wav';
+    if (!File(path).existsSync()) errors.add('Falta $path');
   }
   for (final a in assets) {
     if (!File(a).existsSync()) errors.add('recurso ausente: $a');

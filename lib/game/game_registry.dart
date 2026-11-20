@@ -54,13 +54,41 @@ abstract final class GameCatalog {
     rewardLabel: '3 monedas + 3 por captura',
   );
 
+  static const pairs = GameDefinition(
+    id: GameId.pairs,
+    title: 'Juego de parejas',
+    thumbnail: 'assets/images/poodles/parti.png',
+    tagline: 'Encuentra los caniches iguales.',
+    objective: 'Encuentra todas las parejas antes de agotar el tiempo o los 5 intentos. Solo los fallos gastan intentos.',
+    gesture: 'Toca dos cartas para descubrir sus caniches.',
+    limitLabel: '60 segundos · 5 intentos',
+    scoreLabel: 'parejas',
+    rewardLabel: '4 parejas: 5 monedas · 6: 15 · 8: 25',
+  );
+
+  static const memory = GameDefinition(
+    id: GameId.memory,
+    title: 'Memory de caniches',
+    thumbnail: 'assets/images/poodles/apricot.png',
+    tagline: 'Recuerda los colores y sus sonidos.',
+    objective: 'Repite la secuencia de 3 a 10 pasos. Al fallar o agotar el tiempo cobras el premio de la última ronda completada.',
+    gesture: 'Mira y escucha; después toca los caniches en el mismo orden.',
+    limitLabel: '10 segundos por turno',
+    scoreLabel: 'pasos',
+    rewardLabel: 'De 5 a 40 monedas: +5 por ronda completada',
+  );
+
   static List<GameDefinition> all(Balance balance) => [
     fruit(balance.fruit),
     frisbee,
+    pairs,
+    memory,
   ];
 
   static GameDefinition of(GameId id, Balance balance) => switch (id) {
     GameId.fruit => fruit(balance.fruit),
     GameId.frisbee => frisbee,
+    GameId.pairs => pairs,
+    GameId.memory => memory,
   };
 }

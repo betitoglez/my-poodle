@@ -14,6 +14,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import 'main_shell.dart';
 import 'minigame_screens.dart';
+import 'puzzle_screens.dart';
 
 /// P10 · Selección de juegos: tarjetas leídas de [GameCatalog].
 class GamesScreen extends StatelessWidget {
@@ -49,9 +50,7 @@ class GamesScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: AppSpace.m),
                     child: _GameCard(
                       def: def,
-                      best: def.id == GameId.fruit
-                          ? c.pet.bestFruit
-                          : c.pet.bestFrisbee,
+                      best: c.rules.gameBest(c.pet, def.id),
                       locked: !c.canPlay(def.id),
                       trial: c.isGameTrial(def.id),
                       trialLabel: c.trialLabel(def.id),
@@ -169,9 +168,16 @@ class _GameCard extends StatelessWidget {
 }
 
 /// P11 · Instrucciones: demostración del gesto, objetivo, límite, Jugar/Volver.
-class InstructionsScreen extends StatelessWidget {
+class InstructionsScreen extends StatefulWidget {
   const InstructionsScreen({super.key, required this.game});
   final GameId game;
+  @override
+  State<InstructionsScreen> createState() => _InstructionsScreenState();
+}
+
+class _InstructionsScreenState extends State<InstructionsScreen> {
+  int _pairs = 4;
+  GameId get game => widget.game;
 
   @override
   Widget build(BuildContext context) {
@@ -204,19 +210,20 @@ class InstructionsScreen extends StatelessWidget {
                       children: [
                         Image.asset(def.thumbnail, fit: BoxFit.cover),
                         Container(color: const Color(0x3334283B)),
-                        _GestureDemo(
-                          drag: game == GameId.frisbee,
-                          reducedMotion: reduced,
-                        ),
+                        if (game == GameId.fruit || game == GameId.frisbee)
+                          _GestureDemo(
+                            drag: game == GameId.frisbee,
+                            reducedMotion: reduced,
+                          ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSpace.l),
                 _Line(
-                  icon: game == GameId.fruit
-                      ? Icons.touch_app_rounded
-                      : Icons.swipe_up_rounded,
+                  icon: game == GameId.frisbee
+                      ? Icons.swipe_up_rounded
+                      : Icons.touch_app_rounded,
                   text: def.gesture,
                 ),
                 _Line(icon: Icons.flag_rounded, text: def.objective),
@@ -234,6 +241,31 @@ class InstructionsScreen extends StatelessWidget {
                   text:
                       'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
                 ),
+                if (game == GameId.pairs) ...[
+                  const SizedBox(height: AppSpace.m),
+                  const LText('Elige un nivel', style: AppText.subtitle),
+                  const SizedBox(height: AppSpace.s),
+                  Wrap(
+                    spacing: AppSpace.s,
+                    runSpacing: AppSpace.s,
+                    children: [
+                      for (final count in [4, 6, 8])
+                        AppButton(
+                          label: '$count parejas',
+                          icon: _pairs == count
+                              ? Icons.check_circle_rounded
+                              : Icons.grid_view_rounded,
+                          secondary: _pairs != count,
+                          onPressed: () => setState(() => _pairs = count),
+                        ),
+                    ],
+                  ),
+                ],
+                if (game == GameId.memory)
+                  const _Line(
+                    icon: Icons.lock_rounded,
+                    text: 'Solo disponible en la versión completa.',
+                  ),
                 const SizedBox(height: AppSpace.xl),
                 Row(
                   children: [
@@ -253,13 +285,12 @@ class InstructionsScreen extends StatelessWidget {
                         icon: Icons.play_arrow_rounded,
                         big: true,
                         expand: true,
-                        onPressed: () => replaceScreen(
-                          context,
-                          game == GameId.fruit
-                              ? const OrchardScreen()
-                              : const FrisbeeScreen(),
-                          music: MusicTrack.games,
-                        ),
+                        onPressed: () => replaceScreen(context, switch (game) {
+                          GameId.fruit => const OrchardScreen(),
+                          GameId.frisbee => const FrisbeeScreen(),
+                          GameId.pairs => PairsScreen(pairs: _pairs),
+                          GameId.memory => const MemoryScreen(),
+                        }, music: MusicTrack.games),
                       ),
                     ),
                   ],

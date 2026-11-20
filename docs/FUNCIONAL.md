@@ -123,3 +123,8 @@ Las monedas se ganan completando los minijuegos (con la versión gratuita, el fr
 El armario empieza con los artículos iniciales en propiedad. Elegir una categoría y una ficha actualiza la previsualización en una copia del aspecto. «Comprar y usar» muestra coste y saldo restante. Confirmar valida saldo, propiedad y ranura y guarda en una operación. «Usar» sobre un artículo en propiedad cuesta cero. Volver o cancelar restaura el aspecto anterior. Se pueden combinar todas las ranuras. Reemplazar una ranura conserva las demás. Si faltan monedas, mostrar la diferencia exacta y un acceso a Juegos. Un artículo de la versión completa sin la compra se puede probar en la vista previa, pero muestra el candado en lugar de «Comprar y usar». Reabrir el armario conserva la propiedad de artículos desequipados.
 
 **Ejemplo reproducible.** Adoptar a Miel, terminar un frisbee con tres aciertos (12 monedas), comprar el pañuelo (quedan 2), equipar cuello libre y volver a equipar el pañuelo (siguen quedando 2). Un nuevo dispositivo comienza por Adopción.
+
+
+## Parejas y Memory · ampliación del 20-11-2026
+
+Parejas es gratuito, con tres niveles de 4/6/8 parejas, 60 segundos y cinco fallos permitidos; completar da 5/15/25 monedas. Memory requiere versión completa y no ofrece prueba diaria: cuatro colores/fotos/notas, secuencia inicial de tres pasos y máximo de diez, diez segundos para repetir la secuencia completa del turno y premio total de 5 a 40 (+5 por ronda completada). Al equivocarse o agotar tiempo se recibe el premio de la última ronda completada. Abandonar no paga. Los dos juegos reservan repartos aleatorios sin repetirlos tras reiniciar y conservan los límites generales de energía y descanso. [Reglas completas](JUEGOS.md#juego-de-parejas--20-11-2026).

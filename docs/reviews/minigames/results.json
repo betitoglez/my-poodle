@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-20",
+  "branch": "codex/minijuegos-parejas-memory",
+  "base": "0baabdddd9eada7db59340f0bdd4217ce44ce53c",
+  "flutter": "3.50.0",
+  "dart": "3.14.0",
+  "checks": {
+    "flutter_analyze": "No issues found",
+    "flutter_test": {
+      "passed": 249,
+      "failed": 0,
+      "new_puzzle_tests": 22
+    },
+    "validate_content": {
+      "images": 73,
+      "poodle_portraits": 8,
+      "memory_tones": 4,
+      "status": "passed"
+    },
+    "validate_localizations": {
+      "languages": 11,
+      "messages_per_language": 605,
+      "status": "passed"
+    },
+    "web_release": {
+      "status": "built",
+      "entrypoint": "lib/main.dart",
+      "POODLE_LIVE_3D": true
+    },
+    "git_diff_check": "passed"
+  },
+  "screenshots": [
+    "pairs-6.png",
+    "pairs-8-320.png",
+    "pairs-8-844.png",
+    "memory.png"
+  ],
+  "physical_device_tested": false,
+  "testflight_distributed": false,
+  "notes": [
+    "Five attempts means five mismatches; matching pairs cost no attempts.",
+    "Memory pays a single total prize for the last completed round, 5..40 coins.",
+    "Full ten-step memory sequences never repeat; shorter prefixes can coincide.",
+    "Puzzle deals are stored atomically on successful start, even if abandoned.",
+    "Memory allows ten active seconds for the entire response turn; correct taps do not reset the timer."
+  ]
+}
