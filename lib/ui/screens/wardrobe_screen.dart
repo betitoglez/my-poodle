@@ -22,6 +22,7 @@ import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/live_poodle_view.dart';
+import '../widgets/luxury_badge.dart';
 import '../widgets/scene_view.dart';
 import '../widgets/turn_control.dart';
 import 'main_shell.dart';
@@ -497,67 +498,94 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                 ],
                 const SizedBox(height: AppSpace.s),
                 Expanded(
-                  child: CustomScrollView(
-                    slivers: [
-                      for (final sec in sections) ...[
-                        if (sec.variety != null)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(2, 6, 2, 6),
-                              child: Row(
-                                children: [
-                                  LText(
-                                    c.looks.varietyLabel(sec.variety!),
-                                    style: AppText.subtitle,
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      // Alto de ficha: la proporción habitual, pero nunca
+                      // menos de lo que ocupan miniatura y textos (con letra
+                      // grande y la línea «Te faltan N monedas»).
+                      final scale = MediaQuery.textScalerOf(context);
+                      final tileWidth =
+                          (box.maxWidth - AppSpace.s * (columns - 1)) / columns;
+                      final textHeight =
+                          scale.scale(15) * 1.3 +
+                          scale.scale(13) * 1.3 * 2 +
+                          12;
+                      final tileExtent = math.max(
+                        tileWidth / (l.compact ? 1.35 : 1.1),
+                        textHeight + 40,
+                      );
+                      return CustomScrollView(
+                        slivers: [
+                          for (final sec in sections) ...[
+                            if (sec.variety != null)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    2,
+                                    6,
+                                    2,
+                                    6,
                                   ),
-                                  const SizedBox(width: AppSpace.s),
-                                  const CoinIcon(size: 16),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: LText(
-                                      '${sec.items.first.cost} · todos los colores',
-                                      style: AppText.small,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                  child: Row(
+                                    children: [
+                                      LText(
+                                        c.looks.varietyLabel(sec.variety!),
+                                        style: AppText.subtitle,
+                                      ),
+                                      const SizedBox(width: AppSpace.s),
+                                      const CoinIcon(size: 16),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: LText(
+                                          '${sec.items.first.cost} · todos los colores',
+                                          style: AppText.small,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
+                            SliverGrid(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: columns,
+                                    mainAxisSpacing: AppSpace.s,
+                                    crossAxisSpacing: AppSpace.s,
+                                    mainAxisExtent: tileExtent,
+                                  ),
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                i,
+                              ) {
+                                final it = sec.items[i];
+                                final preview = _selectItem(c, it);
+                                return _ItemTile(
+                                  item: it,
+                                  label: sec.variety != null
+                                      ? (c.looks.colorLabel(it.id) ??
+                                            c.looks.label(it.id))
+                                      : c.looks.label(it.id),
+                                  swatch: c.looks.swatch(it.id),
+                                  zoom: zoom,
+                                  useModelArtwork: showModel,
+                                  look: c.looks.resolve(preview),
+                                  selected: it.id == selectedId,
+                                  owned: pet.owned.contains(it.id),
+                                  locked: c.isLocked(it.id),
+                                  coins: pet.coins,
+                                  equipped: _selected(pet.appearance) == it.id,
+                                  onTap: () => _setPreview(preview),
+                                );
+                              }, childCount: sec.items.length),
                             ),
-                          ),
-                        SliverGrid(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: columns,
-                                mainAxisSpacing: AppSpace.s,
-                                crossAxisSpacing: AppSpace.s,
-                                childAspectRatio: l.compact ? 1.35 : 1.1,
-                              ),
-                          delegate: SliverChildBuilderDelegate((context, i) {
-                            final it = sec.items[i];
-                            final preview = _selectItem(c, it);
-                            return _ItemTile(
-                              item: it,
-                              label: sec.variety != null
-                                  ? (c.looks.colorLabel(it.id) ??
-                                        c.looks.label(it.id))
-                                  : c.looks.label(it.id),
-                              swatch: c.looks.swatch(it.id),
-                              zoom: zoom,
-                              useModelArtwork: showModel,
-                              look: c.looks.resolve(preview),
-                              selected: it.id == selectedId,
-                              owned: pet.owned.contains(it.id),
-                              locked: c.isLocked(it.id),
-                              equipped: _selected(pet.appearance) == it.id,
-                              onTap: () => _setPreview(preview),
-                            );
-                          }, childCount: sec.items.length),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: AppSpace.s),
-                        ),
-                      ],
-                    ],
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: AppSpace.s),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: AppSpace.s),
@@ -693,8 +721,12 @@ class _ItemTile extends StatelessWidget {
     required this.equipped,
     required this.onTap,
     this.locked = false,
+    this.coins,
   });
   final StyleItem item;
+
+  /// Saldo actual: si no alcanza el precio, la ficha dice cuánto falta.
+  final int? coins;
   final String label;
   final Color? swatch;
   final ThumbZoom zoom;
@@ -726,18 +758,39 @@ class _ItemTile extends StatelessWidget {
         : (owned
               ? 'En propiedad'
               : (locked ? 'Versión completa' : '${item.cost} monedas'));
+    final buyable = !equipped && !owned && !locked;
+    final balance = coins;
+    final missing = buyable && balance != null && item.cost > balance
+        ? item.cost - balance
+        : null;
+    final luxury = item.luxury;
     return LSemantics(
       button: true,
       selected: selected,
-      label: '$label. $state',
+      label: tileSemantics(
+        context,
+        label,
+        state,
+        luxury: luxury,
+        missing: missing,
+      ),
       excludeSemantics: true,
+      onTap: onTap,
       child: Material(
-        color: selected ? AppColors.plumSoft : Colors.white,
+        color: selected
+            ? AppColors.plumSoft
+            : luxury
+            ? LuxuryColors.goldSoft
+            : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.m),
           side: BorderSide(
-            color: selected ? AppColors.plum : const Color(0x22000000),
-            width: selected ? 3 : 1,
+            color: selected
+                ? AppColors.plum
+                : luxury
+                ? LuxuryColors.gold
+                : const Color(0x22000000),
+            width: selected || luxury ? 3 : 1,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -752,6 +805,8 @@ class _ItemTile extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       _thumbnail(),
+                      if (luxury)
+                        const Positioned(top: 0, left: 0, child: LuxuryBadge()),
                       if (locked)
                         const Positioned(
                           top: 0,
@@ -814,11 +869,13 @@ class _ItemTile extends StatelessWidget {
                       child: LText(
                         state,
                         style: AppText.small,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
+                if (missing != null) MissingCoinsLine(missing: missing),
               ],
             ),
           ),

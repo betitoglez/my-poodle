@@ -245,6 +245,18 @@ void main() {
     expect(find.text('Comprar y usar · 32'), findsOneWidget);
     await scrollTo(t, find.text('Impermeable'));
     expect(find.text('46 · todos los colores'), findsOneWidget);
+    // Con cinco colores por prenda la ficha azul queda en la segunda fila.
+    // Se sube el impermeable a lo alto para tocar su azul, no el del jersey.
+    final header = find.text('Impermeable');
+    final dy =
+        t.getTopLeft(header).dy - t.getTopLeft(find.text('Ropa').first).dy;
+    await t.drag(
+      find
+          .byWidgetPredicate((w) => w is Scrollable && w.axis == Axis.vertical)
+          .last,
+      Offset(0, -(dy - 60)),
+    );
+    await idle(t);
     await tapText(t, 'Azul');
     expect(find.text('Comprar y usar · 46'), findsOneWidget);
     await scrollTo(t, find.text('Vestido'));

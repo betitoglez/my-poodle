@@ -11,8 +11,8 @@ abstract final class PetCollars {
     final lift = Offset(0, back ? 0.054 : 0.010);
     final fit = PetNeck(neck.at(0.055) - lift, neck.at(0.965) - lift);
     final sag = back ? 0.010 : 0.024;
-    if (id == 'collar.pearls') {
-      _pearls(c, fit, sag, front, back);
+    if (id.startsWith('collar.pearls')) {
+      _pearls(c, fit, sag, front, back, gold: id == 'collar.pearls_gold');
     } else {
       _leather(c, id, fit, sag, front, back);
     }
@@ -195,8 +195,9 @@ abstract final class PetCollars {
     PetNeck fit,
     double sag,
     bool front,
-    bool back,
-  ) {
+    bool back, {
+    bool gold = false,
+  }) {
     final strand = fit.band(0.009, drape: sag);
     c.drawPath(
       strand.shift(const Offset(0, 0.003)),
@@ -229,11 +230,17 @@ abstract final class PetCollars {
                 ..shader = Gradient.radial(
                   p - Offset(r * 0.36, r * 0.42),
                   r * 1.58,
-                  [
-                    const Color(0xFFFFFFF6),
-                    const Color(0xFFECE5DF),
-                    const Color(0xFF8F7B8C),
-                  ],
+                  gold
+                      ? const [
+                          Color(0xFFFFF6C8),
+                          Color(0xFFE9BE4E),
+                          Color(0xFF8A5E1E),
+                        ]
+                      : const [
+                          Color(0xFFFFFFF6),
+                          Color(0xFFECE5DF),
+                          Color(0xFF8F7B8C),
+                        ],
                   [0, 0.38, 1],
                 )),
       );

@@ -13,10 +13,12 @@ void main() {
   PetState adopt() =>
       PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance);
 
-  test('catálogo: 19 artículos del modo gratuito, 24 completos', () {
+  // Ampliación del catálogo: +4 gratis (pelaje crema, petos vaquero y rosa,
+  // collar de perlas doradas) y +12 completos.
+  test('catálogo: 23 artículos del modo gratuito, 36 completos', () {
     final free = balance.styles.where((s) => s.tier == Tier.free).toList();
-    expect(free.length, 19);
-    expect(balance.styles.length - free.length, 24);
+    expect(free.length, 23);
+    expect(balance.styles.length - free.length, 36);
     expect(rules.gameTier(GameId.frisbee), Tier.free);
     expect(rules.gameTier(GameId.fruit), Tier.full);
     expect(balance.item('outfit.sweater_red')!.tier, Tier.full);
