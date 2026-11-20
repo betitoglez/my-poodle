@@ -1,10 +1,13 @@
 import 'dart:typed_data';
+import 'dart:math' as math;
 
 /// Remapeo del pelaje en un isolate. Conserva facciones, alfa y microtextura.
 Uint8List recolorFur(Map<String, Object> args) {
   final pixels = args['pixels']! as Uint8List;
   final palette = args['palette']! as List<int>;
   final out = Uint8List.fromList(pixels);
+  final width = args['width'] as int? ?? 1;
+  final pattern = args['pattern'] as String? ?? '';
   double smooth(double a, double b, double x) {
     final t = ((x - a) / (b - a)).clamp(0.0, 1.0);
     return t * t * (3 - 2 * t);
@@ -30,7 +33,26 @@ Uint8List recolorFur(Map<String, Object> args) {
       final shift = 16 - c * 8;
       final low = (palette[index] >> shift) & 255;
       final high = (palette[index + 1] >> shift) & 255;
-      final target = low + (high - low) * blend;
+      var target = low + (high - low) * blend;
+      final x = (i ~/ 4) % width / width, y = (i ~/ 4) ~/ width / width;
+      final stripe = math.sin(y * 105 + x * 32 + 2 * math.sin(x * 50)) > 0;
+      int? patterned;
+      if (pattern == 'zebra') patterned = stripe ? 0xF3EEE7 : 0x25272D;
+      if (pattern == 'tiger') patterned = stripe ? 0xE79C49 : 0x2E2520;
+      if (pattern == 'redwhite') {
+        patterned = math.sin(y * 115) > 0 ? 0xF5EFE8 : 0xC12A3E;
+      }
+      if (pattern == 'dalmatian') {
+        final dx = (x * 17) % 1 - .5, dy = (y * 17) % 1 - .5;
+        final cell = (x * 17).floor() * 13 + (y * 17).floor() * 7;
+        patterned = dx * dx + dy * dy < .09 && cell % 3 != 0
+            ? 0x25272D
+            : 0xF3EEE7;
+      }
+      if (patterned != null) {
+        target = ((patterned >> shift) & 255) * (.48 + .52 * t);
+      }
+
       final feature = lum < 95
           ? pixels[i + c] * 0.55
           : pixels[i + c].toDouble();

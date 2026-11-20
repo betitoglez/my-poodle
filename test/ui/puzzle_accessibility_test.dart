@@ -1,5 +1,7 @@
 import 'dart:ui' show SemanticsAction;
 
+import 'package:my_poodle/ui/widgets/common.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_poodle/domain/games/puzzle_deals.dart';
@@ -112,7 +114,12 @@ void main() {
         t.semantics.tap(find.semantics.byLabel(pads[signal]));
         await t.pump(const Duration(milliseconds: 40));
       }
-      expect(find.text('Premio alcanzado: 5 monedas'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is CoinText && w.source == 'Premio alcanzado: 5 monedas',
+        ),
+        findsOneWidget,
+      );
       for (final label in pads) {
         expect(hasTap(t, find.bySemanticsLabel(label)), isFalse);
       }

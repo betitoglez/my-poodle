@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
+
 import '../../domain/balance.dart';
 
 /// Geometría de la sala para colocar la decoración: la ilustración ([art]),
@@ -28,10 +30,42 @@ class DecorScene {
   final bool illustrated;
 }
 
-/// Decoración vectorial del salón (provisional y compatible con arte final):
+/// Decoración ilustrada del salón, con respaldo vectorial:
 /// alfombra bajo el caniche, un elemento en la pared y una maceta en el suelo
 /// a la derecha. Los artículos «none» no dibujan nada.
 abstract final class DecorPainter {
+  static const artworkIds = [
+    'rug.round',
+    'rug.stripes',
+    'rug.bone',
+    'wall.frame',
+    'wall.garland',
+    'wall.stars',
+    'plant.fern',
+    'plant.flowers',
+    'plant.cactus',
+  ];
+  static final _artwork = <String, Image>{};
+  static Future<void>? _loading;
+  static Future<void> loadAssets() {
+    if (_artwork.length == artworkIds.length) return Future.value();
+    return _loading ??= _loadAssets();
+  }
+
+  static Future<void> _loadAssets() async {
+    await Future.wait(
+      artworkIds.map((id) async {
+        final bytes = await rootBundle.load('assets/images/decor/$id.webp');
+        final codec = await instantiateImageCodec(
+          bytes.buffer.asUint8List(),
+          targetWidth: 768,
+        );
+        _artwork[id] = (await codec.getNextFrame()).image;
+        codec.dispose();
+      }),
+    );
+  }
+
   static Paint _p(int c) => Paint()..color = Color(c);
   static Paint _stroke(int c, double w) => Paint()
     ..color = Color(c)
@@ -160,6 +194,34 @@ abstract final class DecorPainter {
     double t = 0,
     bool reducedMotion = false,
   }) {
+    final image = _artwork[id];
+    if (image != null) {
+      final source = Rect.fromLTWH(
+        0,
+        0,
+        image.width.toDouble(),
+        image.height.toDouble(),
+      );
+      // Rugs follow the perspective of the floor; wall art and plants keep their aspect ratio.
+      final scale = math.min(
+        box.width / source.width,
+        box.height / source.height,
+      );
+      final target = id.startsWith('rug.')
+          ? box
+          : Rect.fromCenter(
+              center: box.center,
+              width: source.width * scale,
+              height: source.height * scale,
+            );
+      c.drawImageRect(
+        image,
+        source,
+        target,
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      return;
+    }
     switch (id) {
       case 'rug.round':
         _rugRound(c, box);

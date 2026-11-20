@@ -14,6 +14,8 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
 const assets = join(root, 'assets/wardrobe_live');
 const output = join(root, 'assets/images/wardrobe_thumbs');
 const { styles } = JSON.parse(await readFile(join(root, 'assets/data/balance-v1.json'), 'utf8'));
+const cutStyles = ['natural','teddy','pom','puppy','show','modern'];
+styles.push(...['head','legs','back','tail'].flatMap(zone => cutStyles.map(style => ({id: `cut.${zone}.${style}`, slot: zone === 'head' ? 'head' : zone === 'legs' ? 'paws' : 'hair'}))));
 const requested = new Set(process.argv.slice(2));
 const bridge = '<script>window.PoodleHost = { ready() { window.viewerReady = true; }, failed() { window.viewerFailed = true; } };</script>';
 const html = await readFile(join(assets, 'index.html'), 'utf8');
@@ -109,7 +111,14 @@ try {
   await call('Emulation.setDefaultBackgroundColorOverride', {
     color: { r: 0, g: 0, b: 0, a: 0 },
   });
-  await call('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port });
+  const browserErrors = [];
+  socket.addEventListener('message', ({data}) => {
+    const message = JSON.parse(data);
+    if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') browserErrors.push(message.params.args.map(a => a.value ?? a.description).join(' '));
+    if (message.method === 'Runtime.exceptionThrown') browserErrors.push(message.params.exceptionDetails.text);
+  });
+  await call('Runtime.enable');
+  await call('Page.navigate' , { url: 'http://127.0.0.1:' + server.address().port });
   await evaluate(`new Promise((resolve, reject) => {
     const until = performance.now() + 15000;
     const timer = setInterval(() => {
@@ -124,12 +133,15 @@ try {
   for (const { id, slot } of styles) {
     if (requested.size && !requested.has(id)) continue;
     const { y, size, angle } = frames[frameFor[slot] ?? 'body'];
+    const bits = id.split('.');
+    const cut = bits[0] === 'cut';
+    const cuts = cut ? ['head','legs','back','tail'].map(z => z === bits[1] ? cutStyles.indexOf(bits[2]) : 0) : Array(4).fill(slot === 'hair' ? cutStyles.indexOf(bits[1]) : 0);
     const configuration = {
-      x: 0.5, y, size, reduced: true, resting: false,
+      x: 0.5, y, size, cuts, reduced: true, resting: false,
       coat: slot === 'coat' ? id.split('.')[1] : 'apricot',
       pom: id === 'hair.pom', puppy: id === 'hair.puppy',
       teddy: id === 'hair.teddy', showCut: id === 'hair.show',
-      wear: slot === 'coat' || slot === 'hair' || id.endsWith('.none') ? [] : [id],
+      wear: cut || slot === 'coat' || slot === 'hair' || id.endsWith('.none') ? [] : [id],
     };
     await evaluate(`(async () => {
       poodle.configure(${JSON.stringify(configuration)});
@@ -137,6 +149,7 @@ try {
       poodle.rotate(${angle});
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     })()`);
+    if (browserErrors.length) throw new Error(browserErrors.join('\n'));
     const { data } = await call('Page.captureScreenshot', { format: 'webp', quality: 93 });
     await writeFile(join(output, id + '.webp'), Buffer.from(data, 'base64'));
     count++;

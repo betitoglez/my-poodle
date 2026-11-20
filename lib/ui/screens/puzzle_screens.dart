@@ -13,6 +13,7 @@ import '../../game/puzzle_game.dart';
 import '../../l10n/localized_widgets.dart';
 import '../theme.dart';
 import '../widgets/activity_frame.dart';
+import '../widgets/common.dart';
 import '../widgets/scene_view.dart';
 import 'games_screen.dart';
 import 'game_session.dart';
@@ -59,7 +60,10 @@ class _PairsScreenState extends State<PairsScreen>
     await Future.wait([
       for (final dog in PuzzleDeals.poodles)
         precacheImage(
-          ResizeImage(AssetImage('assets/images/poodles/$dog.webp'), width: 320),
+          ResizeImage(
+            AssetImage('assets/images/poodles/$dog.webp'),
+            width: 320,
+          ),
           context,
         ),
     ]);
@@ -217,7 +221,7 @@ class _PairsScreenState extends State<PairsScreen>
             style: AppText.subtitle,
           ),
           const SizedBox(height: AppSpace.xs),
-          LText(
+          CoinText(
             'Premio al completar: ${AppScope.read(context).rules.pairsCoins(widget.pairs)} monedas',
             style: AppText.body,
           ),
@@ -293,7 +297,10 @@ class _MemoryScreenState extends State<MemoryScreen>
     await Future.wait([
       for (final dog in _memoryDogs)
         precacheImage(
-          ResizeImage(AssetImage('assets/images/poodles/$dog.webp'), width: 400),
+          ResizeImage(
+            AssetImage('assets/images/poodles/$dog.webp'),
+            width: 400,
+          ),
           context,
         ),
     ]);
@@ -507,7 +514,10 @@ class _MemoryScreenState extends State<MemoryScreen>
             style: AppText.subtitle,
           ),
           const SizedBox(height: AppSpace.xs),
-          LText('Premio alcanzado: ${sim.coins} monedas', style: AppText.body),
+          CoinText(
+            'Premio alcanzado: ${sim.coins} monedas',
+            style: AppText.body,
+          ),
         ],
       ),
     );

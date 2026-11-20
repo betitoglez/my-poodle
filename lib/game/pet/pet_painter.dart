@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import '../../domain/appearance.dart';
+import '../../domain/haircuts.dart';
 import 'appearance_catalog.dart';
 import 'articulated_wardrobe.dart';
 import 'pet_sprites.dart';
@@ -427,7 +428,9 @@ class PetPainter extends ChangeNotifier {
       s.t,
       reducedMotion: s.m < 0.5,
     );
-    if (articulatedPilot && _paintArticulated(s, sp, ids, requested, desired)) {
+    if (ids.uniformHair &&
+        articulatedPilot &&
+        _paintArticulated(s, sp, ids, requested, desired)) {
       return true;
     }
     final r = resolve(desired, ids);
@@ -440,7 +443,7 @@ class PetPainter extends ChangeNotifier {
       coat.light.toARGB32(),
     ];
     final base = sp.coatedLayer(
-      sp.hairLayer(ids.hair, poseName),
+      sp.hairLayer(ids.uniformHair ? ids.hair : 'hair.natural', poseName),
       ids.coat,
       palette,
     );
@@ -502,6 +505,7 @@ class PetPainter extends ChangeNotifier {
     if (s.fx.wet) matrix = PetSprites.chain(matrix, _darken(0.82));
     if (matrix != null) coatPaint.colorFilter = ColorFilter.matrix(matrix);
     final articulate =
+        ids.uniformHair &&
         poseName == 'side' &&
         (s.anim == PetAnim.run || s.anim == PetAnim.trot) &&
         s.m > 0.5;
@@ -523,6 +527,36 @@ class PetPainter extends ChangeNotifier {
         c.translate(-pivot.dx, -pivot.dy);
         c.clipRect(Rect.fromLTRB(left, -0.33, right, dst.bottom));
         c.drawImageRect(base.image, fullSrc(base.image), dst, coatPaint);
+        c.restore();
+      }
+    } else if (!ids.uniformHair) {
+      final dst = rectOf(base.box);
+      final zones = <HairZone, Rect>{
+        HairZone.head: Rect.fromLTRB(dst.left, dst.top, dst.right, -.48),
+        HairZone.legs: Rect.fromLTRB(dst.left, -.28, dst.right, dst.bottom),
+        HairZone.back: Rect.fromLTRB(dst.left, -.48, dst.right, -.28),
+        HairZone.tail: Rect.fromLTRB(
+          dst.left,
+          -.60,
+          dst.left + dst.width * .22,
+          -.28,
+        ),
+      };
+      for (final entry in zones.entries) {
+        final layer = sp.coatedLayer(
+          sp.hairLayer('hair.${ids.cuts[entry.key]}', poseName),
+          ids.coat,
+          palette,
+        );
+        if (layer == null) continue;
+        c.save();
+        c.clipRect(entry.value);
+        c.drawImageRect(
+          layer.image,
+          fullSrc(layer.image),
+          rectOf(layer.box),
+          coatPaint,
+        );
         c.restore();
       }
     } else {

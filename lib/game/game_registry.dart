@@ -57,7 +57,7 @@ abstract final class GameCatalog {
   static const pairs = GameDefinition(
     id: GameId.pairs,
     title: 'Juego de parejas',
-    thumbnail: 'assets/images/poodles/parti.webp',
+    thumbnail: 'assets/images/cards/pairs-v2.webp',
     tagline: 'Encuentra los caniches iguales.',
     objective: 'Encuentra todas las parejas antes de agotar el tiempo o los 5 intentos. Solo los fallos gastan intentos.',
     gesture: 'Toca dos cartas para descubrir sus caniches.',
@@ -69,7 +69,7 @@ abstract final class GameCatalog {
   static const memory = GameDefinition(
     id: GameId.memory,
     title: 'Memory de caniches',
-    thumbnail: 'assets/images/poodles/apricot.webp',
+    thumbnail: 'assets/images/cards/memory-v2.webp',
     tagline: 'Recuerda los colores y sus sonidos.',
     objective: 'Repite la secuencia de 3 a 10 pasos. Al fallar o agotar el tiempo cobras el premio de la última ronda completada.',
     gesture: 'Mira y escucha; después toca los caniches en el mismo orden.',

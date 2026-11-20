@@ -1,0 +1,83 @@
+{
+  "created": "2026-11-20",
+  "notes": "Nine realistic decor cutouts and two explanatory game covers. Stars and cactus were edited once with imagegen to remove the background. Original generated files retained in Codex image cache. Final assets encoded with cwebp at 768 px width (decor), 960 px (covers), alpha quality 100; original generated PNGs remain in the image cache.",
+  "assets": [
+    {
+      "id": "rug.round",
+      "output": "assets/images/decor/rug.round.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a luxurious round woven wool rug, cream and muted plum concentric borders, realistic dense fibers and hand tufted details, seen in shallow overhead perspective, whole rug visible, wide elliptical silhouette. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "rug.stripes",
+      "output": "assets/images/decor/rug.stripes.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a luxurious rectangular woven wool area rug with muted teal, cream and dusty coral stripes, visible soft fringe, realistic fiber texture, seen in shallow overhead perspective, whole rug visible, wide flattened floor silhouette. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "rug.bone",
+      "output": "assets/images/decor/rug.bone.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a plush cream dog bone shaped wool rug with warm beige stitched edging, realistic dense soft fibers, seen in shallow overhead perspective, whole rug visible, wide flattened floor silhouette. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "wall.frame",
+      "output": "assets/images/decor/wall.frame.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: an ornate warm oak picture frame with a small cream canvas of a refined embossed dog paw print, realistic carved wood grain and glass reflections, frontal view, entire rectangular frame visible. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "wall.garland",
+      "output": "assets/images/decor/wall.garland.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: one hanging curved string of elegant bunting with seven small triangular linen fabric flags in dusty coral, cream, teal and plum, detailed cloth weave, realistic natural folds and thin twine, frontal view, wide horizontal silhouette, entire garland visible. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "wall.stars",
+      "output": "assets/images/decor/wall.stars.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a delicate hanging wall decoration of seven brushed golden brass stars at different heights on thin gold threads with subtle warm light bulbs, detailed real metal, frontal view, wide horizontal silhouette, entire wall decoration visible. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "plant.fern",
+      "output": "assets/images/decor/plant.fern.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a lush realistic indoor fern in a finely textured terracotta flowerpot with a subtle carved botanical band, detailed fronds and natural leaves, frontal slight three quarter view, whole potted plant visible, tall silhouette. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "plant.flowers",
+      "output": "assets/images/decor/plant.flowers.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a realistic arrangement of blush pink and cream flowers with deep green leaves in a glazed sage ceramic pot, delicate petals, visible ceramic glaze and subtle rim details, frontal slight three quarter view, whole potted flowers visible, tall silhouette. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "plant.cactus",
+      "output": "assets/images/decor/plant.cactus.webp",
+      "prompt": "Use case: product-mockup. Asset type: premium realistic 2D sprite for a cozy virtual poodle game's living room decoration catalog. Subject: a charming realistic green barrel cactus with delicate golden spines and two tiny pink blooms in a handmade cream ceramic pot, detailed real materials, frontal slight three quarter view, whole potted cactus visible, tall silhouette. Warm soft daylight from the upper left, photorealistic materials with tasteful handcrafted detail, physically realistic texture. Isolated cutout on a fully transparent background. Object fills the frame with a small safety margin. No room, no floor or wall background, no text, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": true
+    },
+    {
+      "id": "pairs-cover",
+      "output": "assets/images/cards/pairs-v2.webp",
+      "prompt": "Use case: stylized-concept. Asset type: square cover thumbnail for a poodle minigame, matching a polished sunlit storybook game catalog. Scene: a clearly recognizable poodle matching pairs card game laid out on a warm cream wooden table: a tidy four-by-three grid of thick rounded playing cards, four cards face down with plum backs and a cream dog paw symbol, eight cards face up showing four DIFFERENT poodle portraits each repeated EXACTLY twice. A white teddy poodle, black poodle, apricot poodle and silver poodle. Two matching apricot cards side by side softly highlighted with a golden glow. An actual cheerful apricot toy poodle peeks over the table edge. Close three-quarter overhead framing, legible game action at thumbnail size, polished lifelike 3D storybook game illustration, detailed curly fur, warm sunlit cozy colors, no words or numbers. Rich tactile details, appealing warm cinematic lighting, visually explain how to play rather than showing only a dog portrait. Keep the central game board and main elements inside the central 80 percent so a landscape thumbnail crop remains recognizable. No UI labels, no logo, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": false
+    },
+    {
+      "id": "memory-cover",
+      "output": "assets/images/cards/memory-v2.webp",
+      "prompt": "Use case: stylized-concept. Asset type: square cover thumbnail for a poodle minigame, matching a polished sunlit storybook game catalog. Scene: a clearly recognizable Simon sequence memory game for children: four large rounded illuminated pads arranged in a two by two square, RED upper left, BLUE upper right, GREEN lower left and YELLOW lower right. Each pad contains a DIFFERENT small photorealistic poodle portrait. The blue pad glows brightly to demonstrate the next step, three small colored luminous dots floating above communicate a sequence and a few subtle musical notes communicate sounds. An actual cheerful apricot toy poodle sits next to this colorful game board. Close three-quarter overhead composition, clear game action legible at thumbnail size, polished lifelike 3D storybook game illustration, warm sunlit cozy colors, detailed curly fur, no words or numbers. Rich tactile details, appealing warm cinematic lighting, visually explain how to play rather than showing only a dog portrait. Keep the central game board and main elements inside the central 80 percent so a landscape thumbnail crop remains recognizable. No UI labels, no logo, no watermark.",
+      "tool": "image_gen.imagegen",
+      "transparent_background": false
+    }
+  ]
+}

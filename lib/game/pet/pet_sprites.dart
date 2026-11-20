@@ -133,6 +133,8 @@ class PetSprites {
         final pixels = await compute(recolorFur, <String, Object>{
           'pixels': bytes.buffer.asUint8List(),
           'palette': palette,
+          'width': layer.image.width,
+          'pattern': coat.split('.').last,
         });
         final done = Completer<ui.Image>();
         ui.decodeImageFromPixels(

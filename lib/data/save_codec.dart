@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/appearance.dart';
+import '../domain/haircuts.dart';
 import '../domain/balance.dart';
 import '../domain/pet_name.dart';
 import '../domain/pet_state.dart';
@@ -110,9 +111,24 @@ class SaveCodec {
       return balance.item(v) == null ? balance.baseFor(slot).id : v;
     }
 
-    final appearance = Appearance({
-      for (final slot in Slot.values) slot: slotId(slot),
-    });
+    final legacyHair = slotId(Slot.hair);
+    final appearance = Appearance(
+      {for (final slot in Slot.values) slot: slotId(slot)},
+      cuts: {
+        for (final z in HairZone.values)
+          z:
+              ap['cut_${z.name}'] is String &&
+                  Haircuts.styles.contains(ap['cut_${z.name}'])
+              ? ap['cut_${z.name}'] as String
+              : Haircuts.styleOf(legacyHair),
+      },
+    );
+    // Los packs antiguos se conservan como sus cuatro cortes ya adquiridos.
+    for (final pack in owned.where((id) => id.startsWith('hair.')).toList()) {
+      for (final zone in HairZone.values) {
+        owned.add(Haircuts.id(zone, Haircuts.styleOf(pack)));
+      }
+    }
     // Los artículos base siempre están en propiedad.
     owned.addAll(balance.initialAppearance.ids);
 

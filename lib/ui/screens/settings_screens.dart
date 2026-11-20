@@ -117,7 +117,10 @@ class SettingsScreen extends StatelessWidget {
                 for (final language in AppLanguage.all)
                   DropdownMenuItem(
                     value: language.tag,
-                    child: LText(language.nativeName, verbatim: true),
+                    child: LText(
+                      '${language.flag} ${language.nativeName}',
+                      verbatim: true,
+                    ),
                   ),
               ],
               onChanged: c.saving
@@ -250,7 +253,7 @@ class AdultZoneScreen extends StatelessWidget {
             LText(
               c.fullVersion
                   ? 'La versión completa está desbloqueada en este dispositivo.'
-                  : 'Pago único que desbloquea el Huerto saltarín, 24 artículos más del armario y las novedades futuras. '
+                  : 'Pago único que desbloquea el Huerto saltarín, más artículos del armario y las novedades futuras. '
                         'Sin anuncios ni venta de monedas: las monedas se ganan jugando.',
               style: AppText.body,
             ),
@@ -413,6 +416,11 @@ class HelpScreen extends StatelessWidget {
     return _Page(
       title: 'Ayuda y créditos',
       children: [
+        const LText(
+          'Juego desarrollado por Alberto González Cuenca',
+          style: AppText.subtitle,
+        ),
+
         const _Section(
           'Cuidados',
           icon: Icons.volunteer_activism_rounded,

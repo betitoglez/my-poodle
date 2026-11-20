@@ -7,6 +7,19 @@ import 'number_words.dart';
 
 class AppLanguage {
   const AppLanguage(this.tag, this.locale, this.nativeName, this.appName);
+  String get flag => const {
+    'en': '🇬🇧',
+    'es': '🇪🇸',
+    'fr': '🇫🇷',
+    'de': '🇩🇪',
+    'pt-BR': '🇧🇷',
+    'it': '🇮🇹',
+    'ru': '🇷🇺',
+    'ko': '🇰🇷',
+    'ja': '🇯🇵',
+    'zh-Hans': '🇨🇳',
+    'zh-Hant': '🇹🇼',
+  }[tag]!;
   final String tag;
   final Locale locale;
   final String nativeName;

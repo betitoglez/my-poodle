@@ -105,6 +105,7 @@ class CareScreen extends StatelessWidget {
                   effects: rule.delta,
                   cures: rule.cures,
                   price: card.kind == CareKind.vet ? Rules.vetCost : null,
+                  waitSeconds: c.careWaitSeconds(card.kind),
                   badge: sick ? '¡Malito!' : null,
                   onTap: () async {
                     final messenger = ScaffoldMessenger.of(context);
@@ -149,8 +150,10 @@ class _IllustratedCard extends StatelessWidget {
     this.price,
     required this.onTap,
     this.badge,
+    this.waitSeconds = 0,
   });
   final String? badge;
+  final int waitSeconds;
   final String image;
   final String title;
   final String subtitle;
@@ -180,6 +183,7 @@ class _IllustratedCard extends StatelessWidget {
     ].join('. ');
     return LSemantics(
       button: true,
+      onTap: onTap,
       label: '$title. $subtitle. $details.${badge == null ? '' : ' $badge'}',
       excludeSemantics: true,
       child: Material(
@@ -197,6 +201,15 @@ class _IllustratedCard extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     Image.asset(image, fit: BoxFit.cover),
+                    if (waitSeconds > 0)
+                      Positioned(
+                        left: 6,
+                        bottom: 6,
+                        child: Chip(
+                          avatar: const Icon(Icons.timer_rounded, size: 16),
+                          label: LText(countdown(waitSeconds), verbatim: true),
+                        ),
+                      ),
                     if (badge != null)
                       Positioned(
                         top: 8,

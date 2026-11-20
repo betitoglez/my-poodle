@@ -17,6 +17,7 @@ import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/scene_view.dart';
+import '../widgets/live_poodle_view.dart';
 
 extension DecorSlotUi on DecorSlot {
   String get label => switch (this) {
@@ -60,6 +61,7 @@ class DecorScreen extends StatefulWidget {
 
 class _DecorScreenState extends State<DecorScreen> {
   HomeGame? _game;
+  final _live = LivePoodleController();
   DecorSlot _slot = DecorSlot.rug;
   late Map<DecorSlot, String> _preview;
   bool _busy = false;
@@ -171,6 +173,12 @@ class _DecorScreenState extends State<DecorScreen> {
     final c = AppScope.of(context);
     final pet = c.pet;
     final l = Layout.of(context);
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(pet.appearance);
+    _game!.pet.showSprite = !showModel;
+    _game!.useLiveBed = showModel;
     final placed = _placed(c);
     final selectedId = _preview[_slot]!;
     final item = c.balance.decorItem(selectedId)!;
@@ -251,10 +259,37 @@ class _DecorScreenState extends State<DecorScreen> {
               child: SceneView(
                 game: _game!,
                 semanticsLabel: 'Vista previa del salón de ${pet.name}',
-                onTap: (_) => _game!.pet.react(PetAnim.happy),
+                onDragUpdate: showModel
+                    ? (_, _, delta) => _live.rotate(delta.dx)
+                    : null,
+                onTap: (_) {
+                  if (showModel) {
+                    _live.pet();
+                  } else {
+                    _game!.pet.react(PetAnim.happy);
+                  }
+                },
                 overlay: Stack(
                   fit: StackFit.expand,
                   children: [
+                    if (showModel)
+                      IgnorePointer(
+                        child: LivePoodleView(
+                          controller: _live,
+                          appearance: pet.appearance,
+                          resting: false,
+                          reducedMotion: c.reducedMotion,
+                          wardrobe: false,
+                          idle: true,
+                          hygiene: pet.needPoints(Need.hygiene),
+                          mood: pet.needPoints(Need.mood),
+                          energy: pet.needPoints(Need.energy),
+                          sick: pet.isSick,
+                          onStatusChanged: () {
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      ),
                     if (dirty)
                       const Positioned(
                         right: AppSpace.s,

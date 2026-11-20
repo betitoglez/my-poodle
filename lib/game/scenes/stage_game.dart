@@ -292,6 +292,7 @@ class HomeGame extends StageGame {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    await DecorPainter.loadAssets();
     // Orden: sala (0) < pared (1) < alfombra (2) < planta (3) < cama (5) <
     // caniche (10). En 3D el visor va encima de Flame y tapa lo mismo.
     add(Painted((c) => _paintDecor(c, DecorSlot.wall), priority: 1));

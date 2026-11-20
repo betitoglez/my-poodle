@@ -113,9 +113,11 @@ class _Includes extends StatelessWidget {
             const LText('Incluye', style: AppText.subtitle),
             const SizedBox(height: AppSpace.s),
             row(Icons.sports_esports_rounded, 'El Huerto saltarín'),
+            row(Icons.memory_rounded, 'Memory de caniches'),
+            row(Icons.all_inclusive_rounded, 'Juegos sin cupo de partidas'),
             row(
               Icons.checkroom_rounded,
-              '24 artículos más del armario: colores, peinados, jerséis, '
+              'Más artículos del armario: colores, peinados, jerséis, '
               'impermeables, vestidos y accesorios',
             ),
             row(
@@ -164,8 +166,7 @@ class _Status extends StatelessWidget {
     if (p.full) {
       final fullNotice = switch (p.notice) {
         StoreNotice.error => 'No se ha podido completar. Inténtalo de nuevo.',
-        StoreNotice.nothingToRestore =>
-          'No hay compras nuevas que restaurar. Tu versión completa sigue activa.',
+        StoreNotice.nothingToRestore => 'No hay compras nuevas que restaurar. Tu versión completa sigue activa.',
         _ => null,
       };
       return Column(

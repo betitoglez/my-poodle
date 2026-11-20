@@ -117,8 +117,8 @@ class AppController extends ChangeNotifier {
     if (!isGameTrial(game)) return null;
     final seconds = trialRemaining(game);
     if (seconds == 0) return '1 partida gratis cada 24 h';
-    final minutes = (seconds / 60).ceil();
-    return 'Prueba disponible en ${minutes ~/ 60} h ${minutes % 60} min';
+    String pad(int n) => n.toString().padLeft(2, '0');
+    return 'Prueba disponible en ${pad(seconds ~/ 3600)}:${pad(seconds ~/ 60 % 60)}:${pad(seconds % 60)}';
   }
 
   /// Artículos de [target] que piden la versión completa.
@@ -126,8 +126,8 @@ class AppController extends ChangeNotifier {
       rules.lockedItems(pet, target, fullVersion: fullVersion);
 
   bool isLocked(String itemId) =>
-      !(pet.owned.contains(itemId)) &&
-      !canAccess(balance.item(itemId)?.tier ?? Tier.free);
+      !rules.ownsStyle(pet, itemId) && !canAccess(rules.styleTier(itemId));
+  int itemCost(String id) => rules.styleCost(pet, id);
 
   Future<void> boot() async {
     status = BootStatus.loading;
@@ -157,7 +157,7 @@ class AppController extends ChangeNotifier {
 
   void _startTicker() {
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_confirmed != null) notifyListeners();
     });
   }
@@ -277,14 +277,23 @@ class AppController extends ChangeNotifier {
     option: option,
     fullVersion: fullVersion,
   );
-  String? get gameBlocked => rules.gameBlocked(pet, clock.nowUtcSeconds());
+  String? get gameBlocked =>
+      rules.gameBlocked(pet, clock.nowUtcSeconds(), fullVersion: fullVersion);
 
-  int careWaitSeconds(CareKind kind) => rules.careWaitSeconds(
+  int get gameWaitSeconds => rules.gameWaitSeconds(
     pet,
-    kind,
     clock.nowUtcSeconds(),
     fullVersion: fullVersion,
   );
+
+  int careWaitSeconds(CareKind kind, {CareOption? option}) =>
+      rules.careWaitSeconds(
+        pet,
+        kind,
+        clock.nowUtcSeconds(),
+        fullVersion: fullVersion,
+        option: option,
+      );
 
   Future<ActionResult<PetState>> setHomeResting(bool resting) =>
       _serial(() async {
