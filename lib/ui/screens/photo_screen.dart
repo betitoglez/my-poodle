@@ -18,6 +18,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
+import 'photo_editor_screen.dart';
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({super.key});
@@ -58,6 +59,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
     ui.Image? back;
     ui.Image? front;
     ui.Image? composed;
+    Uint8List? png;
     try {
       final boundary =
           _background.currentContext!.findRenderObject()!
@@ -83,12 +85,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       composed = await picture.toImage(back.width, back.height);
       picture.dispose();
       final bytes = await composed.toByteData(format: ui.ImageByteFormat.png);
-      await _album.save(bytes!.buffer.asUint8List());
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: LText('Foto guardada en tu álbum.')),
-        );
-      }
+      png = bytes!.buffer.asUint8List();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,6 +101,17 @@ class _PhotoScreenState extends State<PhotoScreen> {
       front?.dispose();
       composed?.dispose();
       if (mounted) setState(() => _saving = false);
+    }
+    if (png == null || !mounted) return;
+    // Paso «Decorar foto»: el editor guarda en el álbum (gratis) o descarta.
+    final saved = await pushScreen<bool>(
+      context,
+      PhotoEditorScreen(png: png, album: _album),
+    );
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: LText('Foto guardada en tu álbum.')),
+      );
     }
   }
 
@@ -126,97 +134,115 @@ class _PhotoScreenState extends State<PhotoScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: LText(
-                'Gira a tu caniche, elige su pose y guarda el recuerdo.',
-              ),
-            ),
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  RepaintBoundary(
-                    key: _background,
-                    child: SceneView(
-                      game: _game!,
-                      semanticsLabel: 'Escena para la foto de tu caniche',
-                    ),
+        child: LayoutBuilder(
+          builder: (context, box) => Column(
+            children: [
+              // Con letra grande el texto de ayuda y los controles se desplazan
+              // y la escena conserva al menos la mitad de la pantalla.
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: box.maxHeight * .18),
+                child: const SingleChildScrollView(
+                  padding: EdgeInsets.all(12),
+                  child: LText(
+                    'Gira a tu caniche, elige su pose y guarda el recuerdo.',
                   ),
-                  if (_showModel)
-                    LivePoodleView(
-                      controller: _live,
-                      wardrobe: false,
-                      appearance: c.pet.appearance,
-                      reducedMotion: c.reducedMotion,
-                      resting: _resting,
-                      idle: true,
-                      passiveBed: true,
-                      hygiene: c.pet.needPoints(Need.hygiene),
-                      onStatusChanged: () {
-                        if (mounted) setState(() {});
-                      },
-                    ),
-                ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    RepaintBoundary(
+                      key: _background,
+                      child: SceneView(
+                        game: _game!,
+                        semanticsLabel: 'Escena para la foto de tu caniche',
+                      ),
+                    ),
+                    if (_showModel)
+                      LivePoodleView(
+                        controller: _live,
+                        wardrobe: false,
+                        appearance: c.pet.appearance,
+                        reducedMotion: c.reducedMotion,
+                        resting: _resting,
+                        idle: true,
+                        passiveBed: true,
+                        hygiene: c.pet.needPoints(Need.hygiene),
+                        onStatusChanged: () {
+                          if (mounted) setState(() {});
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: box.maxHeight * .4),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        tooltip: localizeNullable(
-                          context,
-                          'Girar a la izquierda',
-                        ),
-                        onPressed: _live.ready ? () => _live.rotate(-60) : null,
-                        icon: const Icon(Icons.rotate_left_rounded),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          IconButton(
+                            tooltip: localizeNullable(
+                              context,
+                              'Girar a la izquierda',
+                            ),
+                            onPressed: _live.ready
+                                ? () => _live.rotate(-60)
+                                : null,
+                            icon: const Icon(Icons.rotate_left_rounded),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                setState(() => _resting = !_resting),
+                            child: LText(_resting ? 'De pie' : 'Tumbarse'),
+                          ),
+                          IconButton(
+                            tooltip: localizeNullable(
+                              context,
+                              'Girar a la derecha',
+                            ),
+                            onPressed: _live.ready
+                                ? () => _live.rotate(60)
+                                : null,
+                            icon: const Icon(Icons.rotate_right_rounded),
+                          ),
+                          IconButton(
+                            tooltip: localizeNullable(
+                              context,
+                              'Volver de frente',
+                            ),
+                            onPressed: _live.ready ? _live.front : null,
+                            icon: const Icon(Icons.center_focus_strong_rounded),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () => setState(() => _resting = !_resting),
-                        child: LText(_resting ? 'De pie' : 'Tumbarse'),
+                      AppButton(
+                        label: _saving ? 'Guardando foto…' : 'Hacer foto',
+                        icon: Icons.camera_alt_rounded,
+                        big: true,
+                        expand: true,
+                        onPressed: _saving || (_showModel && !_live.ready)
+                            ? null
+                            : _takePhoto,
                       ),
-                      IconButton(
-                        tooltip: localizeNullable(
-                          context,
-                          'Girar a la derecha',
-                        ),
-                        onPressed: _live.ready ? () => _live.rotate(60) : null,
-                        icon: const Icon(Icons.rotate_right_rounded),
-                      ),
-                      IconButton(
-                        tooltip: localizeNullable(context, 'Volver de frente'),
-                        onPressed: _live.ready ? _live.front : null,
-                        icon: const Icon(Icons.center_focus_strong_rounded),
+                      const SizedBox(height: 8),
+                      const LText(
+                        'Las fotos se guardan en el álbum de esta app (hasta 24). Una persona adulta puede copiarlas al carrete del móvil.',
+                        style: AppText.small,
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
-                  AppButton(
-                    label: _saving ? 'Guardando foto…' : 'Hacer foto',
-                    icon: Icons.camera_alt_rounded,
-                    big: true,
-                    expand: true,
-                    onPressed: _saving || (_showModel && !_live.ready)
-                        ? null
-                        : _takePhoto,
-                  ),
-                  const SizedBox(height: 8),
-                  const LText(
-                    'Las fotos se guardan en el álbum de esta app (hasta 24). Una persona adulta puede copiarlas al carrete del móvil.',
-                    style: AppText.small,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
