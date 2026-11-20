@@ -64,7 +64,7 @@ Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en disp
 - [x] Retos de estrellas (0–3) con mejor marca guardada y retos visibles en las instrucciones.
 - [x] Uso para las monedas: decoración del salón (alfombra, pared, planta) con artículos gratuitos y de la versión completa.
 - [x] Caniche más vivo: corazones al acariciar y reposos variados en 2D.
-- [ ] Mirada que sigue el dedo: requiere pose de cabeza en el pintor 2D y en el visor 3D.
+- [x] Mirada que sigue el dedo: giro de cabeza en 3D e inclinación del cuerpo en 2D; pendiente de probar en dispositivo.
 - [x] Primera partida guiada: comer, jugar y estrenar algo, con opción de saltarla.
 - [x] Pequeñas celebraciones: monedas que cuentan, confeti y transiciones suaves que respetan el movimiento reducido.
 - [x] Accesibilidad de escenas y juegos: etiquetas de estado, regiones vivas y texto grande sin desbordes.

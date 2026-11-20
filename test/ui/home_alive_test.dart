@@ -35,6 +35,16 @@ Future<void> petThePoodle(WidgetTester t) async {
   await t.pump();
 }
 
+/// Las pruebas de widget no hacen correr el reloj de Flame: se avanza el
+/// caniche a mano a la vez que el reloj de Flutter (temporizadores).
+Future<void> gazeFrames(WidgetTester t, HomeGame game, double seconds) async {
+  final n = (seconds * 30).round().clamp(1, 1 << 20);
+  for (var i = 0; i < n; i++) {
+    await t.pump(const Duration(milliseconds: 33));
+    game.pet.update(1 / 30);
+  }
+}
+
 Finder get hearts => find.descendant(
   of: find.byType(PetHearts),
   matching: find.byIcon(Icons.favorite_rounded),
@@ -42,6 +52,52 @@ Finder get hearts => find.descendant(
 
 void main() {
   setUp(rootBundle.clear);
+
+  group('mirada que sigue al dedo', () {
+    testWidgets('se inclina hacia el dedo, lo sigue y vuelve al soltar', (
+      t,
+    ) async {
+      await boot(t, backendWith((s) => seen(s, {'home.pet', 'guide.off'})));
+      final scene = find.byType(SceneView);
+      final game = t.widget<SceneView>(scene).game as HomeGame;
+      final origin = t.getTopLeft(scene);
+      final feet = Offset(game.pet.position.x, game.pet.position.y);
+      final g = await t.startGesture(origin + feet + const Offset(140, -60));
+      await gazeFrames(t, game, 0.5);
+      expect(game.pet.lean, greaterThan(0.5));
+      // Arrastrar al otro lado: la mirada lo sigue.
+      await g.moveTo(origin + feet + const Offset(-140, -60));
+      await gazeFrames(t, game, 0.5);
+      expect(game.pet.lean, lessThan(-0.5));
+      await g.up();
+      await gazeFrames(t, game, 1);
+      expect(game.pet.lean, lessThan(-0.5), reason: 'mantiene un momento');
+      await gazeFrames(t, game, 2.5);
+      expect(game.pet.lean, 0);
+      await idle(t);
+    });
+
+    testWidgets('con movimiento reducido gira sin transición', (t) async {
+      await boot(
+        t,
+        backendWith(
+          (s) => seen(s, {'home.pet', 'guide.off'}, reducedMotion: true),
+        ),
+      );
+      final scene = find.byType(SceneView);
+      final game = t.widget<SceneView>(scene).game as HomeGame;
+      final feet = Offset(game.pet.position.x, game.pet.position.y);
+      final g = await t.startGesture(
+        t.getTopLeft(scene) + feet + const Offset(-180, -40),
+      );
+      await gazeFrames(t, game, 0.04);
+      expect(game.pet.lean, -1);
+      await g.up();
+      await gazeFrames(t, game, 3);
+      expect(game.pet.lean, 0);
+      await idle(t);
+    });
+  });
 
   group('corazones al acariciar', () {
     testWidgets('salen del punto tocado y se desvanecen en ~1 s', (t) async {

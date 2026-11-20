@@ -78,10 +78,39 @@ class _HomeScreenState extends State<HomeScreen> {
     _scheduleIdle();
   }
 
+  /// Mirada que sigue al dedo: dura un momento tras soltar.
+  static const gazeHold = Duration(milliseconds: 2500);
+  Timer? _gazeTimer;
+
+  void _lookAt(Offset p, {required bool live}) {
+    if (live) {
+      _live.look(p);
+    } else {
+      _game!.pet.gazeAt(p);
+    }
+    _gazeTimer?.cancel();
+    _gazeTimer = null;
+  }
+
+  void _releaseGaze() {
+    _gazeTimer?.cancel();
+    _gazeTimer = Timer(gazeHold, _lookAway);
+  }
+
+  void _lookAway() {
+    _gazeTimer?.cancel();
+    _gazeTimer = null;
+    if (!mounted) return;
+    _game?.pet.gazeAt(null);
+    _live.look(null);
+  }
+
   @override
   void dispose() {
     _idleTimer?.cancel();
     _idleTimer = null;
+    _gazeTimer?.cancel();
+    _gazeTimer = null;
     super.dispose();
   }
 
@@ -286,9 +315,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
                 },
+                onPress: (p) => _lookAt(p, live: live),
+                onRelease: _releaseGaze,
+                // En 3D arrastrar gira al caniche (deja de mirar al dedo);
+                // en 2D la mirada sigue al dedo mientras se arrastra.
                 onDragUpdate: live
-                    ? (_, _, delta) => _live.rotate(delta.dx)
-                    : null,
+                    ? (_, _, delta) {
+                        _live.look(null);
+                        _live.rotate(delta.dx);
+                      }
+                    : (_, p, _) => _game!.pet.gazeAt(p),
                 overlay: Stack(
                   fit: StackFit.expand,
                   children: [

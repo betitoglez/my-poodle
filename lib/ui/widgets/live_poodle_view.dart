@@ -21,6 +21,20 @@ class LivePoodleController {
   /// Desplazamiento horizontal en píxeles lógicos, como el gesto de arrastre.
   void rotate(double deltaPixels) => _send('rotate', deltaPixels);
   void pet() => _send('pet');
+
+  /// La cabeza del modelo mira hacia [point] (píxeles lógicos de la vista);
+  /// null la devuelve al frente.
+  void look(Offset? point) {
+    if (point == null || _viewport.isEmpty) {
+      _send('look', const <double>[]);
+      return;
+    }
+    _send('look', [
+      (point.dx / _viewport.width).clamp(0.0, 1.0),
+      (point.dy / _viewport.height).clamp(0.0, 1.0),
+    ]);
+  }
+
   Future<LivePetTap> petAt(Offset point) async {
     if (_viewport.isEmpty) return LivePetTap.missed;
     final result = await _channel?.invokeMethod<int>('petAt', [

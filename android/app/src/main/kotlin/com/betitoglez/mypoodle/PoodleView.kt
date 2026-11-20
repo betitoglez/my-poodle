@@ -107,6 +107,10 @@ private class PoodleView(context: Context, private val channel: MethodChannel) :
                 "walk" -> execute("walk(${JSONArray(call.arguments as List<*>)})")
                 "orchard" -> execute("orchard(${JSONArray(call.arguments as List<*>)})")
                 "frisbee" -> execute("frisbee(${JSONArray(call.arguments as List<*>)})")
+                "look" -> {
+                    val point = (call.arguments as List<*>).map { (it as Number).toDouble() }
+                    if (point.all { it.isFinite() }) execute("look(${JSONArray(point)})")
+                }
                 else -> {
                     result.notImplemented()
                     return@setMethodCallHandler

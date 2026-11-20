@@ -154,7 +154,7 @@ private final class PoodleView: NSObject, FlutterPlatformView, WKNavigationDeleg
         result((value as? NSNumber)?.intValue ?? 0)
       }
       return
-    case "rotate", "feed", "bath", "vet", "groom", "sleep", "walk", "orchard", "frisbee":
+    case "rotate", "feed", "bath", "vet", "groom", "sleep", "walk", "orchard", "frisbee", "look":
       if let value = json(call.arguments) { execute("\(call.method)(\(value))") }
     default:
       result(FlutterMethodNotImplemented)
