@@ -36,7 +36,7 @@ class OrchardGame extends FlameGame {
   final bool reducedMotion;
   final OrchardSim sim;
   final PetComponent pet;
-  final void Function(int apples) onFinished;
+  final void Function(int apples, int golden) onFinished;
   final void Function()? onHud;
   final void Function(Sfx event)? onEvent;
   final void Function()? onVisualFrame;
@@ -118,7 +118,7 @@ class OrchardGame extends FlameGame {
       pet.pose = PetPose.front;
       if (!_reported) {
         _reported = true;
-        onFinished(sim.score);
+        onFinished(sim.score, sim.goldenCollected);
       }
       return;
     }
@@ -410,6 +410,7 @@ class OrchardGame extends FlameGame {
       if (p.dx < -30 || p.dx > size.x + 30) continue;
       final r = OrchardSim.appleRadius * scale;
       final bob = reducedMotion ? 0.0 : math.sin(time * 3 + a.x) * 2;
+      if (sim.golden.contains(a.id)) _goldenHalo(c, p + Offset(0, bob), r);
       _fruit(c, p + Offset(0, bob), r, a.kind.index);
     }
   }
@@ -516,7 +517,44 @@ class OrchardGame extends FlameGame {
     c.restore();
   }
 
+  /// Halo de una fruta dorada: aro cálido que late y cuatro destellos.
+  void _goldenHalo(Canvas c, Offset p, double r) {
+    final pulse = reducedMotion ? 0.0 : (math.sin(time * 4) + 1) / 2;
+    c.drawCircle(
+      p,
+      r * (1.7 + pulse * 0.25),
+      Paint()..color = const Color(0x55FFD54A),
+    );
+    c.drawCircle(
+      p,
+      r * (1.55 + pulse * 0.2),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(2, r * 0.16)
+        ..color = const Color(0xFFE9B23C),
+    );
+    final spark = Paint()..color = const Color(0xFFFFF2B0);
+    for (var i = 0; i < 4; i++) {
+      final a = i * math.pi / 2 + (reducedMotion ? 0 : time);
+      c.drawCircle(
+        p + Offset(math.cos(a), math.sin(a)) * r * 1.9,
+        math.max(1.5, r * 0.14),
+        spark,
+      );
+    }
+  }
+
   void paintEffects(Canvas c) {
+    if (_live) {
+      for (final a in sim.level.apples) {
+        if (!sim.golden.contains(a.id) || sim.collected.contains(a.id)) {
+          continue;
+        }
+        final p = toScreen(a.x, a.y);
+        if (p.dx < -30 || p.dx > size.x + 30) continue;
+        _goldenHalo(c, p, OrchardSim.appleRadius * scale);
+      }
+    }
     for (final (p, age) in _sparkles) {
       final s = toScreen(p.dx, p.dy);
       final k = age / 0.6;

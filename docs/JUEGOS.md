@@ -27,6 +27,8 @@ Interfaz mínima: startRun(GameContext), setPaused(bool), cancel() y callback co
 | Penalización | −5 segundos por choque o caída |
 | Premio | 2 monedas más 2 por fruta, hasta 50 monedas |
 
+**Frutas doradas y estrellas** (20-11-2026). Cada partida elige con su semilla (semilla del caniche + identificador de sesión, `runSeed`) tres frutas doradas, una por cada pareja de tramos (t1–t2, t3–t4, t5–t6). Las doradas suman lo mismo que las demás. Estrellas: 1 con 8 frutas, 2 con 16, 3 con 16 y las 3 doradas (`stars`, `starsGolden` del balance). El HUD cuenta «Doradas» y el visor 3D las resalta con un halo.
+
 El tramo final concentra más obstáculos. Cada fruta cuenta una vez, incluso si el caniche reaparece. Al caer, vuelve al último apoyo seguro. La pausa congela cronómetro y física. La partida termina al llegar a la meta o agotar el tiempo y guarda el récord si corresponde.
 
 Ambos juegos consumen 20 de energía y 10 de saciedad al terminar, además de dar +8 de ánimo. Solo admiten tres inicios por ventana móvil de cinco minutos, persistida; con energía cero hay que dormir.
@@ -41,9 +43,11 @@ Para t en [0,1], punto de campo = lerp(origen, destino, t), elevación visual = 
 
 Estados Apuntar → Vuelo → Atrapa/Recoge → Devuelve → Apuntar o Terminado. Deshabilitar segundo lanzamiento durante vuelo y devolución. Un fallo muestra cómo acercar el siguiente tiro. Tras cinco intentos, premio = 3 + 3 × aciertos, entre 3 y 18 monedas. Con tres capturas se puede adquirir el pañuelo de 10. Predicción y punto real deben coincidir también a 30 fps.
 
+**Objetivos variables y estrellas** (20-11-2026). El primer objetivo es siempre el de calentamiento (0,5); los otros cuatro salen sin repetir de `targetPool` (diez puntos dentro del campo) según la semilla de la partida, de modo que la misma partida es reproducible y cada partida nueva cambia. El visor 3D recibe los mismos puntos desde Dart. Estrellas: 1 con 2 capturas, 2 con 4 y 3 con 5. Las monedas siguen siendo 3 + 3 × aciertos.
+
 ## Añadir un tercer juego
 
 1. Crear una clase FlameGame 2D con puntos iniciales y controlador del contrato común. Construir PetComponent con la apariencia de GameContext.
 2. Crear un GameDefinition (con `tier`), miniatura y explicación de un gesto. Registrar una factory por clave en GameRegistry, la definición en el catálogo y sus recursos en pubspec.yaml.
-3. Añadir al dominio límites y fórmula de recompensa, un caso mínimo, uno máximo y un evento duplicado. Rechazar métricas inválidas.
+3. Añadir al dominio límites y fórmula de recompensa, un caso mínimo, uno máximo y un evento duplicado. Rechazar métricas inválidas. Definir también los umbrales ascendentes de estrellas en el balance y, si hay variedad, derivarla de `runSeed` para que sea reproducible.
 4. Probar cancelación, pausa, modo avión, estilo equipado y resultado tras reinicio. Probar también la tarjeta con candado sin versión completa. La tarjeta debe aparecer sin modificar la pantalla de casa ni la tienda.

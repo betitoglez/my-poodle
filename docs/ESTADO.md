@@ -1,5 +1,18 @@
 # Estado de la implementación
 
+## Mejoras de juego en rama `feature/mejoras-juego` · 20-11-2026 · implementado, sin probar en dispositivo
+
+- Tarea: siete mejoras propuestas en la revisión del 20-11-2026 (ver [TODO](../TODO.md#mejoras-de-juego-propuestas-revisión-del-20-11-2026)). Flutter 3.50.0 / Dart 3.14. Rama aparte; no fusionada en main.
+- **Variedad**: semilla por partida (`runSeed`, FNV-1a) a partir de la semilla del caniche y la sesión. El Frisbee toma cuatro objetivos de `targetPool` (el primero fijo); el Huerto elige tres frutas doradas con halo en 2D y 3D. Las monedas no cambian.
+- **Estrellas**: 0–3 por partida (`starsFor`), mejor marca `bestStars` guardada, retos en Instrucciones, estrellas animadas y «¡Nueva mejor marca!» en el resultado.
+- **Decoración del salón**: 12 artículos en tres huecos (alfombra, pared, planta), `applyDecor` con las reglas del armario, pantalla «Decorar el salón» desde Casa, dibujo vectorial provisional bajo el caniche 3D y también en el modo foto. Partidas antiguas cargan con huecos vacíos.
+- **Caniche más vivo**: corazones al acariciar (uno estático con movimiento reducido), reposos variados en 2D y **mirada que sigue al dedo**. En 3D gira el hueso `cabeza` hacia el punto tocado (canal `look` en iOS/Android) y vuelve al frente 2,5 s después de soltar; arrastrar sigue girando al caniche. En 2D el sprite es de una pieza, así que se inclina sobre las patas hacia el dedo y lo sigue al arrastrar. Solo de pie y despierto. El visor deshace ahora la mirada y la consulta del veterinario antes que los reposos, para que el giro no se acumule entre fotogramas. Comprobado en el navegador con el visor real (gira y vuelve sin deriva tras seis vaivenes); falta probarlo en el dispositivo.
+- **Guía de la primera partida**: comer → jugar → estrenar, deducida del estado, con «Saltar guía». Tocar la tarjeta ya no acaricia al caniche (`SceneTapShield`).
+- **Celebraciones**: monedas que cuentan, confeti al comprar y al batir la marca, fundido entre pantallas y pestañas (en iOS se conserva la transición del sistema con el gesto de volver). Todo se desactiva con movimiento reducido.
+- **Accesibilidad**: iconos de estado como nodos propios con estado y acción, HUD con región viva solo en puntuación, títulos de resultado como encabezado, sin desbordes a 320×568 con texto ×1,6 en Casa, Juegos, Instrucciones y Resultado.
+- Corrección de traducción: «capturas» del Frisbee figuraba como «capturas de pantalla» en 10 idiomas; ahora es «atrapadas/catches».
+- Pruebas: `flutter analyze` sin incidencias; `validate_content` (12 decoraciones) y `validate_localizations` (11 × 622 tras integrar main) correctos; **285/285 pruebas** (con la mirada) tras integrar main `b9df9e8` (226 antes de la rama). Traducciones nuevas generadas por IA, pendientes de revisión lingüística. Sin build firmada ni comprobación en iPhone/Android ni con el visor 3D activo.
+
 ## Fotos al carrete del móvil · 20-11-2026 · implementado, sin probar en dispositivo
 
 - Tarea: copiar una foto del álbum privado al carrete de iOS y Android. Rama `feature/photo-mode-camera-roll` sobre main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas.

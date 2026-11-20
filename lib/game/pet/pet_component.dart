@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -34,6 +35,27 @@ class PetComponent extends PositionComponent {
   bool showSprite = true;
 
   double _t = 0;
+
+  /// Punto de la escena hacia el que mira (el dedo); null mira al frente.
+  Offset? gazeTarget;
+  double _lean = 0;
+
+  /// Inclinación actual hacia el dedo, de −1 (izquierda) a 1 (derecha).
+  double get lean => _lean;
+
+  /// Mira hacia un punto de la escena, o al frente con null.
+  void gazeAt(Offset? scenePoint) => gazeTarget = scenePoint;
+
+  bool get _canGaze =>
+      pose == PetPose.front &&
+      airborne == 0 &&
+      switch (anim) {
+        PetAnim.idle ||
+        PetAnim.happy ||
+        PetAnim.lookUp ||
+        PetAnim.sniff => true,
+        _ => false,
+      };
   PetAnim? _reaction;
   double _reactionLeft = 0;
 
@@ -125,6 +147,15 @@ class PetComponent extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     _t += dt;
+    final target = gazeTarget;
+    var goal = 0.0;
+    if (target != null && _canGaze) {
+      final dx = (target.dx - position.x) / petSize;
+      goal = (dx / 0.9).clamp(-1.0, 1.0);
+    }
+    final k = reducedMotion ? 1.0 : math.min(1.0, dt * 9);
+    _lean += (goal - _lean) * k;
+    if (_lean.abs() < 1e-3) _lean = 0;
     if (_reaction != null) {
       _reactionLeft -= dt;
       if (_reactionLeft <= 0) _reaction = null;
@@ -134,6 +165,12 @@ class PetComponent extends PositionComponent {
   @override
   void render(Canvas canvas) {
     if (!showSprite) return;
+    final leaning = _lean != 0;
+    if (leaning) {
+      // Se inclina sobre las patas (origen) para asomarse hacia el dedo.
+      canvas.save();
+      canvas.rotate(_lean * 0.07);
+    }
     if (facingLeft) {
       canvas.save();
       canvas.scale(-1, 1);
@@ -150,5 +187,6 @@ class PetComponent extends PositionComponent {
       fx: hygiene == null ? fx : fx.withHygiene(hygiene!),
     );
     if (facingLeft) canvas.restore();
+    if (leaning) canvas.restore();
   }
 }

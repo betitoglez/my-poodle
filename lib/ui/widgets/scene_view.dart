@@ -96,6 +96,10 @@ class _SceneViewState extends State<SceneView> with RouteAware {
     super.dispose();
   }
 
+  /// Puntero que empezó sobre un control de la capa superior
+  /// ([SceneTapShield]): la escena no lo trata como caricia ni arrastre.
+  int? _shielded;
+
   void _reset() {
     _pointer = null;
     _start = null;
@@ -111,6 +115,7 @@ class _SceneViewState extends State<SceneView> with RouteAware {
         behavior: HitTestBehavior.opaque,
         onPointerDown: (e) {
           if (_pointer != null) return; // un solo dueño por gesto
+          if (e.pointer == _shielded) return;
           _pointer = e.pointer;
           _start = e.localPosition;
           _last = e.localPosition;
@@ -179,4 +184,19 @@ mixin FrameSafeRefresh<T extends StatefulWidget> on State<T> {
       then?.call();
     });
   }
+}
+
+/// Envuelve controles de la capa superior de [SceneView] (tarjetas, botones)
+/// para que tocarlos no llegue también a la escena como caricia.
+class SceneTapShield extends StatelessWidget {
+  const SceneTapShield({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Listener(
+    onPointerDown: (e) =>
+        context.findAncestorStateOfType<_SceneViewState>()?._shielded =
+            e.pointer,
+    child: child,
+  );
 }

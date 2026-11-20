@@ -109,7 +109,9 @@
       "maxScore": 24,
       "baseCoins": 2,
       "coinsPerPoint": 2,
-      "tier": "full"
+      "tier": "full",
+      "stars": [8, 16],
+      "starsGolden": 3
     },
     "frisbee": {
       "throws": 5,
@@ -140,7 +142,12 @@
           6.5
         ]
       ],
-      "tier": "free"
+      "tier": "free",
+      "targetPool": [
+        [-2, 4.5], [2, 6.5], [-1.5, 6], [1.5, 4], [0, 7],
+        [-2.5, 5.5], [2.5, 5], [0, 3.5], [-1, 7], [1, 5.5]
+      ],
+      "stars": [2, 4, 5]
     }
   },
   "gameCompleteDelta": {
@@ -466,5 +473,19 @@
     "dirtyBelow": 30,
     "sadBelow": 30,
     "tiredBelow": 25
-  }
+  },
+  "decor": [
+    { "id": "rug.none", "slot": "rug", "cost": 0, "initial": true, "tier": "free" },
+    { "id": "rug.round", "slot": "rug", "cost": 40, "initial": false, "tier": "free" },
+    { "id": "rug.stripes", "slot": "rug", "cost": 60, "initial": false, "tier": "full" },
+    { "id": "rug.bone", "slot": "rug", "cost": 90, "initial": false, "tier": "full" },
+    { "id": "wall.none", "slot": "wall", "cost": 0, "initial": true, "tier": "free" },
+    { "id": "wall.frame", "slot": "wall", "cost": 50, "initial": false, "tier": "free" },
+    { "id": "wall.garland", "slot": "wall", "cost": 70, "initial": false, "tier": "full" },
+    { "id": "wall.stars", "slot": "wall", "cost": 110, "initial": false, "tier": "full" },
+    { "id": "plant.none", "slot": "plant", "cost": 0, "initial": true, "tier": "free" },
+    { "id": "plant.fern", "slot": "plant", "cost": 35, "initial": false, "tier": "free" },
+    { "id": "plant.flowers", "slot": "plant", "cost": 80, "initial": false, "tier": "full" },
+    { "id": "plant.cactus", "slot": "plant", "cost": 100, "initial": false, "tier": "full" }
+  ]
 }

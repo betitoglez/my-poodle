@@ -90,6 +90,7 @@ class AppStrings {
   String numberWords(int n) => spellGateNumber(n, language.tag);
 
   static const _nameTemplates = [
+    "Ahora juega con {p0} para ganar monedas.",
     "Apaga la luz para que {p0} duerma.",
     "Arropa a {p0} con su manta.",
     "Consulta del veterinario con {p0}",
@@ -97,6 +98,7 @@ class AppStrings {
     "Fonendo: mantén sobre el pecho de {p0} durante 3 segundos.",
     "La partida de {p0} (nombre, monedas, armario y ajustes) se guarda solo en esta instalación, sin cuentas, servidores ni copias en la nube. Si desinstalas la app o cambias de teléfono, la partida no se transfiere y el nuevo dispositivo empieza por la adopción.",
     "La rutina de {p0}",
+    "Primer paso: dale de comer a {p0}.",
     "Salón con la cama de {p0}",
     "Se eliminarán {p0}, sus monedas, su armario y los ajustes de este dispositivo. No se puede deshacer.",
     "Toca a {p0} para hacerle una caricia.",

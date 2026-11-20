@@ -4,14 +4,13 @@ import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../app/texts.dart';
 import '../../domain/rules.dart';
 import '../theme.dart';
 
 /// Fila o columna de iconos de estado, siempre visibles.
 /// los que no aplican se apagan y los que aplican se encienden, laten y
 /// llevan una exclamación (no depende solo del color). Tocar uno encendido
-/// lleva a la actividad que lo resuelve.
+/// lleva a la actividad que lo resuelve; los apagados solo informan.
 class StatusBubbles extends StatefulWidget {
   const StatusBubbles({
     super.key,
@@ -40,6 +39,28 @@ class StatusBubbles extends StatefulWidget {
   ];
 
   static String assetOf(PetCondition c) => 'assets/images/icons/${c.name}.webp';
+
+  /// Etiqueta accesible: el estado y, si está encendido, qué hace tocarlo.
+  static String semanticsLabel(PetCondition c, {required bool on}) =>
+      on ? _activeLabels[c]! : _calmLabels[c]!;
+
+  static const _activeLabels = {
+    PetCondition.sick: 'Malito: activo. Toca para llevarlo al veterinario.',
+    PetCondition.hungry: 'Hambriento: activo. Toca para darle de comer.',
+    PetCondition.dirty: 'Sucio: activo. Toca para bañarlo.',
+    PetCondition.sad: 'Triste: activo. Toca para jugar con él.',
+    PetCondition.tired: 'Cansado: activo. Toca para que descanse.',
+    PetCondition.thirsty: 'Sediento: activo. Toca para darle de beber.',
+  };
+
+  static const _calmLabels = {
+    PetCondition.sick: 'Malito: bien.',
+    PetCondition.hungry: 'Hambriento: bien.',
+    PetCondition.dirty: 'Sucio: bien.',
+    PetCondition.sad: 'Triste: bien.',
+    PetCondition.tired: 'Cansado: bien.',
+    PetCondition.thirsty: 'Sediento: bien.',
+  };
 
   static IconData fallbackIcon(PetCondition c) => switch (c) {
     PetCondition.sick => Icons.sick_rounded,
@@ -138,7 +159,6 @@ class _Bubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = Texts.conditionNames[condition]!;
     final pulse = on ? 1 + 0.08 * math.sin(phase * 2 * math.pi) : 1.0;
     final iconSize = math.min(36.0, extent - 7);
     final icon = condition == PetCondition.thirsty
@@ -157,14 +177,15 @@ class _Bubble extends StatelessWidget {
               color: AppColors.plum,
             ),
           );
+    // Nodo propio: si no, la etiqueta se fundiría con la de la escena.
     return LSemantics(
-      button: true,
-      label: on
-          ? '$name: encendido, toca para atender'
-          : '$name: apagado, toca para atender',
+      container: true,
+      button: on,
+      label: StatusBubbles.semanticsLabel(condition, on: on),
+      onTap: on ? onTap : null,
       excludeSemantics: true,
       child: InkResponse(
-        onTap: onTap,
+        onTap: on ? onTap : null,
         radius: 26,
         child: SizedBox(
           width: extent,

@@ -11,6 +11,7 @@ import '../../app/feedback.dart';
 import '../../app/texts.dart';
 import '../../domain/games/frisbee_sim.dart';
 import '../../domain/games/orchard_sim.dart';
+import '../../domain/games/variety.dart';
 import '../../domain/rules.dart';
 import '../../domain/balance.dart';
 import '../../game/frisbee_game.dart';
@@ -63,13 +64,16 @@ mixin _GameSession<W extends StatefulWidget> on State<W> {
     return s != null;
   }
 
-  Future<void> complete(int score) async {
+  /// Semilla de la variedad de esta partida (misma sesión, misma partida).
+  int get seed => runSeed(AppScope.read(context).pet.sickSeed, session);
+
+  Future<void> complete(int score, {int golden = 0}) async {
     if (finishing) return;
     finishing = true;
     final c = AppScope.read(context);
     final receipt = await commitOrRecover<Receipt>(
       context,
-      () => c.finishGame(session, gameId, score),
+      () => c.finishGame(session, gameId, score, golden: golden),
     );
     if (!mounted) return;
     if (receipt != null) {
@@ -161,13 +165,21 @@ class _OrchardScreenState extends State<OrchardScreen>
     _render3d =
         LivePoodleView.enabled && LivePoodleView.supports(c.pet.appearance);
     _game = OrchardGame(
-      sim: OrchardSim(timeLimit: c.balance.fruit.seconds.toDouble()),
+      sim: OrchardSim(
+        timeLimit: c.balance.fruit.seconds.toDouble(),
+        golden: goldenFruitsFor(
+          seed,
+          OrchardLevel.v1,
+          count: c.balance.fruit.starGolden,
+        ),
+      ),
       painter: PetPainterScope.of(context),
       look: c.look,
       reducedMotion: c.reducedMotion,
-      onFinished: (score) => WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) complete(score);
-      }),
+      onFinished: (score, golden) =>
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) complete(score, golden: golden);
+          }),
       onHud: refreshAfterFrame,
       waitForStart: _render3d,
       onVisualFrame: _syncOrchard,
@@ -226,6 +238,7 @@ class _OrchardScreenState extends State<OrchardScreen>
             : null,
       ),
       hud: GameHud(
+        live: const {'Frutas', 'Doradas'},
         items: [
           (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
           (
@@ -233,6 +246,12 @@ class _OrchardScreenState extends State<OrchardScreen>
             'Frutas',
             '${sim.score} / ${sim.level.apples.length}',
           ),
+          if (sim.golden.isNotEmpty)
+            (
+              Icons.star_rounded,
+              'Doradas',
+              '${sim.goldenCollected} / ${sim.golden.length}',
+            ),
         ],
       ),
       controls: Row(
@@ -244,7 +263,7 @@ class _OrchardScreenState extends State<OrchardScreen>
                         ? 'Caída −${OrchardSim.fallPenaltySeconds} s. Vuelves al último apoyo.'
                         : 'Choque −${OrchardSim.fallPenaltySeconds} s.'
                   : waiting
-                  ? 'Salta los bancales y recoge las frutas.'
+                  ? 'Salta los bancales y recoge las frutas. Busca las doradas.'
                   : def.gesture,
               style: AppText.body.copyWith(fontWeight: FontWeight.w700),
             ),
@@ -365,7 +384,11 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
             look: c.look,
             reducedMotion: c.reducedMotion,
             sim: FrisbeeSim(
-              targets: rule.targetsField,
+              targets: frisbeeTargetsFor(
+                seed,
+                rule.targetsField,
+                rule.targetPool,
+              ),
               flightSeconds: rule.flightSeconds,
               catchRadius: rule.catchRadius,
             ),
@@ -473,6 +496,7 @@ class _FrisbeeScreenState extends State<FrisbeeScreen>
         },
       ),
       hud: GameHud(
+        live: const {'Aciertos'},
         items: [
           (Icons.timer_rounded, 'Tiempo', '${sim.remaining.ceil()} s'),
           (

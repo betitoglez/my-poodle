@@ -56,6 +56,22 @@ Son candidatos del MVP ampliado, no juegos ya implementados. Antes de construirl
 - [ ] Tipografías y cobertura CJK/cirílico, créditos y licencias de recursos, privacidad/soporte definitivos, accesibilidad, capturas y fichas localizadas.
 - [ ] TestFlight y Play Internal: actualización conservando datos, feedback y cierre de incidencias. Producción requiere una decisión posterior del propietario.
 
+## Mejoras de juego propuestas (revisión del 20-11-2026)
+
+Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en dispositivo. [Registro](docs/ESTADO.md).
+
+- [x] Variedad con semilla en los minijuegos: objetivos variables del Frisbee y frutas doradas del Huerto, reproducibles por partida.
+- [x] Retos de estrellas (0–3) con mejor marca guardada y retos visibles en las instrucciones.
+- [x] Uso para las monedas: decoración del salón (alfombra, pared, planta) con artículos gratuitos y de la versión completa.
+- [x] Caniche más vivo: corazones al acariciar y reposos variados en 2D.
+- [x] Mirada que sigue el dedo: giro de cabeza en 3D e inclinación del cuerpo en 2D; pendiente de probar en dispositivo.
+- [x] Primera partida guiada: comer, jugar y estrenar algo, con opción de saltarla.
+- [x] Pequeñas celebraciones: monedas que cuentan, confeti y transiciones suaves que respetan el movimiento reducido.
+- [x] Accesibilidad de escenas y juegos: etiquetas de estado, regiones vivas y texto grande sin desbordes.
+- [ ] Arte final de la decoración (los dibujos actuales son provisionales) y decoración visible en el visor 3D/foto en dispositivo.
+- [ ] Comprobar en iPhone con 3D: decoración bajo el caniche, corazones, guía, transiciones y lector de pantalla (VoiceOver/TalkBack).
+- [ ] Revisión lingüística de los 55 textos nuevos en los 11 idiomas.
+
 ## Después del MVP
 
 - [ ] Exportación/importación de partida detrás de la puerta adulta, sin servidor.
