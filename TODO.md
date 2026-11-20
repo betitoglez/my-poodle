@@ -14,8 +14,10 @@ Actualizado el 20-11-2026. Este documento recoge el alcance confirmado; [FASES](
 - [x] Crear y verificar candidata **0.5.0 (33)** Release/Archive con 3D activo, firma de distribución y SHA-256; PR #6 fusionada tras revisión limpia de Codex.
 - [x] Subir la candidata (33) con Organizer: ContentDelivery confirma transferencia correcta sin errores y con una advertencia futura de SDK.
 - [x] Procesamiento Ready to Test y build (33) en **MVP Sandbox**, con el propietario como único tester; instalada y abierta en iPhone, versión confirmada por devicectl.
-- [ ] Resolver/verificar disponibilidad de producto Sandbox: en la primera prueba y al reintentar no aparece el precio. Metadatos recién guardados; comprobar propagación antes de atribuir el fallo a código. [Diagnóstico](docs/TESTFLIGHT.md#diagnóstico-del-producto-no-disponible).
-- [ ] Aceptación física de compra iPhone: compra, cancelación, pendiente/aprobación/rechazo, restauración en entorno de prueba, reinicio, offline y revocación/reembolso. No borrar la partida personal para probar restauración.
+- [x] Consulta de producto Sandbox disponible: el propietario confirma que aparece el precio; incidencia inicial resuelta sin cambiar la build ni reinstalar. [Registro](docs/TESTFLIGHT.md#incidencia-inicial-de-producto-no-disponible--resuelta).
+- [x] Compra y cancelación físicas en iPhone/TestFlight **0.5.0 (33)**: el propietario confirma que cancelar funciona y comprar desbloquea la versión completa.
+- [ ] Confirmar reinicio, offline y restauración con derecho existente, conservando mascota, monedas y armario; prueba manual solicitada.
+- [ ] Completar pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en instalación/cuenta de pruebas. No borrar la partida personal para crear esos casos.
 - [ ] La primera beta incluye idiomas y modo foto; no se declara lista con esos requisitos pendientes. El alta remota y una compilación local tampoco acreditan una compra Sandbox correcta.
 
 ## Implementado y verificado previamente
