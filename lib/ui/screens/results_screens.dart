@@ -13,9 +13,12 @@ import '../../game/scenes/room_painter.dart';
 import '../../game/scenes/stage_game.dart';
 import '../navigation.dart';
 import '../theme.dart';
+import '../widgets/celebrations.dart';
+import '../widgets/coin_count.dart';
 import '../widgets/common.dart';
 import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
+import '../widgets/star_reveal.dart';
 import 'games_screen.dart';
 import 'wardrobe_screen.dart';
 
@@ -97,47 +100,62 @@ class _ResultLayout extends StatelessWidget {
       child: Scaffold(
         body: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: LText(kicker.toUpperCase(), style: AppText.kicker),
-                    ),
-                    if (c.demo) const DemoBadge(),
-                    const SizedBox(width: 6),
-                    CoinBalance(coins: c.pet.coins),
-                  ],
-                ),
-              ),
-              Expanded(child: _CelebrationScene(room: room)),
-              Panel(
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: LayoutBuilder(
+            builder: (context, box) => Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Row(
                     children: [
-                      LText(
-                        title,
-                        style: AppText.display.copyWith(fontSize: 26),
+                      Expanded(
+                        child: LText(
+                          kicker.toUpperCase(),
+                          style: AppText.kicker,
+                        ),
                       ),
-                      const SizedBox(height: AppSpace.s),
-                      body,
-                      const SizedBox(height: AppSpace.l),
-                      Wrap(
-                        spacing: AppSpace.s,
-                        runSpacing: AppSpace.s,
-                        alignment: WrapAlignment.end,
-                        children: actions,
-                      ),
+                      if (c.demo) const DemoBadge(),
+                      const SizedBox(width: 6),
+                      CoinBalance(coins: c.pet.coins),
                     ],
                   ),
                 ),
-              ),
-            ],
+                Expanded(child: _CelebrationScene(room: room)),
+                // El panel nunca tapa del todo la escena: en pantallas bajas o
+                // con texto grande se desplaza en lugar de desbordar.
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: box.maxHeight * 0.72),
+                  child: Panel(
+                    child: SingleChildScrollView(
+                      child: SafeArea(
+                        top: false,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            LSemantics(
+                              header: true,
+                              child: LText(
+                                title,
+                                style: AppText.display.copyWith(fontSize: 26),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpace.s),
+                            body,
+                            const SizedBox(height: AppSpace.l),
+                            Wrap(
+                              spacing: AppSpace.s,
+                              runSpacing: AppSpace.s,
+                              alignment: WrapAlignment.end,
+                              children: actions,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -155,7 +173,13 @@ Widget _needChange(Receipt r, Need n) {
         Icon(n.icon, color: n.color),
         const SizedBox(width: AppSpace.s),
         Expanded(child: LText(Texts.needLabels[n]!, style: AppText.subtitle)),
-        LText('$before → $after', style: AppText.number),
+        // Con texto grande la cifra se reduce en lugar de desbordar.
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: LText('$before → $after', style: AppText.number),
+          ),
+        ),
         const SizedBox(width: AppSpace.s),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -291,8 +315,25 @@ class _GameResultScreenState extends State<GameResultScreen> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    // Nueva mejor marca de estrellas: confeti (destello estático si el
+    // movimiento está reducido) tras el primer fotograma.
+    if (widget.receipt.newBestStars) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ConfettiBurst.show(
+          context,
+          reducedMotion: AppScope.read(context).reducedMotion,
+        );
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final r = widget.receipt;
+    final reduced = AppScope.of(context).reducedMotion;
     final balance = AppScope.read(context).balance;
     final def = GameCatalog.of(widget.game, balance);
     final max =
@@ -309,6 +350,17 @@ class _GameResultScreenState extends State<GameResultScreen> {
       title: widget.message ?? _title,
       body: Column(
         children: [
+          StarReveal(stars: r.stars, reducedMotion: reduced),
+          if (r.newBestStars)
+            const Padding(
+              padding: EdgeInsets.only(top: AppSpace.xs),
+              child: LText(
+                '¡Nueva mejor marca de estrellas!',
+                textAlign: TextAlign.center,
+                style: AppText.subtitle,
+              ),
+            ),
+          const SizedBox(height: AppSpace.s),
           Row(
             children: [
               Icon(switch (widget.game) {
@@ -332,12 +384,21 @@ class _GameResultScreenState extends State<GameResultScreen> {
               const CoinIcon(size: 22),
               const SizedBox(width: AppSpace.s),
               Expanded(
-                child: LText(
-                  '+${r.coinsEarned} monedas',
+                child: CountUpText(
+                  from: 0,
+                  to: r.coinsEarned,
+                  format: (v) => '+$v monedas',
+                  reducedMotion: reduced,
                   style: AppText.subtitle,
                 ),
               ),
-              LText('Saldo ${r.after.coins}', style: AppText.number),
+              CountUpText(
+                from: r.before.coins,
+                to: r.after.coins,
+                format: (v) => 'Saldo $v',
+                reducedMotion: reduced,
+                style: AppText.number,
+              ),
             ],
           ),
           const Divider(height: AppSpace.l),

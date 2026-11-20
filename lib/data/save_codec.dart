@@ -46,6 +46,8 @@ class SaveCodec {
     'bestPairs': s.bestPairs,
     'bestMemory': s.bestMemory,
     'puzzleDeals': s.puzzleDeals,
+    'bestStars': s.bestStars,
+    'decor': {for (final e in s.decor.entries) e.key.name: e.value},
     'muted': s.prefs.muted,
     'music': s.prefs.music,
     'effects': s.prefs.effects,
@@ -137,6 +139,28 @@ class SaveCodec {
         deals.values.any((v) => v is! List || v.any((e) => e is! String))) {
       throw SaveFormatException('Repartos inválidos');
     }
+    final starsRaw = j['bestStars'] ?? <String, dynamic>{};
+    if (starsRaw is! Map<String, dynamic> ||
+        starsRaw.values.any((v) => v is! int || v < 0 || v > 3)) {
+      throw SaveFormatException('Estrellas inválidas');
+    }
+    // Partidas anteriores a la decoración: salón vacío. Un artículo retirado
+    // o sin propiedad vuelve al hueco vacío, conservando lo comprado.
+    final decorRaw = j['decor'];
+    final decor = Map<DecorSlot, String>.of(balance.initialDecor);
+    if (decorRaw is Map<String, dynamic>) {
+      for (final slot in DecorSlot.values) {
+        final v = decorRaw[slot.name];
+        final item = v is String ? balance.decorItem(v) : null;
+        if (item != null &&
+            item.slot == slot &&
+            (item.initial || owned.contains(item.id))) {
+          decor[slot] = item.id;
+        }
+      }
+    } else if (decorRaw != null) {
+      throw SaveFormatException('Decoración inválida');
+    }
     final restStart = j['restingSinceUtc'];
     final restCursor = j['restEnergyCursorUtc'];
     if (careTimes is! Map<String, dynamic> ||
@@ -177,6 +201,8 @@ class SaveCodec {
         for (final e in deals.entries)
           e.key: List<String>.unmodifiable((e.value as List).cast<String>()),
       }),
+      bestStars: Map.unmodifiable(starsRaw.cast<String, int>()),
+      decor: Map.unmodifiable(decor),
       prefs: Preferences(
         language: j['language'] is String ? j['language'] as String : null,
         music: optBool('music', !muted),

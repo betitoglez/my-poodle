@@ -126,6 +126,40 @@ const tailOrientation = new THREE.Quaternion(), bodyOrientation = new THREE.Quat
 const tailAxis = new THREE.Vector3(), acrossBody = new THREE.Vector3();
 const headPose = new THREE.Quaternion();
 let resetHead = false;
+// Mirada hacia el dedo: punto de pantalla (0..1) o null; giro suavizado.
+let gazeTarget = null, gazeYaw = 0, gazePitch = 0;
+const gazeTurn = new THREE.Quaternion(), gazeEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+const headWorld = new THREE.Quaternion(), parentWorld = new THREE.Quaternion();
+const headScreen = new THREE.Vector3();
+function updateGaze(delta) {
+  let yaw = 0, pitch = 0;
+  const free = gazeTarget && head && canStand() && !configuration.sleeping &&
+    !configuration.feeding && phase === 0 && target === 0;
+  if (free) {
+    head.getWorldPosition(headScreen).project(camera);
+    const dx = gazeTarget[0] * 2 - 1 - headScreen.x;
+    const dy = 1 - gazeTarget[1] * 2 - headScreen.y;
+    yaw = THREE.MathUtils.clamp(dx * 0.9, -0.6, 0.6);
+    pitch = THREE.MathUtils.clamp(-dy * 0.6, -0.35, 0.3);
+  }
+  const k = configuration.reduced ? 1 : Math.min(1, delta * 9);
+  gazeYaw += (yaw - gazeYaw) * k;
+  gazePitch += (pitch - gazePitch) * k;
+  if (Math.abs(gazeYaw) < 1e-3 && Math.abs(gazePitch) < 1e-3) {
+    gazeYaw = gazePitch = 0;
+    return !!free;
+  }
+  if (!resetHead) {
+    headPose.copy(head.quaternion);
+    resetHead = true;
+  }
+  gazeEuler.set(gazePitch, gazeYaw, 0);
+  gazeTurn.setFromEuler(gazeEuler);
+  head.getWorldQuaternion(headWorld).premultiply(gazeTurn);
+  head.parent.getWorldQuaternion(parentWorld).invert();
+  head.quaternion.copy(parentWorld.multiply(headWorld));
+  return true;
+}
 const clip = THREE.AnimationClip.findByName(gltf.animations, 'Tumbarse');
 const rainClip = THREE.AnimationClip.findByName(gltf.animations, 'Tumbarse con botas');
 const eatClip = THREE.AnimationClip.findByName(gltf.animations, 'Comer');
@@ -288,15 +322,17 @@ function tick(now) {
   const poseSpeed = target > phase ? .74 : .92;
   phase += Math.sign(target - phase) * Math.min(Math.abs(target - phase), delta * poseSpeed);
   if (configuration.passiveBed) frameHomeBed();
+  // Deshace primero lo último aplicado (mirada/consulta) y después los
+  // gestos de reposo, para que nada se acumule de un fotograma a otro.
+  if (resetHead) {
+    head.quaternion.copy(headPose);
+    resetHead = false;
+  }
   sleepPose.reset();
   walkPose.reset();
   orchardPose.reset();
   idle.reset();
   tail.quaternion.copy(tailRest);
-  if (resetHead) {
-    head.quaternion.copy(headPose);
-    resetHead = false;
-  }
   const [walkX, walkPan, traveling, sniff] = walkState;
   const sniffing = configuration.walking && sniff >= 0;
   const activePose = configuration.feeding || sniffing ? eatAction : shoeClearance ? rainAction : action;
@@ -372,6 +408,7 @@ function tick(now) {
     resetHead = true;
     head.rotateX(0.16 * Math.sin(Math.PI * vetState[5]));
   }
+  const gazing = updateGaze(delta);
   const rest = THREE.MathUtils.smoothstep(phase, 0, 1);
   for (const [shell, index] of restingShells) {
     shell.morphTargetInfluences[index] = rest;
@@ -394,7 +431,7 @@ function tick(now) {
   const flowing = configuration.walking && walkX > 1.4 && !configuration.reduced;
   if (phase !== target || roomMotion.active || roomMotion.wagging || remaining || asleep || flowing ||
       (configuration.walking && !configuration.reduced && (traveling || sniffing)) ||
-      (configuration.idle && !configuration.reduced)) schedule();
+      (configuration.idle && !configuration.reduced) || gazing) schedule();
   else last = 0;
 }
 
@@ -581,6 +618,11 @@ window.poodle = {
     const greeted = canStand() && roomMotion.react(performance.now(), configuration.roaming);
     schedule();
     return greeted ? 2 : 1;
+  },
+  look(point) {
+    gazeTarget = Array.isArray(point) && point.length === 2 &&
+      point.every(v => Number.isFinite(v)) ? point.map(v => THREE.MathUtils.clamp(v, 0, 1)) : null;
+    schedule();
   },
   feed([progress, fill]) {
     biteProgress = THREE.MathUtils.clamp(progress, 0, 1);

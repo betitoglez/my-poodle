@@ -35,12 +35,16 @@ class _MainShellState extends State<MainShell> {
       builder: (context, _) {
         final tab = shell.tab;
         return Scaffold(
-          body: switch (tab) {
-            ShellTab.home => const HomeScreen(),
-            ShellTab.care => const CareScreen(),
-            ShellTab.games => const GamesScreen(),
-            ShellTab.wardrobe => const WardrobeScreen(),
-          },
+          body: _TabFadeIn(
+            key: ValueKey(tab),
+            reducedMotion: navigationReducedMotion(context),
+            child: switch (tab) {
+              ShellTab.home => const HomeScreen(),
+              ShellTab.care => const CareScreen(),
+              ShellTab.games => const GamesScreen(),
+              ShellTab.wardrobe => const WardrobeScreen(),
+            },
+          ),
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -77,6 +81,62 @@ class _MainShellState extends State<MainShell> {
       },
     );
   }
+}
+
+/// Fundido de entrada de la pestaña nueva (~180 ms). Deliberadamente no es un
+/// fundido cruzado (`AnimatedSwitcher`): la pestaña anterior se desmonta en el
+/// mismo fotograma, como antes, para que nunca convivan dos escenas Flame ni
+/// dos vistas nativas del caniche. No guarda estado propio: cada pestaña se
+/// construye al entrar, igual que sin animación, y `leaveGuard` sigue
+/// resolviéndose en [ShellController.go] antes de cambiar. Con movimiento
+/// reducido la pestaña aparece sin animación.
+class _TabFadeIn extends StatefulWidget {
+  const _TabFadeIn({
+    super.key,
+    required this.reducedMotion,
+    required this.child,
+  });
+  final bool reducedMotion;
+  final Widget child;
+
+  static const duration = Duration(milliseconds: 180);
+
+  @override
+  State<_TabFadeIn> createState() => _TabFadeInState();
+}
+
+class _TabFadeInState extends State<_TabFadeIn>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: _TabFadeIn.duration,
+    value: widget.reducedMotion ? 1 : 0,
+  );
+
+  late final _opacity = CurvedAnimation(parent: _c, curve: Curves.easeOut);
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.reducedMotion) _c.forward();
+  }
+
+  @override
+  void didUpdateWidget(_TabFadeIn old) {
+    super.didUpdateWidget(old);
+    if (widget.reducedMotion) _c.value = 1;
+  }
+
+  @override
+  void dispose() {
+    _opacity.dispose();
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      FadeTransition(opacity: _opacity, child: widget.child);
 }
 
 /// Cabecera común de pestaña: título, saldo y acción opcional.

@@ -54,4 +54,4 @@ La galería web y los ejemplos de Figma son referencias de UX y arte. La app usa
 
 ## Modo foto
 
-Entrada desde el icono de cámara en Casa. Conserva el aspecto actual; permite girar, volver de frente y alternar pose de pie/tumbado. Capturar no altera necesidades, monedas ni prendas. Una captura confirma el guardado y aparece en el álbum privado. El álbum permite ampliar y eliminar una foto con confirmación. Los controles se redistribuyen en varias líneas cuando el idioma requiere más espacio.
+Entrada desde el icono de cámara en Casa. Conserva el aspecto actual; permite girar, volver de frente y alternar pose de pie/tumbado. Capturar no altera necesidades, monedas ni prendas. Una captura confirma el guardado y aparece en el álbum privado. El álbum permite ampliar y eliminar una foto con confirmación. En Android/iOS, «Guardar en el carrete» copia la foto a la galería del móvil tras la puerta adulta y confirma el resultado (guardada, sin permiso o error con reintento). Los controles se redistribuyen en varias líneas cuando el idioma requiere más espacio.

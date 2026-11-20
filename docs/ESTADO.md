@@ -1,5 +1,27 @@
 # Estado de la implementación
 
+## Mejoras de juego en rama `feature/mejoras-juego` · 20-11-2026 · implementado, sin probar en dispositivo
+
+- Tarea: siete mejoras propuestas en la revisión del 20-11-2026 (ver [TODO](../TODO.md#mejoras-de-juego-propuestas-revisión-del-20-11-2026)). Flutter 3.50.0 / Dart 3.14. Rama aparte; no fusionada en main.
+- **Variedad**: semilla por partida (`runSeed`, FNV-1a) a partir de la semilla del caniche y la sesión. El Frisbee toma cuatro objetivos de `targetPool` (el primero fijo); el Huerto elige tres frutas doradas con halo en 2D y 3D. Las monedas no cambian.
+- **Estrellas**: 0–3 por partida (`starsFor`), mejor marca `bestStars` guardada, retos en Instrucciones, estrellas animadas y «¡Nueva mejor marca!» en el resultado.
+- **Decoración del salón**: 12 artículos en tres huecos (alfombra, pared, planta), `applyDecor` con las reglas del armario, pantalla «Decorar el salón» desde Casa, dibujo vectorial provisional bajo el caniche 3D y también en el modo foto. Partidas antiguas cargan con huecos vacíos.
+- **Caniche más vivo**: corazones al acariciar (uno estático con movimiento reducido), reposos variados en 2D y **mirada que sigue al dedo**. En 3D gira el hueso `cabeza` hacia el punto tocado (canal `look` en iOS/Android) y vuelve al frente 2,5 s después de soltar; arrastrar sigue girando al caniche. En 2D el sprite es de una pieza, así que se inclina sobre las patas hacia el dedo y lo sigue al arrastrar. Solo de pie y despierto. El visor deshace ahora la mirada y la consulta del veterinario antes que los reposos, para que el giro no se acumule entre fotogramas. Comprobado en el navegador con el visor real (gira y vuelve sin deriva tras seis vaivenes); falta probarlo en el dispositivo.
+- **Guía de la primera partida**: comer → jugar → estrenar, deducida del estado, con «Saltar guía». Tocar la tarjeta ya no acaricia al caniche (`SceneTapShield`).
+- **Celebraciones**: monedas que cuentan, confeti al comprar y al batir la marca, fundido entre pantallas y pestañas (en iOS se conserva la transición del sistema con el gesto de volver). Todo se desactiva con movimiento reducido.
+- **Accesibilidad**: iconos de estado como nodos propios con estado y acción, HUD con región viva solo en puntuación, títulos de resultado como encabezado, sin desbordes a 320×568 con texto ×1,6 en Casa, Juegos, Instrucciones y Resultado.
+- Corrección de traducción: «capturas» del Frisbee figuraba como «capturas de pantalla» en 10 idiomas; ahora es «atrapadas/catches».
+- Pruebas: `flutter analyze` sin incidencias; `validate_content` (12 decoraciones) y `validate_localizations` (11 × 622 tras integrar main) correctos; **285/285 pruebas** (con la mirada) tras integrar main `b9df9e8` (226 antes de la rama). Traducciones nuevas generadas por IA, pendientes de revisión lingüística. Sin build firmada ni comprobación en iPhone/Android ni con el visor 3D activo.
+
+## Fotos al carrete del móvil · 20-11-2026 · implementado, sin probar en dispositivo
+
+- Tarea: copiar una foto del álbum privado al carrete de iOS y Android. Rama `feature/photo-mode-camera-roll` sobre main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas.
+- El detalle de la foto muestra «Guardar en el carrete» solo en Android/iOS. Pasa por la puerta adulta antes de pedir el permiso del sistema; cancelar no llama al canal. El álbum privado no cambia: la foto se copia, no se mueve.
+- Canal propio `my_poodle/photos` (`saveToGallery`, bytes PNG + nombre `MyPoodle-<id>`). iOS: `PHPhotoLibrary` con autorización `.addOnly` y `NSPhotoLibraryAddUsageDescription` en los 11 `InfoPlist.strings`. Android 10+: MediaStore en `Pictures/My Poodle` con `IS_PENDING`, sin permiso; Android 7–9: `WRITE_EXTERNAL_STORAGE` con `maxSdkVersion=28` y petición en tiempo de ejecución. No se lee la galería.
+- Mensajes de guardado, permiso denegado y fallo en 11 × 567 mensajes; el aviso del modo foto ya no dice «solo dentro de esta app».
+- Pruebas: `test/ui/photo_gallery_export_test.dart` (puerta, argumentos del canal, denegado, fallo con reintento y traducción de respuestas). `flutter analyze` limpio, validadores de idiomas y contenido correctos, **232/232 pruebas** tras rebasar sobre main. `flutter build apk --debug` y `flutter build ios --no-codesign --debug` con `POODLE_LIVE_3D=true` correctos.
+- Pendiente en dispositivo: guardar en iPhone y en Android (10+ y, si hay uno, 7–9), aceptar y denegar el permiso y ver la foto en Fotos/Galería. Revisión lingüística humana de los textos nuevos.
+
 ## Pruebas rápidas avanzadas de compra · 20-11-2026 · sesión finalizada con casos abiertos
 
 - Se ejecutan 36 regresiones de compras existentes: correctas. Se prepara el iPhone con la cuenta Sandbox existente; no se reciben credenciales ni se borra historial. Copias originales de los dos archivos locales del derecho verificadas, en ubicación privada fuera de Git. Solo se vacía la caché primaria de compra, sin tocar partida ni fotos. Reinicio explícito del Bundle ID correcto deja visible el botón de compra.
@@ -690,3 +712,8 @@ Implementado y probado de forma automatizada; no probado en dispositivo.
 ## Parejas y Memory · 20-11-2026
 
 Inicio de implementación en `codex/minijuegos-parejas-memory`, desde main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; dependencias conservadas. Parejas gratuito con 4/6/8 parejas, 60 segundos, cinco fallos y premios 5/15/25. Memory exclusivo de versión completa, cuatro señales, secuencias de 3 a 10 y premios totales 5 a 40; diez segundos por turno. Repartos aleatorios reservados con el inicio y persistidos para no repetir partidas. Verificación final: `flutter analyze` limpio, validadores de contenido/localizaciones correctos (11 × 605), **249 pruebas** y build web Release con `POODLE_LIVE_3D=true` correctos. Ocho fotos y cuatro notas nuevas empaquetadas. [Evidencia y capturas](reviews/minigames/README.md). Aceptación física y nueva beta pendientes.
+
+
+## Sincronización de minijuegos con main · 20-11-2026
+
+Integración de main remoto `ed77192` (PR #14 exportación de fotos al carrete y PR #15 variedad, estrellas, decoración, guía y celebraciones) en `codex/minijuegos-parejas-memory`, conservando el commit original `f3b87c7`. Conflictos de traducciones y guardado combinados sin perder campos. `GameSession` conserva semilla por sesión y frutas doradas, y Parejas/Memory se integran en las estrellas y sus retos. Verificación de la combinación: análisis limpio, **310 pruebas correctas**, contenido válido (12 artículos de decoración y 73 imágenes), 11 × 671 traducciones validadas y build web Release con `POODLE_LIVE_3D=true`. Aceptación física pendiente.

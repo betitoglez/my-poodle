@@ -397,8 +397,9 @@ class AppController extends ChangeNotifier {
   Future<ActionResult<Receipt>> finishGame(
     String sessionId,
     GameId game,
-    int score,
-  ) async {
+    int score, {
+    int golden = 0,
+  }) async {
     final previous = sessions.receiptOf<Receipt>(sessionId);
     if (previous != null) return Done(previous);
     if (!sessions.isOpen(sessionId) ||
@@ -416,6 +417,7 @@ class AppController extends ChangeNotifier {
         score,
         sessionId,
         clock.nowUtcSeconds(),
+        golden: golden,
       );
     } on RuleException {
       sessions.cancel(sessionId);
@@ -437,6 +439,23 @@ class AppController extends ChangeNotifier {
     final outcome = rules.applyLook(
       _confirmed!,
       target,
+      opId,
+      clock.nowUtcSeconds(),
+      fullVersion: fullVersion,
+    );
+    return switch (outcome) {
+      InsufficientCoins() || RequiresFull() => Done(outcome),
+      Purchased(:final receipt) => _commit(receipt.after, outcome),
+    };
+  }
+
+  /// Comprar y colocar (o colocar gratis lo propio) una decoración del salón.
+  Future<ActionResult<PurchaseOutcome>> applyDecor(String id) async {
+    if (_confirmed == null) return const Ignored();
+    final opId = 'decor-${clock.nowUtcSeconds()}-${_confirmed!.revision}';
+    final outcome = rules.applyDecor(
+      _confirmed!,
+      id,
       opId,
       clock.nowUtcSeconds(),
       fullVersion: fullVersion,

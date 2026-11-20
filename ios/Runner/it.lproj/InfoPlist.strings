@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Il mio Barboncino";
 "CFBundleName" = "Il mio Barboncino";
+"NSPhotoLibraryAddUsageDescription" = "Per salvare nella tua libreria foto le foto del tuo barboncino che scegli.";

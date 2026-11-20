@@ -119,11 +119,14 @@ class OrchardLevel {
 enum OrchardEnd { none, goal, timeUp }
 
 class OrchardSim {
-  OrchardSim({this.level = OrchardLevel.v1, this.timeLimit = 60})
-    : x = level.startX,
-      y = 0,
-      safeX = level.startX,
-      safeY = 0;
+  OrchardSim({
+    this.level = OrchardLevel.v1,
+    this.timeLimit = 60,
+    this.golden = const {},
+  }) : x = level.startX,
+       y = 0,
+       safeX = level.startX,
+       safeY = 0;
 
   static const double dt = 1 / 120;
   static const double speed = 3;
@@ -141,6 +144,9 @@ class OrchardSim {
 
   final OrchardLevel level;
   final double timeLimit;
+
+  /// Frutas doradas de esta partida (cuentan igual; reto de la 3.ª estrella).
+  final Set<String> golden;
 
   double x;
   double y;
@@ -171,6 +177,7 @@ class OrchardSim {
   double get pace => speed * (1 + 2 * routeProgress);
 
   int get score => collected.length;
+  int get goldenCollected => golden.where(collected.contains).length;
   bool get finished => end != OrchardEnd.none;
   double get remaining => (timeLimit - time).clamp(0, timeLimit).toDouble();
   bool get respawning => _respawnLeft > 0;

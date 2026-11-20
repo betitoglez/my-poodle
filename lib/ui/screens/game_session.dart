@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../app/app_scope.dart';
 import '../../app/feedback.dart';
 import '../../domain/rules.dart';
+import '../../domain/games/variety.dart';
 import '../../l10n/localized_widgets.dart';
 import '../ask_adult_view.dart';
 import '../navigation.dart';
@@ -51,13 +52,16 @@ mixin GameSession<W extends StatefulWidget> on State<W> {
     return s != null;
   }
 
-  Future<void> complete(int score) async {
+  /// Conserva la variedad de main a partir de la sesión confirmada.
+  int get seed => runSeed(AppScope.read(context).pet.sickSeed, session);
+
+  Future<void> complete(int score, {int golden = 0}) async {
     if (finishing) return;
     finishing = true;
     final c = AppScope.read(context);
     final receipt = await commitOrRecover<Receipt>(
       context,
-      () => c.finishGame(session, gameId, score),
+      () => c.finishGame(session, gameId, score, golden: golden),
     );
     if (!mounted) return;
     if (receipt != null) {

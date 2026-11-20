@@ -18,6 +18,7 @@ import '../../game/scenes/stage_game.dart';
 import '../ask_adult_view.dart';
 import '../navigation.dart';
 import '../theme.dart';
+import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/live_poodle_view.dart';
@@ -223,7 +224,10 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     setState(() => _busy = false);
     if (r is Purchased) {
       final fx = AppScope.feedbackOf(context);
-      if (r.cost > 0) fx.play(Sfx.coins);
+      if (r.cost > 0) {
+        fx.play(Sfx.coins);
+        ConfettiBurst.show(context, reducedMotion: c.reducedMotion);
+      }
       if (r.receipt.before.appearance != r.receipt.after.appearance) {
         fx.play(Sfx.fabric, haptic: false);
       }

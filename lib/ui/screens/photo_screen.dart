@@ -11,7 +11,9 @@ import '../../app/app_scope.dart';
 import '../../data/photo_album.dart';
 import '../../domain/balance.dart';
 import '../../game/scenes/stage_game.dart';
+import '../../platform/photo_gallery.dart';
 import '../navigation.dart';
+import '../parental_gate.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/live_poodle_view.dart';
@@ -42,6 +44,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       reducedMotion: c.reducedMotion,
     );
     _game!.setLook(c.look);
+    _game!.setDecor(c.pet.decor);
   }
 
   bool get _showModel =>
@@ -206,7 +209,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   ),
                   const SizedBox(height: 8),
                   const LText(
-                    'Las fotos se guardan solo dentro de esta app. Álbum de hasta 24 fotos.',
+                    'Las fotos se guardan en el álbum de esta app (hasta 24). Una persona adulta puede copiarlas al carrete del móvil.',
                     style: AppText.small,
                     textAlign: TextAlign.center,
                   ),
@@ -306,6 +309,36 @@ class PhotoDetailScreen extends StatefulWidget {
 class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
   late final Future<Uint8List> _image = widget.album.read(widget.photo);
   bool _deleting = false;
+  bool _exporting = false;
+
+  /// Copia la foto al carrete del sistema tras la puerta adulta: sale de la
+  /// app, igual que un enlace externo. El permiso del sistema se pide después.
+  Future<void> _exportToGallery() async {
+    if (_exporting || _deleting) return;
+    if (!await ParentalGate.show(context) || !mounted) return;
+    setState(() => _exporting = true);
+    var result = GalleryExportResult.failed;
+    try {
+      result = await PhotoGallery.save(
+        await _image,
+        name: 'MyPoodle-${widget.photo.id}',
+      );
+    } catch (_) {
+      result = GalleryExportResult.failed;
+    }
+    if (!mounted) return;
+    setState(() => _exporting = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: LText(switch (result) {
+          GalleryExportResult.saved => 'Foto guardada en el carrete del móvil.',
+          GalleryExportResult.denied => 'Sin permiso para guardar en el carrete. Actívalo en los ajustes del móvil.',
+          GalleryExportResult.failed => 'No se ha podido guardar la foto en el carrete. Inténtalo de nuevo.',
+        }),
+      ),
+    );
+  }
+
   Future<void> _delete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -351,11 +384,31 @@ class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
       actions: [
         IconButton(
           tooltip: localizeNullable(context, 'Eliminar foto'),
-          onPressed: _deleting ? null : _delete,
+          onPressed: _deleting || _exporting ? null : _delete,
           icon: const Icon(Icons.delete_outline_rounded),
         ),
       ],
     ),
+    bottomNavigationBar: PhotoGallery.supported
+        ? SafeArea(
+            minimum: const EdgeInsets.all(12),
+            child: FutureBuilder<Uint8List>(
+              future: _image,
+              builder: (context, image) => AppButton(
+                key: const Key('photo-export'),
+                label: _exporting
+                    ? 'Guardando en el carrete…'
+                    : 'Guardar en el carrete',
+                icon: Icons.download_rounded,
+                secondary: true,
+                expand: true,
+                onPressed: image.hasData && !_exporting && !_deleting
+                    ? _exportToGallery
+                    : null,
+              ),
+            ),
+          )
+        : null,
     body: FutureBuilder<Uint8List>(
       future: _image,
       builder: (context, image) => image.hasData

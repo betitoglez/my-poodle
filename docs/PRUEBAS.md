@@ -157,11 +157,12 @@ Resultado físico 18-11-2026, Xiaomi/build 3, confirmado por el propietario: can
 
 - `dart run tool/validate_localizations.dart`: mismos mensajes y parámetros en los 11 catálogos; bloquea catálogos vacíos/incompletos.
 - `test/l10n/app_strings_test.dart`: nombres, respaldo inglés, scripts chinos, parámetros, números de puerta adulta y persistencia.
+- `test/ui/photo_gallery_export_test.dart`: copia al carrete tras la puerta adulta, argumentos del canal, permiso denegado, fallo con reintento y traducción de respuestas nativas.
 - `test/ui/localization_photo_test.dart`: pantalla 320×568, nombre de jugador literal, controles de foto, álbum, juegos y puerta adulta para cada idioma.
 - `test/domain/premium_trial_test.dart` y `test/ui/premium_trial_test.dart`: frontera 86.399/86.400 s, guardados antiguos, compra completa, fallo de escritura, concurrencia y abandono/reinicio.
 - `test/data/photo_album_test.dart`: reinicio, eliminación, índice dañado, fallo de reemplazo y capacidad bajo escrituras simultáneas.
 
-En iPhone comprobar con el 3D activo que la foto contiene al caniche con su ropa, pose y giro reales; volver del álbum no altera la partida. Probar guardar, ampliar, borrar y reabrir; los tests de widgets no acreditan el puente WebGL del dispositivo. Probar cambio de idioma, lectura CJK/cirílica, VoiceOver y textos largos a escala grande. La traducción inicial requiere revisión lingüística humana antes de producción. No marcar la compra Sandbox como aceptada por haber pasado la tienda simulada.
+En iPhone comprobar con el 3D activo que la foto contiene al caniche con su ropa, pose y giro reales; volver del álbum no altera la partida. Probar guardar, ampliar, borrar y reabrir; copiar al carrete en iPhone y Android aceptando y denegando el permiso; los tests de widgets no acreditan el puente WebGL del dispositivo. Probar cambio de idioma, lectura CJK/cirílica, VoiceOver y textos largos a escala grande. La traducción inicial requiere revisión lingüística humana antes de producción. No marcar la compra Sandbox como aceptada por haber pasado la tienda simulada.
 
 ### Captura 3D nativa con datos aislados
 

@@ -2,7 +2,7 @@
 
 ## Alcance MVP vigente · 19-11-2026
 
-Primera beta TestFlight con es/en/fr/de/pt-BR/it/ru/ko/ja/zh-Hans/zh-Hant, selector persistente y nombre localizado (Mi Caniche en español; My Poodle en inglés/respaldo). Modo foto con captura 3D y álbum privado local. Cada juego premium permite una partida gratuita cada 24 h por juego sin compra; el cupo se confirma al iniciar, se conserva al cerrar y no se consume si falla el guardado. La compra elimina el cupo de prueba; se mantienen energía y límites generales. Parejas, Simón de perritos y laberinto son propuestas por definir. Estas decisiones prevalecen sobre referencias históricas contradictorias.
+Primera beta TestFlight con es/en/fr/de/pt-BR/it/ru/ko/ja/zh-Hans/zh-Hant, selector persistente y nombre localizado (Mi Caniche en español; My Poodle en inglés/respaldo). Modo foto con captura 3D y álbum privado local; una persona adulta puede copiar cada foto al carrete del móvil. Cada juego premium permite una partida gratuita cada 24 h por juego sin compra; el cupo se confirma al iniciar, se conserva al cerrar y no se consume si falla el guardado. La compra elimina el cupo de prueba; se mantienen energía y límites generales. Parejas, Simón de perritos y laberinto son propuestas por definir. Estas decisiones prevalecen sobre referencias históricas contradictorias.
 
 
 Juego móvil con Flutter + Flame, caniche y vestuario 3D locales en iOS/Android, escenarios 2D y respaldo ilustrado. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni publicidad. La descarga es gratuita y una única compra integrada desbloquea la versión completa (ver [Versión gratuita y versión completa](#versión-gratuita-y-versión-completa)).
@@ -11,7 +11,9 @@ Juego móvil con Flutter + Flame, caniche y vestuario 3D locales en iOS/Android,
 
 En una instalación vacía, abrir Adopción y presentar el cachorro con su aspecto gratuito Albaricoque + corte Rizo natural. Tocar el campo «Nombre de tu caniche», abrir teclado, ofrecer «Sugerir nombre» (Nube, Miel, Coco) y confirmar con «Adoptar». Recortar extremos, normalizar Unicode NFC, contar de 1 a 16 grafemas y rechazar controles/saltos de línea. Desactivar formato enriquecido en el nombre mostrado. Conservar tildes y nombres compuestos. Un borrador cancelado nunca crea media mascota. La adopción confirmada crea una única partida con 0 monedas. Un segundo arranque abre Casa directamente.
 
-En casa, tocar al perro hace que mire al jugador. La tarjeta de bienestar sugiere atender la necesidad más baja. El jugador puede elegir otra actividad desde el menú. El primer objetivo es compartir una comida, completar un juego y probar el primer accesorio. Todas las actividades básicas están disponibles desde la adopción.
+En casa, tocar al perro hace que mire al jugador. Al poner el dedo en el salón, el caniche lo mira (en 3D gira la cabeza; en 2D se inclina hacia él) y vuelve al frente poco después de soltar. La tarjeta de bienestar sugiere atender la necesidad más baja. El jugador puede elegir otra actividad desde el menú. El primer objetivo es compartir una comida, completar un juego y probar el primer accesorio. Todas las actividades básicas están disponibles desde la adopción.
+
+**Guía de la primera partida** (20-11-2026). Tras la pista de la caricia, Casa muestra una tarjeta con el siguiente paso: dar de comer, jugar y estrenar algo (un accesorio o una decoración). Cada paso se deduce del estado confirmado (comida registrada, primera partida terminada, artículo o decoración no inicial), así que no añade campos a la partida. «Saltar guía» la oculta para siempre (pista `guide.off`). Nunca bloquea ninguna actividad.
 
 ## Necesidades y paso del tiempo
 
@@ -128,3 +130,28 @@ El armario empieza con los artículos iniciales en propiedad. Elegir una categor
 ## Parejas y Memory · ampliación del 20-11-2026
 
 Parejas es gratuito, con tres niveles de 4/6/8 parejas, 60 segundos y cinco fallos permitidos; completar da 5/15/25 monedas. Memory requiere versión completa y no ofrece prueba diaria: cuatro colores/fotos/notas, secuencia inicial de tres pasos y máximo de diez, diez segundos para repetir la secuencia completa del turno y premio total de 5 a 40 (+5 por ronda completada). Al equivocarse o agotar tiempo se recibe el premio de la última ronda completada. Abandonar no paga. Los dos juegos reservan repartos aleatorios sin repetirlos tras reiniciar y conservan los límites generales de energía y descanso. [Reglas completas](JUEGOS.md#juego-de-parejas--20-11-2026).
+
+## Decoración del salón · 20-11-2026
+
+Segundo uso de las monedas, para cuando el armario ya está completo. Tres huecos en el salón de Casa: **Alfombra** (bajo el caniche), **Pared** y **Planta**. Cada hueco empieza vacío (artículo inicial gratuito) y tiene un artículo comprable de la versión gratuita; el resto son de la versión completa y se muestran con candado (tocar abre «Pide ayuda a un adulto»). Comprar sigue las reglas del armario: tocar una ficha solo previsualiza, «Comprar y colocar» cobra una vez y coloca, «Colocar» sobre algo en propiedad cuesta cero, si faltan monedas se muestra la diferencia y un acceso a Juegos. Una partida anterior carga con los tres huecos vacíos; un artículo desconocido o retirado vuelve al hueco vacío sin perder la partida.
+
+| ID inmutable | Hueco | Coste | Versión |
+|---|---|---:|---|
+| rug.none / wall.none / plant.none | — | 0 inicial | gratuita |
+| plant.fern | Planta | 35 | gratuita |
+| rug.round | Alfombra | 40 | gratuita |
+| wall.frame | Pared | 50 | gratuita |
+| rug.stripes | Alfombra | 60 | completa |
+| wall.garland | Pared | 70 | completa |
+| plant.flowers | Planta | 80 | completa |
+| rug.bone | Alfombra | 90 | completa |
+| plant.cactus | Planta | 100 | completa |
+| wall.stars | Pared | 110 | completa |
+
+Totales: 125 monedas en la versión gratuita y 510 en la completa. Precios en `docs/datos/balance-v1.json` (bloque `decor`). En 3D la decoración se dibuja en la escena 2D, bajo el visor transparente del caniche.
+
+**Ejemplo reproducible.** Con 40 monedas, «Comprar y colocar» la alfombra redonda deja 0 y la muestra tras reiniciar; volver a «Sin alfombra» y recolocarla cuesta 0. Con 39 monedas se indica que falta 1.
+
+## Estrellas por partida · 20-11-2026
+
+Cada partida terminada da de 0 a 3 estrellas además de las monedas, que no cambian. La tarjeta de cada juego muestra la mejor marca guardada (`bestStars`), y el resultado anuncia «¡Nueva mejor marca de estrellas!» cuando la supera. Umbrales en [Minijuegos](JUEGOS.md). Las estrellas solo son reto: no desbloquean nada ni cambian la economía.

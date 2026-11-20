@@ -50,6 +50,78 @@ void main() {
     }
   });
 
+  test(
+    'estrellas de main se integran en Parejas y Memory sin cambiar monedas',
+    () {
+      for (final (score, stars) in [(0, 0), (4, 1), (6, 2), (8, 3)]) {
+        final r = rules.finishGame(
+          adopt(),
+          GameId.pairs,
+          score,
+          'p-$score',
+          t0,
+        );
+        expect(r.stars, stars);
+        expect(r.after.bestStars['pairs'], stars);
+        expect(r.coinsEarned, rules.pairsCoins(score));
+      }
+      for (final (score, stars) in [
+        (0, 0),
+        (3, 1),
+        (5, 1),
+        (6, 2),
+        (9, 2),
+        (10, 3),
+      ]) {
+        final r = rules.finishGame(
+          adopt(),
+          GameId.memory,
+          score,
+          'm-$score',
+          t0,
+        );
+        expect(r.stars, stars);
+        expect(r.after.bestStars['memory'], stars);
+        expect(r.coinsEarned, rules.memoryCoins(score));
+      }
+    },
+  );
+
+  test(
+    'guardado conserva decoración, estrellas e historial de los cuatro juegos',
+    () {
+      var state = adopt().copyWith(
+        bestStars: {'fruit': 3, 'frisbee': 2},
+        coins: 100,
+      );
+      final bought = rules.applyDecor(
+        state,
+        'plant.fern',
+        'decor',
+        t0,
+        fullVersion: false,
+      );
+      state = (bought as Purchased).receipt.after;
+      state = rules.startGame(state, 'start-pairs', t0, game: GameId.pairs);
+      final deal = state.puzzleDeals['pairs-4']!.single;
+      state = rules.finishGame(state, GameId.pairs, 4, 'pairs', t0).after;
+      state = rules.finishGame(state, GameId.memory, 6, 'memory', t0).after;
+      final restored = codec.decode(codec.encode(state));
+      expect(restored.bestStars, {
+        'fruit': 3,
+        'frisbee': 2,
+        'pairs': 1,
+        'memory': 2,
+      });
+      expect(restored.decor, state.decor);
+      expect(restored.owned, contains('plant.fern'));
+      expect(restored.puzzleDeals['pairs-4'], [deal]);
+      expect(restored.bestPairs, 4);
+      expect(restored.bestMemory, 6);
+      expect(restored.coins, state.coins);
+    },
+  );
+
   test('Memory exige compra y no ofrece la prueba de 24 horas', () {
     expect(rules.gameTier(GameId.pairs), Tier.free);
     expect(rules.gameTier(GameId.memory), Tier.full);

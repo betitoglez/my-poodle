@@ -11,6 +11,7 @@ import '../../game/game_registry.dart';
 import '../ask_adult_view.dart';
 import '../navigation.dart';
 import '../theme.dart';
+import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import 'main_shell.dart';
 import 'minigame_screens.dart';
@@ -51,6 +52,7 @@ class GamesScreen extends StatelessWidget {
                     child: _GameCard(
                       def: def,
                       best: c.rules.gameBest(c.pet, def.id),
+                      bestStars: c.pet.bestStars[def.id.name] ?? 0,
                       locked: !c.canPlay(def.id),
                       trial: c.isGameTrial(def.id),
                       trialLabel: c.trialLabel(def.id),
@@ -76,6 +78,7 @@ class _GameCard extends StatelessWidget {
     required this.def,
     required this.best,
     required this.onOpen,
+    this.bestStars = 0,
     this.locked = false,
     this.trial = false,
     this.trialLabel,
@@ -83,6 +86,9 @@ class _GameCard extends StatelessWidget {
   final GameDefinition def;
   final int best;
   final VoidCallback onOpen;
+
+  /// Mejor marca de estrellas guardada (0..3).
+  final int bestStars;
 
   /// Juego de la versión completa sin derecho: candado, no abre el juego.
   final bool locked;
@@ -92,11 +98,17 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = Layout.of(context);
-    return LSemantics(
+    // Cada parte se localiza con su propia plantilla y se unen después.
+    final label = locked
+        ? localize(
+            context,
+            '${def.title}. Versión completa. Pide ayuda a un adulto.',
+          )
+        : '${localize(context, '${def.title}. ${def.tagline}. Récord $best ${def.scoreLabel}.')} '
+              '${localize(context, 'Mejor marca: $bestStars de 3 estrellas.')}';
+    return Semantics(
       button: true,
-      label: locked
-          ? '${def.title}. Versión completa. Pide ayuda a un adulto.'
-          : '${def.title}. ${def.tagline}. Récord $best ${def.scoreLabel}.',
+      label: label,
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -140,6 +152,8 @@ class _GameCard extends StatelessWidget {
                           '${def.limitLabel} · Récord: $best ${def.scoreLabel}',
                           style: AppText.small,
                         ),
+                        const SizedBox(height: 2),
+                        StarRow(stars: bestStars, size: 20),
                       ],
                     ),
                     const SizedBox(height: AppSpace.s),
@@ -295,6 +309,9 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                     ),
                   ],
                 ),
+                // Retos después de Jugar: el botón principal sigue a la vista.
+                const SizedBox(height: AppSpace.xl),
+                _Challenges(game: game),
               ],
             ),
           ),
@@ -304,17 +321,83 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
   }
 }
 
+/// Retos de estrellas y variedad de la partida, con números del balance.
+/// Las estrellas no cambian el premio en monedas.
+class _Challenges extends StatelessWidget {
+  const _Challenges({required this.game});
+  final GameId game;
+
+  @override
+  Widget build(BuildContext context) {
+    final b = AppScope.of(context).balance;
+    final lines = switch (game) {
+      GameId.pairs => [
+        'Estrella 1: 4 parejas',
+        'Estrella 2: 6 parejas',
+        'Estrella 3: 8 parejas',
+      ],
+      GameId.memory => [
+        'Estrella 1: 3 pasos',
+        'Estrella 2: 6 pasos',
+        'Estrella 3: 10 pasos',
+      ],
+      GameId.frisbee => [
+        'Estrella 1: ${b.frisbee.starCatches[0]} capturas',
+        'Estrella 2: ${b.frisbee.starCatches[1]} capturas',
+        'Estrella 3: ${b.frisbee.starCatches[2]} capturas',
+      ],
+      GameId.fruit => [
+        'Estrella 1: ${b.fruit.starFruits[0]} frutas',
+        'Estrella 2: ${b.fruit.starFruits[1]} frutas',
+        'Estrella 3: ${b.fruit.starFruits[1]} frutas y las ${b.fruit.starGolden} doradas',
+      ],
+    };
+    final variety = switch (game) {
+      GameId.pairs || GameId.memory => 'Los objetivos cambian en cada partida.',
+      GameId.frisbee => 'Los objetivos cambian en cada partida.',
+      GameId.fruit =>
+        'Cada partida esconde ${b.fruit.starGolden} frutas doradas.',
+    };
+    final best = AppScope.of(context).pet.bestStars[game.name] ?? 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          spacing: AppSpace.s,
+          runSpacing: AppSpace.xs,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const LSemantics(
+              header: true,
+              child: LText('Retos de estrellas', style: AppText.title),
+            ),
+            StarRow(stars: best, size: 20),
+          ],
+        ),
+        for (var i = 0; i < lines.length; i++)
+          _Line(
+            icon: Icons.star_rounded,
+            iconColor: const Color(0xFFB9861F),
+            text: lines[i],
+          ),
+        _Line(icon: Icons.shuffle_rounded, text: variety),
+      ],
+    );
+  }
+}
+
 class _Line extends StatelessWidget {
-  const _Line({required this.icon, required this.text});
+  const _Line({required this.icon, required this.text, this.iconColor});
   final IconData icon;
   final String text;
+  final Color? iconColor;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 6),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppColors.leaf),
+        Icon(icon, color: iconColor ?? AppColors.leaf),
         const SizedBox(width: AppSpace.m),
         Expanded(child: LText(text, style: AppText.body)),
       ],
@@ -418,8 +501,12 @@ class _GestureDemoState extends State<_GestureDemo>
 
 /// Indicador superior de partida (tiempo, contador, intentos).
 class GameHud extends StatelessWidget {
-  const GameHud({super.key, required this.items});
+  const GameHud({super.key, required this.items, this.live = const {}});
   final List<(IconData, String, String)> items;
+
+  /// Etiquetas cuyo cambio se anuncia (puntuación, aciertos, doradas). El
+  /// tiempo cambia cada segundo y no se anuncia: saturaría el lector.
+  final Set<String> live;
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -430,6 +517,7 @@ class GameHud extends StatelessWidget {
         for (final (icon, label, value) in items)
           LSemantics(
             label: '$label $value',
+            liveRegion: live.contains(label),
             excludeSemantics: true,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

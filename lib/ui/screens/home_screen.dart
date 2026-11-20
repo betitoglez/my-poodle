@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -8,24 +10,29 @@ import '../../app/feedback.dart';
 import '../../app/texts.dart';
 import '../../domain/balance.dart';
 import '../../domain/rules.dart';
+import '../../domain/tutorial.dart';
 import '../../game/pet/pet_painter.dart';
 import '../../game/scenes/stage_game.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/guide_card.dart';
 import '../widgets/live_poodle_view.dart';
+import '../widgets/pet_hearts.dart';
 import '../widgets/scene_view.dart';
 import '../widgets/status_bubbles.dart';
 import '../widgets/turn_control.dart';
 import 'care_activity_screens.dart';
+import 'decor_screen.dart';
 import 'main_shell.dart';
 import 'settings_screens.dart';
 import 'photo_screen.dart';
 
 /// P03 · Casa: salón, caniche, nombre, saldo, iconos de estado tipo
 /// tamagotchi, cuatro indicadores y salud, sugerencia de lo más urgente,
-/// caricia, descanso y giro para verlo desde los cuatro ángulos.
+/// caricia (con corazones), reposos variados, guía de la primera partida,
+/// descanso y giro para verlo desde los cuatro ángulos.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
@@ -39,6 +46,73 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _suggestion;
   Object? _suggestedFor;
   PetView _view = PetView.front;
+  final _hearts = GlobalKey<PetHeartsState>();
+
+  /// Reposos variados del sprite 2D: ciclo determinista de esperas y gestos.
+  static const idleDelays = [11, 9, 13, 10, 14, 12];
+  static const idleAnims = [PetAnim.lookUp, PetAnim.sniff, PetAnim.happy];
+  Timer? _idleTimer;
+  int _idleStep = 0;
+  bool _idleAllowed = false;
+
+  void _scheduleIdle() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(
+      Duration(seconds: idleDelays[_idleStep % idleDelays.length]),
+      _idleReact,
+    );
+  }
+
+  /// Solo con el sprite 2D a la vista, despierto, sin movimiento reducido y
+  /// sin otra reacción en curso (la caricia manda).
+  void _idleReact() {
+    if (!mounted) return;
+    final game = _game!;
+    final onTop = ModalRoute.of(context)?.isCurrent ?? true;
+    final shell = ShellScope.maybeOf(context);
+    final visible = onTop && (shell == null || shell.tab == ShellTab.home);
+    if (_idleAllowed && visible && !game.resting && !game.pet.reacting) {
+      game.pet.react(idleAnims[_idleStep % idleAnims.length], seconds: 1.4);
+    }
+    _idleStep++;
+    _scheduleIdle();
+  }
+
+  /// Mirada que sigue al dedo: dura un momento tras soltar.
+  static const gazeHold = Duration(milliseconds: 2500);
+  Timer? _gazeTimer;
+
+  void _lookAt(Offset p, {required bool live}) {
+    if (live) {
+      _live.look(p);
+    } else {
+      _game!.pet.gazeAt(p);
+    }
+    _gazeTimer?.cancel();
+    _gazeTimer = null;
+  }
+
+  void _releaseGaze() {
+    _gazeTimer?.cancel();
+    _gazeTimer = Timer(gazeHold, _lookAway);
+  }
+
+  void _lookAway() {
+    _gazeTimer?.cancel();
+    _gazeTimer = null;
+    if (!mounted) return;
+    _game?.pet.gazeAt(null);
+    _live.look(null);
+  }
+
+  @override
+  void dispose() {
+    _idleTimer?.cancel();
+    _idleTimer = null;
+    _gazeTimer?.cancel();
+    _gazeTimer = null;
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -52,9 +126,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     // Un único caniche que refleja el aspecto y la salud confirmados.
     _game!.setLook(c.look);
+    // El salón muestra la decoración confirmada.
+    _game!.setDecor(c.pet.decor);
     _game!.reducedMotion = c.reducedMotion;
     _game!.pet.fx = PetFx(sick: c.pet.isSick)
         .withHygiene(c.pet.needPoints(Need.hygiene));
+    if (_idleTimer == null) _scheduleIdle();
   }
 
   void _turn(PetView v) {
@@ -75,6 +152,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (c.pet.restingSinceUtc != null && !await _setResting(false)) return;
     if (mounted) pushScreen(context, screen, music: MusicTrack.activities);
+  }
+
+  /// Cada paso de la guía lleva a la misma ruta que su acción en Casa.
+  void _guideAction(TutorialStep step) {
+    switch (step) {
+      case TutorialStep.feed:
+        _openCare(CareKind.feed, const FeedScreen());
+      case TutorialStep.play:
+        ShellScope.maybeOf(context)?.go(ShellTab.games);
+      case TutorialStep.dress:
+        ShellScope.maybeOf(context)?.go(ShellTab.wardrobe);
+    }
   }
 
   void _attend(PetCondition cond) {
@@ -140,7 +229,12 @@ class _HomeScreenState extends State<HomeScreen> {
         showModel && _live.ready && LivePoodleView.supports(pet.appearance);
     _game!.pet.showSprite = !showModel;
     _game!.useLiveBed = showModel;
+    _idleAllowed = !showModel && !resting && !c.reducedMotion;
     final showHint = !pet.prefs.seenHints.contains('home.pet');
+    // La guía releva a la pista de la caricia cuando esta ya se ha visto.
+    final guide = pet.prefs.seenHints.contains(Tutorial.afterHint)
+        ? Tutorial.next(pet, c.balance)
+        : null;
     final actionNeed = urgent?.need ?? lowest;
     final actionLabel =
         Texts.conditionActions[urgent] ??
@@ -164,6 +258,14 @@ class _HomeScreenState extends State<HomeScreen> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    tooltip: localizeNullable(context, 'Decorar el salón'),
+                    onPressed: () => pushScreen(context, const DecorScreen()),
+                    icon: const Icon(
+                      Icons.chair_rounded,
+                      color: AppColors.plum,
+                    ),
+                  ),
                   IconButton(
                     tooltip: localizeNullable(context, 'Modo foto'),
                     onPressed: () => pushScreen(context, const PhotoScreen()),
@@ -199,6 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (resting && !await _setResting(false)) return;
                   if (!context.mounted) return;
                   setState(_game!.reactToPetTap);
+                  _hearts.currentState?.burst(p);
                   if (tap == LivePetTap.greeted) {
                     _game!.playSound(Sfx.bark);
                     await saveOrRecover(context, c.rewardGreeting);
@@ -212,9 +315,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
                 },
+                onPress: (p) => _lookAt(p, live: live),
+                onRelease: _releaseGaze,
+                // En 3D arrastrar gira al caniche (deja de mirar al dedo);
+                // en 2D la mirada sigue al dedo mientras se arrastra.
                 onDragUpdate: live
-                    ? (_, _, delta) => _live.rotate(delta.dx)
-                    : null,
+                    ? (_, _, delta) {
+                        _live.look(null);
+                        _live.rotate(delta.dx);
+                      }
+                    : (_, p, _) => _game!.pet.gazeAt(p),
                 overlay: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -237,6 +347,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           onStatusChanged: () => setState(() {}),
                         ),
                       ),
+                    // Por encima del visor 3D (vista nativa sobre Flame).
+                    Positioned.fill(
+                      child: PetHearts(
+                        key: _hearts,
+                        reducedMotion: c.reducedMotion,
+                      ),
+                    ),
                     Positioned(
                       left: AppSpace.s,
                       top: AppSpace.s,
@@ -275,6 +392,45 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             () => c.markHintSeen('home.pet'),
                           ),
+                        ),
+                      )
+                    else if (guide != null)
+                      Positioned.fill(
+                        child: LayoutBuilder(
+                          builder: (context, scene) {
+                            // Junto a los iconos de estado, sin taparlos, y
+                            // por encima de los controles de giro.
+                            final vertical =
+                                scene.maxHeight - 2 * AppSpace.s >= 224;
+                            return Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                vertical
+                                    ? AppSpace.s * 2 + AppSizes.touch + 8
+                                    : AppSpace.s,
+                                vertical
+                                    ? AppSpace.s
+                                    : AppSpace.s * 2 + AppSizes.touch + 4,
+                                AppSpace.s,
+                                AppSizes.touch + AppSpace.m,
+                              ),
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: SceneTapShield(
+                                  child: SingleChildScrollView(
+                                    child: GuideCard(
+                                      step: guide,
+                                      petName: pet.name,
+                                      onAction: () => _guideAction(guide),
+                                      onSkip: () => saveOrRecover(
+                                        context,
+                                        () => c.markHintSeen(Tutorial.skipHint),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     if (live)

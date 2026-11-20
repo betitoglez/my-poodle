@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Mon Caniche";
 "CFBundleName" = "Mon Caniche";
+"NSPhotoLibraryAddUsageDescription" = "Pour enregistrer dans ta photothèque les photos de ton caniche que tu choisis.";

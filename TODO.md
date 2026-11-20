@@ -7,7 +7,7 @@ Actualizado el 20-11-2026. Este documento recoge el alcance confirmado; [FASES](
 - [x] Integrar en main las correcciones de compras (PR #5, `f08fb2d`; 193 pruebas y Codex sin incidencias): restauración siempre visible, cancelación Android sin producto, pendientes nativas y reconciliación al reanudar. Mantener partida y monedas.
 - [x] Implementar los catálogos locales (11 × 559 mensajes) y selector persistente; 221 pruebas correctas. Localizar toda la app en **11 variantes**: español (es), inglés (en, respaldo), francés (fr), alemán (de), portugués de Brasil (pt-BR), italiano (it), ruso (ru), coreano de Corea del Sur (ko), japonés (ja), chino simplificado (zh-Hans) y chino tradicional (zh-Hant). Selección persistente y detección del sistema; revisar textos largos y accesibilidad.
 - [x] Localizar el nombre bajo el icono y en la app: **Mi Caniche** en español, **My Poodle** en inglés/respaldo, y nombre equivalente en cada idioma. No cambiar Bundle ID ni producto de compra.
-- [x] **Modo foto del MVP implementado y probado físicamente en iPhone (33)**: caniche vestido con giro y poses de pie/tumbado, captura 3D y fotos conservadas tras reabrir el álbum privado. Borrado físico pendiente. No exige compartir ni acceso a las fotos personales del dispositivo.
+- [x] **Modo foto del MVP implementado y probado físicamente en iPhone (33)**: caniche vestido con giro y poses de pie/tumbado, captura 3D y fotos conservadas tras reabrir el álbum privado. Borrado físico pendiente. No lee las fotos personales del dispositivo; copiar al carrete exige la puerta adulta.
 - [x] **Prueba premium gratuita implementada y probada**: una partida por cada minijuego de la versión completa cada 24 horas, guardada al comenzar. Reiniciar el proceso no renueva el cupo; abandono consume el intento; guardar fallido no lo consume. Se mantienen las reglas generales de energía y descanso. La compra completa quita este límite de prueba.
 - [x] Traducir y verificar tras recargar los títulos de ficha de App Store en las 11 variantes, además de los nombres nativos ya implementados. Español aprobado: **Mi Caniche: mascota virtual**; francés con calificador por colisión: **Mon Caniche : animal virtuel**. [Tabla de nombres](docs/IDIOMAS.md).
 - [x] Configurar los datos mínimos Sandbox de Apple: `com.betitoglez.mypoodle`, no consumible `mypoodle.full_version`, 11 nombres/descripciones, precio base España **1,99 €** y disponibilidad **175 territorios**, ambos autorizados y guardados; acuerdo de pago activo.
@@ -47,6 +47,7 @@ Parejas y Memory implementados en esta rama por petición del propietario; acept
 - [ ] Ask to Buy: aprobación/rechazo aplazados por el propietario tras lista de solicitudes vacía. No acreditados por la regresión automática.
 - [ ] Reembolso/revocación: bloqueados por «No se puede conectar» en la hoja Apple, incluso con otra conexión; repetir cuando el entorno permita cargar el formulario.
 - [ ] Interrupción nativa o cierre durante confirmación, errores forzados de facturación e instalación limpia completa en entorno de pruebas. No borrar la partida personal para crear esos casos.
+- [ ] Comprobar en iPhone y Android que «Guardar en el carrete» deja la foto en Fotos/Galería, y el mensaje al denegar el permiso.
 - [ ] Comprobar borrado de una foto de prueba en iPhone; captura de dos poses y persistencia del álbum ya confirmadas.
 - [ ] Revisar los 11 idiomas en adopción, cuidados, juegos, compras, modo foto, ajustes, ayuda, privacidad y estados de error; precios localizados por la tienda.
 - [ ] Matriz 3D: colores, cortes y prendas, giro, descanso, cuidados y juegos; verificar que la carga o el respaldo se identifican correctamente durante QA.
@@ -55,6 +56,22 @@ Parejas y Memory implementados en esta rama por petición del propietario; acept
 - [ ] Android: actualizar prueba interna y restaurar el derecho en instalación limpia/dispositivo de prueba.
 - [ ] Tipografías y cobertura CJK/cirílico, créditos y licencias de recursos, privacidad/soporte definitivos, accesibilidad, capturas y fichas localizadas.
 - [ ] TestFlight y Play Internal: actualización conservando datos, feedback y cierre de incidencias. Producción requiere una decisión posterior del propietario.
+
+## Mejoras de juego propuestas (revisión del 20-11-2026)
+
+Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en dispositivo. [Registro](docs/ESTADO.md).
+
+- [x] Variedad con semilla en los minijuegos: objetivos variables del Frisbee y frutas doradas del Huerto, reproducibles por partida.
+- [x] Retos de estrellas (0–3) con mejor marca guardada y retos visibles en las instrucciones.
+- [x] Uso para las monedas: decoración del salón (alfombra, pared, planta) con artículos gratuitos y de la versión completa.
+- [x] Caniche más vivo: corazones al acariciar y reposos variados en 2D.
+- [x] Mirada que sigue el dedo: giro de cabeza en 3D e inclinación del cuerpo en 2D; pendiente de probar en dispositivo.
+- [x] Primera partida guiada: comer, jugar y estrenar algo, con opción de saltarla.
+- [x] Pequeñas celebraciones: monedas que cuentan, confeti y transiciones suaves que respetan el movimiento reducido.
+- [x] Accesibilidad de escenas y juegos: etiquetas de estado, regiones vivas y texto grande sin desbordes.
+- [ ] Arte final de la decoración (los dibujos actuales son provisionales) y decoración visible en el visor 3D/foto en dispositivo.
+- [ ] Comprobar en iPhone con 3D: decoración bajo el caniche, corazones, guía, transiciones y lector de pantalla (VoiceOver/TalkBack).
+- [ ] Revisión lingüística de los 55 textos nuevos en los 11 idiomas.
 
 ## Después del MVP
 
