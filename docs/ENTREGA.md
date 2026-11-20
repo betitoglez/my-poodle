@@ -1,5 +1,9 @@
 # Compilación y distribución Flutter
 
+## Estado y procedimiento de la beta
+
+La primera beta exige 11 idiomas, ambos chinos, nombres localizados y modo foto, además de las compras nativas y el intento diario. El procedimiento actual y los estados reales de Apple están en [TESTFLIGHT](TESTFLIGHT.md). La publicación de producción es posterior.
+
 ## Preparación
 
 Completar F00. Registrar versión exacta de Flutter/Dart/Flame, lockfile y herramientas nativas con flutter --version y flutter doctor -v. Identificador definitivo confirmado por el propietario el 17-11-2026: `com.betitoglez.mypoodle` en Android (namespace/applicationId) e iOS (Bundle ID); nombre My Poodle. RunnerTests usa `com.betitoglez.mypoodle.RunnerTests`. El producto conserva `mypoodle.full_version`. El cambio desde los IDs provisionales crea otra instalación y no migra la partida automáticamente; conservar las apps anteriores de prueba. Fijar version en pubspec.yaml (por ejemplo 0.1.0+1 solo para ficha nueva) y números internos crecientes. Firma y claves en almacén seguro local, nunca en repositorio o logs. Revisar requisitos actuales de SDK y tiendas al preparar candidata.
@@ -14,7 +18,7 @@ flutter test
 flutter build apk --debug
 flutter build appbundle --release
 flutter build ios --debug --no-codesign
-flutter build ipa --release
+tool/build_testflight.sh
 ```
 
 Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. La compra real solo funciona en builds instaladas desde la tienda o con el entorno de pruebas de cada plataforma. iOS sin codesign comprueba compilación y no produce una app distribuible. Salidas habituales: build/app/outputs/flutter-apk/app-debug.apk, build/app/outputs/bundle/release/app-release.aab, build/ios/archive/ y build/ios/ipa/. Registrar la ruta efectiva devuelta por el SDK fijado. Guardar logs, hashes y símbolos generados junto a la candidata. Referencias: [Android con Flutter](https://docs.flutter.dev/deployment/android), [iOS con Flutter](https://docs.flutter.dev/deployment/ios).
@@ -29,9 +33,11 @@ Ejecutar builds de forma secuencial. Configurar firma antes del AAB/IPA. La comp
 
 ## iOS
 
+Para probar la versión actual con los diseños 3D, ejecutar `tool/build_ios_3d.sh`. Este script compila la entrada normal en Profile con `--dart-define=POODLE_LIVE_3D=true` y comprueba la opción y el GLB empaquetado. Un `flutter build ios` sin esa opción muestra el respaldo 2D, aunque el modelo esté dentro de los assets. No confundir un paquete que contiene el modelo con una compilación que activa el visor.
+
 1. Preparar Xcode y toolchain iOS de Flutter. Mantener configuración y puente Swift en ios/; resolver dependencias nativas según el método soportado por el SDK/plugins elegidos. Bundle ID, versión y build number deben coincidir con ficha.
 2. Abrir ios/Runner.xcworkspace cuando corresponda al proyecto generado. Seleccionar Team autorizado y provisioning, conectar iPhone y ejecutar Runner o flutter run -d <device-id>. Probar teclado, audio, interrupciones y exclusión de backup en hardware.
-3. Ejecutar flutter build ipa --release con firma válida. Inspeccionar archivo en Organizer y validar/distribuir a TestFlight/App Store. Conservar dSYM y metadatos de exportación. [Carga de builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/).
+3. Ejecutar tool/build_testflight.sh con firma válida. Inspeccionar archivo en Organizer y validar/distribuir a TestFlight/App Store. Conservar dSYM y metadatos de exportación. [Carga de builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/).
 4. Probar instalación/actualización vía TestFlight. Preparar privacidad, licencias, capturas, clasificación y notas sobre adopción, juegos, versión completa y puerta adulta. Enviar la build exacta verificada y liberar según decisión del propietario.
 
 ## Compra integrada, precios y fichas

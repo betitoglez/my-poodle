@@ -3,6 +3,7 @@ import 'dart:ui' hide TextStyle;
 
 import 'package:flame/game.dart';
 
+import '../app/feedback.dart';
 import '../domain/games/frisbee_sim.dart';
 import 'pet/appearance_catalog.dart';
 import 'pet/pet_component.dart';
@@ -20,6 +21,7 @@ class FrisbeeGame extends FlameGame {
     required this.onFinished,
     this.onHud,
     this.onEvent,
+    this.onVisualFrame,
   }) : pet = PetComponent(
          painter: painter,
          look: look,
@@ -33,10 +35,59 @@ class FrisbeeGame extends FlameGame {
   final PetComponent pet;
   final void Function(int catches) onFinished;
   final void Function()? onHud;
-  final void Function(String event)? onEvent;
+  final void Function(Sfx event)? onEvent;
+  final void Function()? onVisualFrame;
+  bool waitForStart = false;
+  bool _live = false;
   Image? _bg;
   bool _reported = false;
   double time = 0;
+
+  set useLiveModel(bool value) {
+    _live = value;
+    pet.showSprite = !value;
+  }
+
+  void start() => waitForStart = false;
+
+  List<num> get liveFrame {
+    if (size.isZero()) return const [];
+    final target = project(sim.currentTarget);
+    var disc = project(FrisbeeSim.origin);
+    var visibility = sim.canThrow ? 1 : 0;
+    if (discInMouth) {
+      visibility = 2;
+    } else if (sim.phase == FrisbeePhase.flight && sim.destination != null) {
+      final (point, height) = FrisbeeSim.pointAt(
+        sim.destination!,
+        sim.flightProgress,
+      );
+      disc = projectWithElevation(point, height);
+      visibility = 1;
+    } else if (sim.phase == FrisbeePhase.catchAnim && _lastDest != null) {
+      disc = project(_lastDest!);
+      visibility = 1;
+    }
+    return [
+      pet.position.x / size.x,
+      pet.position.y / size.y,
+      pet.petSize / size.y,
+      pet.pose == PetPose.front ? 0 : (pet.facingLeft ? -1 : 1),
+      pet.airborne > 0
+          ? 2
+          : (pet.baseAnim == PetAnim.run || pet.baseAnim == PetAnim.trot
+                ? 1
+                : 0),
+      target.dx / size.x,
+      target.dy / size.y,
+      (sim.catchRadius * sx) / size.x,
+      (sim.catchRadius * sd) / size.y,
+      disc.dx / size.x,
+      disc.dy / size.y,
+      visibility,
+      time,
+    ];
+  }
 
   /// Destino previsto mientras se arrastra (null si no hay arrastre válido).
   FieldPoint? aimPreview;
@@ -63,20 +114,29 @@ class FrisbeeGame extends FlameGame {
       _bg = null;
     }
     add(Painted(_background, priority: 0));
-    add(Painted(_field, priority: 5));
+    add(
+      Painted((c) {
+        if (!_live) _field(c);
+      }, priority: 5),
+    );
     add(pet);
-    add(Painted(_disc, priority: 20));
+    add(
+      Painted((c) {
+        if (!_live) paintGuide(c);
+      }, priority: 20),
+    );
   }
 
   void setAim(FieldPoint? p, {bool tooShort = false}) {
     aimPreview = p;
     aimTooShort = tooShort;
+    onVisualFrame?.call();
   }
 
   bool launch(FieldPoint dest) {
-    if (paused || !sim.launch(dest)) return false;
+    if (paused || waitForStart || !sim.launch(dest)) return false;
     aimPreview = null;
-    onEvent?.call('throw');
+    onEvent?.call(Sfx.throwDisc);
     return true;
   }
 
@@ -88,16 +148,31 @@ class FrisbeeGame extends FlameGame {
   @override
   void update(double dt) {
     super.update(dt);
+    if (size.isZero()) return;
+    if (waitForStart) {
+      _placePet();
+      onVisualFrame?.call();
+      return;
+    }
     time += dt;
     final before = sim.phase;
+    final seconds = sim.remaining.ceil();
     if (sim.destination != null) _lastDest = sim.destination;
     sim.advance(dt);
     if (before == FrisbeePhase.flight && sim.phase == FrisbeePhase.catchAnim) {
       _lastCaught = sim.lastCaught;
-      onEvent?.call(sim.lastCaught! ? 'catch' : 'miss');
+      onEvent?.call(sim.lastCaught! ? Sfx.catchDisc : Sfx.miss);
     }
     _placePet();
-    onHud?.call();
+    final secondsLeft = sim.remaining.ceil();
+    if (secondsLeft != seconds &&
+        secondsLeft >= 1 &&
+        secondsLeft <= 5 &&
+        !sim.finished) {
+      onEvent?.call(Sfx.countdown);
+    }
+    if (before != sim.phase || seconds != secondsLeft) onHud?.call();
+    onVisualFrame?.call();
     if (sim.finished && !_reported) {
       _reported = true;
       onFinished(sim.catches);
@@ -295,7 +370,7 @@ class FrisbeeGame extends FlameGame {
     );
   }
 
-  void _disc(Canvas c) {
+  void paintGuide(Canvas c) {
     final preview = aimPreview;
     if (preview != null && sim.canThrow) {
       final ok = sim.wouldCatch(preview);
@@ -321,14 +396,14 @@ class FrisbeeGame extends FlameGame {
         mark,
       );
     }
-    if (discInMouth) {
+    if (discInMouth && !_live) {
       final m = pet.landmarkScene('mouth');
       _drawDisc(
         c,
         m + Offset(0, pet.petSize * 0.02),
         pet.petSize / (size.y * 0.27) * 0.85,
       );
-    } else if (sim.phase == FrisbeePhase.flight) {
+    } else if (!_live && sim.phase == FrisbeePhase.flight) {
       final (p, e) = FrisbeeSim.pointAt(sim.destination!, sim.flightProgress);
       final shadow = project(p);
       final k = 1 - p.depth / 14;
@@ -346,7 +421,7 @@ class FrisbeeGame extends FlameGame {
       );
       final at = project(_lastDest ?? sim.currentTarget);
       txt.paint(c, at + Offset(-txt.width / 2, -sd * 3.6));
-      if (_lastCaught != true && _lastDest != null) {
+      if (!_live && _lastCaught != true && _lastDest != null) {
         // El disco queda en el suelo donde aterrizó.
         _drawDisc(c, project(_lastDest!), 1 - _lastDest!.depth / 14);
       }

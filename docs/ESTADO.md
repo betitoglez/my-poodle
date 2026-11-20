@@ -1,8 +1,126 @@
 # Estado de la implementación
 
+## Pruebas rápidas avanzadas de compra · 20-11-2026 · en curso
+
+- Se ejecutan 36 regresiones de compras existentes: correctas. Se prepara el iPhone con la cuenta Sandbox existente; no se reciben credenciales ni se borra historial. Copias originales de los dos archivos locales del derecho verificadas, en ubicación privada fuera de Git. Solo se vacía la caché primaria de compra, sin tocar partida ni fotos. Reinicio explícito del Bundle ID correcto deja visible el botón de compra.
+- Ask to Buy: relectura del derecho confirma pending, full=false y source=store. El propietario no ve la solicitud en Sandbox y confirma que Contenido y compras seguía iniciado con la cuenta habitual; se solicita corregir sesión. Aprobación/rechazo pendientes de evidencia con la cuenta correcta. No se consideran pasados por la primera respuesta manual de poder reintentar, que ocurrió con caché state=none.
+- Regresión de interfaz reproduce el bloqueo tras pendiente sin evento de rechazo (Apple no lo notifica); corregido para iOS, manteniendo espera Android/demo. Dos tests nuevos, sin falsa entrega al solicitar otra vez y con desbloqueo solo al aprobar.
+- Candidata **0.5.0 (34)**: herramienta de reembolso visible solo con bandera QA interna en zona adulta iOS/full; el puente exige transacción verificada del producto fijo en Sandbox y no revocada. Solicitar no altera por sí solo el derecho; espera StoreKit. Tres tests del botón cubren duplicados, cancelación y error genérico sin datos privados. 11 × 561 mensajes, análisis limpio y **226/226 pruebas** correctas. Compilación/firma, revisión, distribución y comprobación física aún pendientes; la app del iPhone sigue siendo la build (33).
+- Los escenarios avanzados no se cierran por pasar estas pruebas automáticas. Restauración sin caché se registrará con ese alcance, sin llamarla reinstalación limpia. Al terminar debe restituirse la caché original y el propietario recuperará su sesión de compras habitual y desactivará controles Sandbox. Los archivos privados y cuentas no se versionan.
+
+## Comprobación física básica de beta interna superada · 20-11-2026
+
+- **iPhone / TestFlight 0.5.0 (33)**: tras compra y cancelación correctas, el propietario confirma **«Todo correcto: reinicio, offline y restauración conservan el estado»**. Recorrido solicitado: cierre completo, modo avión y reapertura con versión completa; reconectar y Restaurar compras, conservando mascota, monedas y armario. Es restauración con derecho existente, no instalación limpia.
+- Foto/álbum: confirma **«Sí, las dos fotos 3D se guardan y conservan»** para el recorrido de caniche vestido con giro, foto de pie y tumbado, cierre/reapertura y consulta/ampliación en el álbum. Borrado físico de fotos sigue pendiente. No se han recogido fotos personales, recibos ni credenciales.
+- Primera beta interna funcional disponible con 11 variantes, prueba diaria premium y modo foto. Comprobación básica de compra y foto superada; no se declara cerrada la matriz ampliada: pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en entorno dedicado, revisión lingüística/accesibilidad, rendimiento, audio/interrupciones y catálogo 3D.
+- [Registro físico actualizado](reviews/testflight-20261120/iphone-sandbox.json). Solo documentación/evidencia; la app instalada y la IPA siguen siendo la build (33), sin recompilar ni reinstalar.
+
+## Compra Sandbox física confirmada · 20-11-2026
+
+- El propietario confirma a las 10:08 (Madrid): «ya sale el precio» en la beta **0.5.0 (33)**. Después confirma: **«La cancelación funciona y la compra desbloquea la versión completa»**. Entorno de la app instalada: TestFlight/Sandbox. Resultado manual del propietario, sin capturar credenciales ni recibos.
+- La incidencia inicial de producto no disponible queda resuelta sin cambiar código, build ni reinstalar. Compatible con propagación de metadatos de Apple; no se demuestra la causa por ese resultado.
+- Solicitada la prueba de cerrar/reabrir sin conexión y restaurar con conexión conservando la partida, y la captura/álbum físico de dos poses. Pendientes hasta recibir resultado; no se acreditan por la compra básica ni por pruebas de simulador. Casos de pendiente/rechazo, restauración limpia y revocación/reembolso siguen pendientes en entorno dedicado.
+- [Registro de aceptación física](reviews/testflight-20261120/iphone-sandbox.json). Las entradas anteriores conservan el estado observado antes de esta confirmación.
+
+## Beta instalada, títulos y precio guardados · 20-11-2026
+
+- Los 11 títulos de ficha están guardados y comprobados en una vista recargada: [tabla](IDIOMAS.md) y [registro](reviews/testflight-20261120/apple-configuration.json). Español: Mi Caniche: mascota virtual; francés: Mon Caniche : animal virtuel. Alemán/portugués conservan nombre corto; errores repetidos de una vista anterior resueltos desde estado actualizado, sin retirar localizaciones.
+- Precio base **1,99 €**, España (EUR), guardado y visible en Current Price. Disponibilidad en **175 países/regiones** guardada tras autorización explícita. Acuerdo Paid Apps activo. La autorización resuelve los bloqueos previos de revisión automática; no se envía app/IAP a revisión comercial ni se publica producción.
+- Apple terminó el procesamiento de **0.5.0 (33)**: **Ready to Test**, grupo interno **MVP Sandbox**, un tester (propietario). [Captura](reviews/testflight-20261120/testflight-ready33.jpg). El propietario confirma instalada y abierta desde TestFlight; devicectl confirma `com.betitoglez.mypoodle`, 0.5.0, build 33 en el iPhone 16 Pro.
+- **Compra no acreditada**: el propietario informa producto/precio no disponible, también al Reintentar. Se acababan de guardar precio/disponibilidad; Apple documenta hasta una hora de propagación. Se comprueban identidad/producto, selección de tienda nativa en Release, firma/App ID y acuerdo activo. Propagación es una hipótesis; no se declara causa demostrada ni éxito de compra. Reintentar consulta; si persiste tras esa ventana, diagnosticar respuesta nativa sin datos sensibles. La beta instalada no cierra la aceptación física.
+- [Precio guardado](reviews/testflight-20261120/apple-pricing.jpg), [disponibilidad guardada](reviews/testflight-20261120/apple-availability.jpg). Solo se versionan configuración pública y evidencia de la app; no datos bancarios/fiscales, credenciales, recibos ni partida.
+
+## Títulos localizados y subida de beta · 20-11-2026
+
+- El propietario exige el título traducido también en la ficha de tienda de las 11 variantes. Los nombres dentro de la app y bajo el icono ya están empaquetados. Elige **Mi Caniche: mascota virtual** para la ficha española y autoriza expresamente el precio base real de **1,99 €**. El precio todavía no está guardado en Apple. Francés requiere **Mon Caniche : animal virtuel** por colisión del nombre corto; verificar persistencia remota tras renovar sesión.
+- PR #6 fusionada en main `bbdee915` tras segunda revisión de Codex sin incidencias sobre `793f62a`, con tres hilos anteriores resueltos. **221 pruebas** correctas y prueba nativa de foto en las dos poses. IPA **0.5.0 (33)** firmada y verificada; SHA-256 `9ec48847bc4cdfa70767fd23e9780ba6c5e823692fb97947eac0a4b2abd33073`. El árbol de código de main coincide con el revisado y empaquetado.
+- El propietario desbloqueó el Mac e inició sesión en Xcode. Organizer reconoce la cuenta/equipo y se abrió explícitamente el Archive correcto (33); no se recompiló el workspace antiguo abierto en Xcode. Se inició distribución **TestFlight Internal Only** y se observó la espera de respuesta de análisis de App Store Connect. El Mac se volvió a bloquear antes de comprobar el resultado final. La sesión web caducó; se solicita renovarla para títulos/precio.
+- El registro ContentDelivery del Archive (33) confirma **UPLOAD SUCCEEDED with no errors, 1 warning** a las 08:16:41 (hora local). Organizer indica «Upload completed with warnings»: el aviso 90725 trata del requisito de SDK que empieza en abril de 2027. La transferencia queda acreditada por ese registro; procesamiento en TestFlight, grupo con build distribuida, instalación y compra Sandbox continúan sin acreditar. Última versión física confirmada: **0.4.13 (31)**.
+
+## Revisión de la candidata 0.5.0 (33) · 20-11-2026
+
+- Codex #6 detectó tres P2: giro de foto expresado en radianes frente a píxeles, etiquetas sin traducir al comprar varios artículos y colisión entre colas de escritura de dos pantallas del álbum. Corregidos: giro visible por toque, traducción individual y cola compartida por backend mediante referencias débiles.
+- La carrera se reproduce antes de la corrección (`photos-v1.json.tmp` ausente); la regresión pasa después. **221/221 pruebas** correctas y análisis sin incidencias.
+- Prueba nativa iOS con un simulador aislado **My Poodle Photo QA**, sin compras y con partida/álbum en memoria: PNG nativo 542×639, 37.709 píxeles de modelo visibles, cambio medio 16,08 por canal al girar, foto compuesta de 1.085.332 bytes y dos fotos (de pie y tumbado). Inspección visual correcta; [foto](reviews/testflight-20261120/photo.png), [tumbado](reviews/testflight-20261120/resting-photo.png) y [métricas](reviews/testflight-20261120/results.json). No sustituye aceptación en el iPhone físico.
+- La exportación automática encontró `No Accounts`; se creó el perfil explícito My Poodle App Store 20261120 y se exportó la IPA (32) con el certificado local existente. Firma de distribución estricta, 3D y 11 catálogos/nombres nativos verificados. Se prepara la (33) con las correcciones anteriores; el registro de la IPA concreta se genera localmente con su SHA-256.
+- App Store Connect: producto no consumible con 11 idiomas y grupo interno MVP Sandbox preparado, distribución manual. Ninguna build subida/distribuida todavía. El Mac está bloqueado y Xcode sin sesión, por lo que se ha solicitado desbloqueo/inicio de sesión; siguen pendientes precio autorizado y variante de nombre español de ficha.
+- Se solicita segunda revisión de Codex antes de fusionar; el resultado autoritativo de revisión/fusión está en [PR #6](https://github.com/betitoglez/my-poodle/pull/6).
+
+## Candidata MVP 0.5.0 (32) · 20-11-2026
+
+- Rama `codex/mvp-testflight-purchases` rebasada sobre main `f08fb2d`.
+- Interfaz de 11 variantes y nombres nativos implementados: 559 mensajes por idioma, selector persistente, inglés de respaldo y ambos scripts chinos. La traducción inicial requiere revisión lingüística humana antes de producción.
+- Modo foto con composición Flutter + PNG del visor nativo y álbum privado de 24 fotos; cupo premium de 24 h por juego, confirmado antes de entregar la sesión. Casos de fallo, concurrencia y reinicio probados.
+- Análisis y validadores de contenido/idiomas correctos; **218/218 pruebas**. Los 11 recorridos de pantalla 320×568 cubren nombre literal, foto/álbum, juegos y pregunta adulta. Compilación iOS Release sin firma correcta con 3D activo; aún no acredita captura nativa en iPhone.
+- Ficha Apple e IAP no consumible creados; IAP `6837002992` con 11 nombres/descripciones localizados. Precio real bloqueado por revisión automática hasta autorización explícita de 1,99 €. La variante del nombre español de ficha espera elección por colisión de «Mi Caniche».
+- En preparación: Archive/IPA firmado, revisión de Codex, subida/procesamiento y aceptación Sandbox/3D física. No se consideran completados por este registro.
+
+## Actualización de integración · 19-11-2026
+
+- Compras: PR #5 fusionada en main (`f08fb2d`), 193 pruebas y revisión Codex sin incidencias. Esto no acredita compra física iPhone.
+- App ID explícito registrado con In-App Purchase y ficha App Store Connect creada: Apple ID `6836995483`, Bundle ID `com.betitoglez.mypoodle`, SKU `mypoodle-ios`, inglés principal.
+- Apple rechaza el nombre exacto de ficha «Mi Caniche» por estar ocupado; se espera elección del propietario para una variante. El nombre nativo español sigue siendo Mi Caniche.
+- En desarrollo y validación: 11 idiomas, nombre nativo localizado, modo foto y cupo gratuito de juegos premium. La primera beta no se publica sin estos requisitos.
+
 Registro vivo. Distingue **implementado**, **probado en este Mac** (pruebas automáticas, compilación, navegador) y **probado en dispositivo** (smoke test en iPhone; ver última sesión).
 
-**Resumen vigente, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
+**Resumen histórico, 17-11-2026:** F07.1–07.4 completas; adaptador y configuración F07.5 implementados, 126 pruebas Flutter correctas y builds web/iOS correctos. Smoke tests iPhone/Xiaomi en Profile y persistencia entre procesos correctos; offline y pausa en Xiaomi confirmados manualmente. F07.5 sigue pendiente de aceptación de compras nativas: StoreKitTest falla en el simulador instalado y faltan los recorridos de compra en tiendas; Android SDK y APK ya están disponibles (ver sesión Android). Ver el registro F07.5; las tablas de sesiones anteriores son históricas.
+
+## Sesión 2026-11-19 · MVP y preparación de TestFlight
+
+Nuevo alcance confirmado: primera beta TestFlight con 11 idiomas, ambos chinos, nombres localizados, modo foto y un intento gratuito de cada juego premium cada 24 h. Inglés es respaldo y español usa Mi Caniche. Parejas, Simón de perritos y laberinto quedan en TODO por definir. Se integran las correcciones locales de compra conservando los avances del main; implementación y aceptación aún en curso. El alta y compra Apple, la subida de una build y su procesamiento no se declaran completados por tener código local.
+
+## Sesión 2026-11-19 · Correcciones pendientes de compras
+
+Integradas desde el clon original, sin sustituir el juego actual: Restaurar compras permanece visible al tener la versión completa, con progreso/error correcto; Android admite cancelación/error sin productID, no entrega ni confirma compras nativamente pendientes y reconcilia al reanudar una pendiente ya cancelada. Se conservan los estados de partida, los efectos y el visor 3D. Pruebas de restauración y reanudación incorporadas; análisis sin incidencias y 33 pruebas específicas correctas. La aceptación nativa iPhone sigue pendiente; estas correcciones no acreditan una compra Sandbox.
+
+## Sesión 2026-11-19 · Revisión de Codex de la PR #4
+
+La revisión de GitHub detecta un P2: una pista podía arrancar después de pedir silencio si la preparación seguía pendiente. Se revalidan las condiciones actuales, la pista solicitada y la destrucción del servicio tras cargar y antes de reanudar. Cinco pruebas de regresión reproducen primero el fallo y pasan con la corrección: silenciar, pausa de actividad, segundo plano, cierre y cambio de pista durante la preparación. Análisis y contenido correctos; **187/187 pruebas** correctas. Corrección subida para una segunda revisión antes de fusionar.
+
+## Sesión 2026-11-19 · Corrección de activación del 3D en iPhone
+
+El propietario detecta que no aparecen los diseños 3D. Causa verificada: `LivePoodleView.enabled` exige `POODLE_LIVE_3D=true`, pero las builds 0.4.11 y 0.4.12 se hicieron sin esa opción. Contenían el GLB y el código nativo, pero mostraban el respaldo 2D; los registros anteriores de empaquetado no acreditaban que el 3D estuviese activo. Fue un error de preparación de esas builds, no una pérdida de los diseños.
+
+Se prepara **0.4.13 (31)** y se añade `tool/build_ios_3d.sh`, que activa la opción y verifica tanto el valor efectivo como el modelo empaquetado. Build Profile **0.4.13 (31)** correcta, instalada sobre la versión previa y abierta en primer plano. El script verifica `POODLE_LIVE_3D=true` decodificando la configuración efectiva y comprueba el GLB empaquetado. Firma estricta correcta. No se han cambiado las reglas ni los diseños: se activa su visor existente. La captura remota de pantalla no está disponible en este entorno. **Confirmación física manual del propietario: «Sí, aparece en 3D».** Esta confirmación acredita la visualización del caniche 3D en el iPhone; no equivale a una revisión completa de cuidados, vestuario o rendimiento.
+
+## Sesión 2026-11-19 · main actualizado y rama rebasada
+
+Por petición del propietario se descarga main directamente de GitHub por HTTPS (SSH agotó el tiempo de conexión), se actualiza main local a `54279f6` y se rebasa `codex/elevenlabs-sfx` sobre ese main. La música queda en un commit propio; los efectos ya incorporados en main por #3 no se duplican. Se conserva `codex/backup-music-before-main-20261119` como referencia previa. Se comprueba que main coincide con GitHub, que es ancestro de la rama y que el árbol tras el rebase coincide con el anterior.
+
+iPhone actualizado y abierto con **0.4.12 (30)**, versión declarada también en pubspec. Análisis y validación correctos, **182/182 pruebas** correctas y build Profile desde la rama rebasada. Firma corregida y verificada antes de instalar. `devicectl` confirma versión y apertura en primer plano con terminación de cualquier instancia anterior. Hay otra instalación antigua `dev.mypoodle.myPoodle` 0.1.0 (1) con el mismo nombre; no se ha desinstalado ni modificado. La instalada y abierta es `com.betitoglez.mypoodle`.
+
+## Sesión 2026-11-19 · iPhone 0.4.11 (29): música y versión actual
+
+Actualización 21:43 (hora de Madrid): tras desbloquear el iPhone, `devicectl` abrió la app en primer plano y se verificó que el proceso del paquete instalado seguía en ejecución. La escucha y revisión visual quedan para la prueba manual del propietario.
+
+Integradas las tres músicas sobre `bb85158` de este worktree, conservando caniche 3D, cuidados ampliados y efectos ElevenLabs. Un único reproductor selecciona Casa/menús, juegos o actividades por ruta; se mantienen las pausas y ajustes independientes de efectos. Fuentes y pistas en [AUDIO](AUDIO.md).
+
+Verificación: análisis sin incidencias, validador correcto, 16 pruebas relevantes y **182/182 pruebas completas** correctas. Build Profile con entrada normal `lib/main.dart`, `--build-name 0.4.11 --build-number 29`; paquete incluye el caniche GLB, los efectos y las tres canciones (hashes coincidentes con las fuentes).
+
+Instalación física completada sobre My Poodle 0.4.10 (28), manteniendo el identificador y sin desinstalar. Se corrigió un rechazo de firma de Flutter.framework por un Info.plist modificado después de firmar: frameworks y app firmados de nuevo con la identidad de desarrollo existente y entitlements preservados; verificación estricta correcta. `devicectl` confirma 0.4.11 (29). Lanzamiento automático bloqueado por el teléfono bloqueado; el propietario puede desbloquearlo y abrir My Poodle. Revisión visual y escucha físicas pendientes.
+
+## Sesión 2026-11-18 · Piloto de prendas integradas
+
+Alcance autorizado e implementado: gorro de lana, familia jersey y pañuelo coral. Seis recursos ilustrados locales, ajuste por pose mediante malla, oclusión del pelaje original y sombras recortadas al cuerpo. El resto del catálogo conserva su representación anterior. Capturas de frente, perfil y carrera sobre albaricoque, blanco y negro en [la revisión del piloto](reviews/integrated-pilot/README.md). Se descartó una primera prueba de texturas planas: no resolvía el volumen del jersey. Análisis limpio y 36 pruebas relevantes correctas, incluyendo facciones y regresión de artículos ajenos al piloto. Revisado visualmente en este Mac; valoración del propietario y dispositivo pendientes. Sin build de distribución; cambios sin commit del clon original respetados.
+
+Segunda revisión del piloto: cuello, puños y bajo del jersey dejan pasar el pelaje del perro mediante contornos curvos. De perfil y en carrera, la manga gira con la pata y su abertura comparte la deformación de la tela. Se regeneraron las capturas del jersey, el pañuelo y el conjunto. La suite completa pasó con 147 pruebas y el análisis estático quedó limpio.
+
+Tercera revisión del piloto. Los bordes del cuello se ajustan por pose para el pañuelo coral, el jersey, la pajarita, el pañuelo de punto y los tres collares. Se añaden tres sprites de espalda y capturas de los accesorios de cuello y el conjunto. La suite completa pasó con 148 pruebas, el análisis quedó limpio y se validaron los recursos. Revisión visual en el Mac.
+
+Cuarta revisión del piloto. El jersey cubre el pecho y la cadera de perfil y se ajusta a ambas patas traseras de espaldas. Solo asoma una franja del pañuelo en la nuca y la cola queda a la vista. Se actualizaron las capturas del juego y las pruebas de cobertura.
+
+## Sesión 2026-11-17 · Cuidados interactivos y revisión visual
+
+Trabajo aislado en `feat/interactive-care`, partiendo de `fb4a500`, para respetar los cambios sin commit del clon original. Se configura el ID común `com.betitoglez.mypoodle` en Android/iOS. **Build de distribución pendiente de actualización de main y rebase por indicación del propietario.** No se ha probado esta revisión en dispositivo.
+
+Implementado: paneles de necesidades y salud pulsables; seis raciones con coste/efectos atómicos y versión completa cuando corresponde; veterinario 30 monedas; dormir +60 energía/+10 ánimo; jugar −20 energía/−10 saciedad; energía cero bloquea actividades excepto dormir. Cada cuidado tiene plazo de 300 s al completar; juegos, tres inicios por ventana móvil de 300 s. Los plazos se guardan con compatibilidad con partidas anteriores.
+
+Baño: ducha mantenida 5 s, cuatro zonas incluyendo cabeza, aclarado 5 s y secador 5 s. Peluquería: peine, tijeras y secador en tres zonas cada uno. Veterinario: seleccionar herramienta, auscultar y examinar manteniendo sobre zona, arrastrar pastilla. Herramientas visibles bajo el dedo; soltar interrumpe el trabajo temporizado. Cuenco dividido detrás/delante del hocico; cama con borde delante y manta limitada al lomo.
+
+Arte: recoloreado por píxel en isolate y caché acotada, conservando facciones oscuras, alfa y microtextura; paletas con luces/sombras. Accesorios por anclajes y trazados escalables que sustituyen las capas contaminadas de pelo. Los accesorios ya no fuerzan pose estática al correr; patas articuladas para cortes sin galope propio. Huerto: seis frutas, césped/raíces/estratos/bancales y penalización de 5 s por caída. Frisbee: cinco intentos. Higiene: cinco fases bajo 65.
+
+Verificación: pruebas del dominio, persistencia, gestos, navegación, reservas concurrentes, catálogo y renders reales. Evidencias reproducibles en `test/game/appearance_review_test.dart` y `test/ui/care_composition_review_test.dart` (`POODLE_REVIEW=1` guarda PNG en `docs/reviews/`). Resultado final de verificaciones, ver registro de entrega de esta revisión. Precio vegano provisional: 15 monedas, pendiente de concretar por el propietario.
 
 ## Sesión 2026-11-16 · Prototipo completo Flutter + Flame
 
@@ -477,19 +595,89 @@ Resultados comunicados manualmente por el propietario en Xiaomi; consola del ree
 
 **Pendientes actuales:** restauración del derecho en una instalación nueva/otro dispositivo; configuración y aceptación iOS; precios/impuestos internacionales, revisión de pagos/acuerdos y requisitos de publicación. Permanecen también los casos de F07.7 aún no acreditados. La prueba de restauración con derecho existente no equivale a recuperar una compra desde una instalación vacía, ni recupera la partida local.
 
+## Sesión 2026-11-18 · PoC de vestuario 3D
+
+Malla texturizada generada en Meshy 7.1 a partir de tres vistas y vestuario articulado en Blender 5.3.0. Se revisan tres conjuntos, dos cortes y cinco poses en el worktree de `poc/vestuario-3d`. Se reabrió la escena con sus texturas empaquetadas y se verificaron los 16 huesos, las claves de forma, el bucle de 12 imágenes y el recuento de 147.704 a 153.368 triángulos por configuración. Los [resultados y archivos editables](reviews/wardrobe-3d/README.md) incluyen la comparación con el 2D.
+
+### Revisión de ropa y accesorios 3D
+
+Se revisaron los materiales, las costuras, los volantes y el ajuste de los accesorios en Blender 5.3.0. El peto mantiene libre la cola y las botas tienen dos alturas de caña según la prenda. La recogida separa más las patas delanteras y traseras. Se regeneraron las 30 vistas, la comparativa 2D y 3D, la lámina de detalle y el bucle de 12 fotogramas. La escena reabre con las texturas empaquetadas. Las seis configuraciones vestidas tienen entre 148.468 y 162.752 triángulos. [Detalle de las prendas](reviews/wardrobe-3d/detalles-de-ropa.png).
+
+### Montura Meshy y revisión de ángulos 3D
+
+Se generó una montura privada en Meshy 7.1 Estándar por 20 créditos, a partir de una referencia frontal y otra lateral de la pieza. Se ajustó en Blender al hocico y las orejas, con apoyos nasales y lentes claras separadas. Se verificó la escena editable y se regeneraron 42 vistas de los dos peinados. Los seis conjuntos siguen por debajo de 200.000 triángulos. [Ajuste de la montura](reviews/wardrobe-3d/gafas-ajuste.png) · [Ángulos osito](reviews/wardrobe-3d/angulos-osito.png) · [Ángulos pompón](reviews/wardrobe-3d/angulos-pompon.png).
+
+### Build de vestuario 3D en el Xiaomi
+
+APK Release arm64 de 40,4 MB instalada por USB en el Redmi A5 con el nombre Vestuario 3D y el identificador `com.betitoglez.mypoodle.wardrobepreview`. ADB confirmó la instalación y el arranque de la actividad. La lista de paquetes confirmó también la instalación de My Poodle. Tras desbloquear el Xiaomi, se comprobó por toque el cambio de impermeable a peto, de osito a pompón, la vista cenital, la reproducción de la carrera con dos fotogramas distintos y la pose de recogida. El visor quedó abierto con el impermeable y las gafas de frente. En Flutter pasaron el análisis de la entrada de prueba y el test de selección de conjunto, peinado, vista cenital y carrera. Se verificaron 42 imágenes y los seis bucles prerenderizados.
+
+### Casa y Armario con renderizado 3D en tiempo real
+
+La variante Android 0.2.0 incluye la app y carga un GLB local con esqueleto en Casa y Armario. Tiene giro libre, respuesta de la cola a la caricia y una transición reversible entre las dos poses. En el Xiaomi Redmi A5 se comprobó el giro desde varios ángulos, el movimiento de cola, ambas poses y el conjunto de impermeable, gorro y gafas en el armario. Se abrió una partida de Frisbee con el sprite 2D. Pasaron 25 pruebas automatizadas de juegos y recorrido general. La app de prueba usa una partida separada con Miel. Los materiales de las prendas son simplificados y el catálogo sin modelo 3D usa el visor 2D. [Montaje y compilación del visor](reviews/wardrobe-3d/README.md#3d-en-tiempo-real-en-casa-y-armario).
+
+### Telas de Blender en el visor 3D
+
+La versión Android 0.2.1 (4) exporta mapas de color y normales de siete piezas del peto, el vestido y el impermeable. Se verificaron las coordenadas UV, los pesos y el clip de tumbarse del GLB. El APK Release arm64 de 62,3 MB se actualizó por USB en el Redmi A5. Se comprobaron los tres conjuntos de frente, al arrastrar hasta el perfil y tras tumbarse y levantarse. Quedó abierta la vista previa del peto en Armario. La iluminación corresponde a la escena en tiempo real. [Montaje y compilación del visor](reviews/wardrobe-3d/README.md#3d-en-tiempo-real-en-casa-y-armario).
+
+La versión 0.2.2 completa los acabados de los ocho artículos del piloto 3D. Incluye las telas y remates, la lana, el caucho y el acetato con vetas y lentes transparentes. En el Redmi A5 se recorrieron los tres conjuntos con giro y cambio de pose. Se corrigió la holgura al tumbarse y se verificó el GLB final en 16 vistas WebGL con los tres conjuntos y una combinación mixta con corte pompón. En la combinación de impermeable y botas, las cañas todavía rozan las perneras en flexión. El APK Release arm64 de 64,7 MB corresponde a la compilación 6 del paquete de prueba.
+
+La versión 0.2.3 (7) corrige el roce del impermeable con las cuatro botas al tumbarse. El GLB tiene una variante de la animación que adelanta las patas delanteras y deja espacio detrás. Las cañas se acortan al flexionar y vuelven a su altura al levantarse. La revisión de 49 muestras de la transición reprodujo la intersección original y confirmó la separación con la variante corregida. Las capturas WebGL verificaron ambos perfiles y la espalda, y se comprobó la vuelta a la pose de pie. El APK Release arm64 se instaló por USB en el Redmi A5 y se probó el conjunto de perfil y desde atrás antes de dejarlo de pie en el armario. **Looks 3D → Impermeable y botas** abre el conjunto de prueba.
+
+La versión 0.3.0 (8) cubre las 27 prendas y accesorios de `balance-v1.json`, con ocho variantes de color que comparten modelos. Añade el corte cachorro al visor 3D. Se revisaron 12 combinaciones de frente, perfil, espalda y tumbado desde dos ángulos. La comprobación geométrica de 11 pares de prendas y calzado cubrió 49 muestras por par sin cruces de malla. El peto con botas de lluvia se revisó visualmente con la caña recogida bajo la pernera. El conjunto de mayor detalle tiene 155.493 triángulos visibles. Pasaron el análisis de Flutter y las 15 pruebas de recorrido y armario. El APK Release arm64 de 69,4 MB se instaló por USB en el Redmi A5.
+
+Tras desbloquear el Redmi A5, se comprobó la misma compilación con los tres Looks 3D nuevos al girar, tumbarse y levantarse. También se sustituyó el collar de perlas por el de chapa en el conjunto del vestido lila a través del selector del armario. Las miniaturas 2D de Colores pueden mostrar el color base del jersey mientras el visor aplica la variante elegida.
+
+La versión 0.3.1 (9) usa 42 miniaturas WebP capturadas desde el visor 3D para todas las fichas del armario en la variante de prueba. Cada ficha muestra el artículo y la escena superior muestra la combinación. Se verificaron las 42 fichas contra el catálogo, incluido el azul del jersey, y se revisaron Colores, Ropa, Accesorios y Peinados en el Redmi A5 tras instalar el APK Release de 69,8 MB. Al elegir rojo o azul, la variante de la ficha coincidió con el visor en el teléfono. Pasaron el análisis de Flutter y las 15 pruebas de recorrido y armario.
+
+La versión 0.3.2 (10) añade el caniche y el cuenco 3D a **Hora de comer**. La animación sigue el reloj de la actividad, incluida la pausa, y la zona táctil coincide con la proyección del cuenco. Se inspeccionaron 18 vistas WebGL con tres aspectos. En 49 muestras de la animación no se detectó cruce entre las mallas del cuenco, el perro y las botas de lluvia. El hocico queda por debajo del borde durante el bocado. Pasaron las 33 pruebas de comida, recorridos y simulaciones 2D. El APK Release de 69,8 MB quedó instalado por USB en el Redmi A5.
+
+En el Redmi A5 se dio un bocado tocando el cuenco y otro con el botón. En ambos se observó el hocico por debajo del borde y la vuelta a la pose de pie. Tras el primer bocado, el borde del cuenco oculta el pienso restante desde la cámara lateral. Se descartó la comida de prueba antes del tercer bocado y se abrió Frisbee para comprobar su sprite 2D.
+
+La versión 0.3.3 (11) eleva la cámara de **Hora de comer** y reduce la extensión y la altura del montón de pienso en cada bocado. La revisión WebGL distinguió el cuenco lleno, dos tercios, un tercio y vacío, con el hocico por debajo del borde durante el bocado. Las 22 pruebas de comida y recorridos pasaron. El APK Release de 69,8 MB se instaló por USB en el Redmi A5.
+
+Tras desbloquear el Redmi A5, se verificaron el cuenco lleno, dos tercios y un tercio, además del hocico dentro del cuenco al masticar. Se dio el primer bocado tocando el cuenco y el segundo con el botón. Se descartó esa comida de prueba y se dejó seleccionada una ración nueva de pienso diario.
+
+La versión 0.3.4 (12) añade el baño 3D con zonas táctiles sobre el lomo, las patas, el pecho y la cabeza. La ducha, el aclarado y el secador requieren cinco segundos de uso cada uno. La espuma sigue el progreso por zona y el pelaje recupera su acabado durante el secado. Se revisaron siete estados del baño en WebGL. Pasaron las 19 pruebas de cuidados y minijuegos 2D. El APK Release de 69,8 MB se instaló por USB en el Redmi A5.
+
+En el Redmi A5 se completó el baño tocando directamente el caniche. La ducha conservó el progreso al soltar, las cuatro zonas reaccionaron al frotar, y se comprobó la retirada de espuma y el secador. La pantalla de resultado registró +25 de higiene, de 65 a 90, en la partida de prueba.
+
+La versión 0.3.5 (13) añade la consulta veterinaria 3D con mesa, fonendoscopio, lupa y pastilla. Se revisaron seis poses y estados del visor WebGL. Pasaron 51 pruebas de cuidados, salud, coste y simulaciones de minijuegos 2D. Se instaló el APK Release en el Redmi A5 y se completó la consulta en modo demostración. Tras auscultar el pecho, revisar las patas y arrastrar la pastilla al hocico, Miel pasó de Malito a Sano y el saldo pasó de 100 a 70 monedas.
+
+La versión 0.3.6 (14) incorpora la peluquería 3D. Peine, tijeras y secador modifican el pelaje en flequillo, orejas y lomo a medida que avanza el gesto. Los cortes que aún están en el catálogo se pueden previsualizar. Un corte adquirido se guarda en la misma operación que el cuidado. Se comprobaron siete estados WebGL, incluidas las variantes pompón y cachorro, y pasaron 41 pruebas de cuidados, catálogo y minijuegos 2D. El APK Release se instaló por USB en el Redmi A5.
+
+En el Redmi A5 se eligió Corte pompón como vista previa y se completaron los nueve pasos arrastrando directamente sobre el caniche. Se comprobó el aplanado del pelo durante el peinado, la transformación del flequillo con las tijeras y el volumen tras secar. Se dejó abierta la vista previa terminada para revisar el corte.
+
+La versión 0.3.7 (15) incorpora el descanso 3D en **Cuidados → Dormir** y al tocar el medidor de Energía. La cama recibe al caniche en una pose acurrucada. La manta se despliega sobre el cuerpo y sus bordes dejan libre la cabeza. El interruptor atenúa el salón, la cama y el pelaje. Se revisaron ocho estados y variantes en WebGL. Pasaron 43 pruebas, incluidas las de orden, recuperación de energía y los minijuegos 2D. Se instaló y verificó la versión en el Redmi A5 tocando la cama para acostar y arropar a Miel y luego el interruptor de la sala. El resultado registró 100 de energía y +10 de ánimo.
+
+La versión 0.3.8 (16) incorpora el paseo 3D con pisada articulada, sendero de piedra, flores, banco y fuente. Cada parada requiere una indicación explícita de olfatear. Pasaron 33 pruebas de cuidados, recorrido y minijuegos 2D. Se instaló y completó el paseo en el Redmi A5 tocando las huellas y probando también el botón **Olfatear**. El resultado registró +15 de ánimo y −5 de energía.
+
+La versión 0.3.9 (17) incorpora Huerto Saltarín en 3D con galope y salto articulados, bancales de tierra y ladrillo, y seis tipos de fruta en doce colocaciones. El juego conserva la simulación de salto, colección y recuperación. Cada caída descuenta cinco segundos una sola vez y se indica en pantalla. Se revisaron diez estados WebGL, pasaron 30 pruebas automatizadas y el APK Release se instaló en el Redmi A5. Frisbee conserva su escena 2D.
+
+En el Redmi A5 se jugó desde la versión completa del modo demostración. Se hicieron saltos sobre el sendero, se recogieron cuatro frutas distintas y se verificó que una caída mostrara −5 s y devolviera a Miel al último apoyo con la puntuación intacta. La partida terminó con cuatro frutas y seis monedas de premio. Se dejó abierto el resultado para repetir desde allí.
+
+La versión 0.4.0 (18) añade Frisbee 3D con 20 segundos y hasta cinco lanzamientos. Las escenas con visor muestran un indicador de carga. Se ajustó el tinte de los cuatro pelajes alternativos, la pisada del paseo, la cama y los collares. El armario reúne los artículos de cuello y conserva los IDs de guardado existentes. Se añadieron el corte de concurso inspirado en el Continental, una silueta propia para el corte Osito, gestos en reposo, efectos de estado y ocho herramientas ilustradas. Se revisaron los cambios visuales en WebGL. Pasaron 144 pruebas y el APK Release quedó instalado en el Redmi A5. En el teléfono se verificaron la carga con indicador, el jadeo y la cama en Casa, el disco en la boca y el resultado al agotarse el reloj. El lanzamiento por arrastre registró una captura y seis monedas.
+
+## Prototipo de vestuario articulado en 2D
+
+El prototipo ajusta el peto verde, el pañuelo coral y las botas de lluvia con los cortes osito y pompón. Comparte la anatomía por vista y usa el mismo esqueleto de perfil para las fases de carrera. Se activa en desarrollo con `--dart-define=POODLE_ARTICULATED_PILOT=true`.
+
+Las [cinco poses de revisión](reviews/vestuario-articulado/cinco-poses.png) muestran frente, perfil, espalda y carrera en extensión y recogida. La [lámina de piezas](reviews/vestuario-articulado/piezas-por-separado.png) compara el peto con y sin pañuelo o botas. Se regeneran con `POODLE_REVIEW=1 flutter test --no-pub test/game/articulated_wardrobe_review_test.dart`. También quedan las comparativas de [varios conjuntos en 2D](reviews/combinaciones-2d/armario-2d.png) y del [mismo conjunto en varias poses](reviews/combinaciones-2d/mismo-conjunto.png).
+
 ## Sesión 20-11-2026 · Revisión de código de la tienda (F07.5)
 
 **Tarea:** corregir los hallazgos de la revisión del trabajo de builds 2–3. Flutter 3.50.0 estable; sin cambios de dependencias.
 
 - Fallos genéricos Android sin producto: `IapStore` solo los acepta con una hoja de compra abierta y los emite sin producto. Las reglas del dominio ya no rebajan una compra pendiente ante cancelaciones/errores sin producto, ni ante errores del adaptador (`purchase_stream`, `invalid_android_purchase_state`…). Solo una cancelación o error del propio producto descarta la pendiente.
 - `SimulatedStore.queryOwnership` devuelve `unknown` mientras hay una pendiente, como Google Play; reanudar ya no la cancela en desarrollo.
-- Versión completa con derecho: avisa si la restauración no encuentra compras nuevas y usa un texto de error genérico.
-- Firma Android: `storeFile` relativo a `android/`; PRUEBAS documenta que Release exige `key.properties` y la alternativa `--profile` sin clave.
+- Versión completa con derecho: avisa si la restauración no encuentra compras nuevas (mensaje nuevo en los 11 catálogos) y usa el texto de error genérico ya traducido.
+- Firma Android: se recupera la firma Release desde `android/key.properties` (sin respaldo debug), compatible con la variante de vestuario; `storeFile` relativo a `android/`. PRUEBAS documenta que Release exige la clave y la alternativa `--profile`.
+- Integración con main (0.5.0+34): se conservan las secciones de builds Android 2–3 de PRUEBAS/ESTADO y la evidencia de Play; TODO toma la versión de main.
 
 | Comando | Resultado |
 |---|---|
 | `flutter analyze` | Sin incidencias |
-| `flutter test` | **133/133** pasan |
-| Build Android firmada | **No ejecutada** en esta sesión; el cambio de ruta de `storeFile` no se ha verificado con Gradle |
+| `dart run tool/validate_localizations.dart` | 11 idiomas × 562 mensajes |
+| `flutter test` | **227/227** pasan |
+| `./gradlew :app:validateSigningRelease` | Correcto con la clave de subida local; no se ha generado AAB |
 
 Implementado y probado de forma automatizada; no probado en dispositivo.

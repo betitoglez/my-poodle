@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -10,6 +11,7 @@ import '../../game/scenes/stage_game.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/live_poodle_view.dart';
 import '../widgets/scene_view.dart';
 
 /// P02 · Adopción: caniche inicial, nombre, sugerencias y Adoptar.
@@ -23,6 +25,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
   final _name = TextEditingController();
   final _focus = FocusNode();
   StageGame? _game;
+  final _live = LivePoodleController();
   int _suggestion = 0;
   String? _error;
   bool _adopting = false;
@@ -60,7 +63,15 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
     _name.text = PetName.suggestions[_suggestion % PetName.suggestions.length];
     _name.selection = TextSelection.collapsed(offset: _name.text.length);
     _suggestion++;
-    _game?.pet.react(PetAnim.happy, seconds: 1.2);
+    _react();
+  }
+
+  void _react() {
+    if (_live.ready) {
+      _live.pet();
+    } else {
+      _game?.pet.react(PetAnim.happy, seconds: 1.2);
+    }
   }
 
   Future<void> _adopt() async {
@@ -86,6 +97,13 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppScope.of(context);
+    final appearance = c.balance.initialAppearance;
+    final showModel =
+        LivePoodleView.enabled &&
+        !_live.failed &&
+        LivePoodleView.supports(appearance);
+    _game!.pet.showSprite = !showModel;
     final l = Layout.of(context);
     final count = PetName.graphemeCount(_name.text);
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
@@ -106,7 +124,18 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                     game: _game!,
                     semanticsLabel:
                         'Cachorro de caniche albaricoque sobre un cojín',
-                    onTap: (_) => _game!.pet.react(PetAnim.happy, seconds: 1.2),
+                    onTap: (_) => _react(),
+                    overlay: showModel
+                        ? LivePoodleView(
+                            controller: _live,
+                            appearance: appearance,
+                            resting: false,
+                            reducedMotion: c.reducedMotion,
+                            wardrobe: false,
+                            idle: true,
+                            onStatusChanged: () => setState(() {}),
+                          )
+                        : null,
                   ),
                 ),
                 Expanded(
@@ -118,14 +147,14 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const Text('ADOPCIÓN', style: AppText.kicker),
+                                const LText('ADOPCIÓN', style: AppText.kicker),
                                 const SizedBox(height: 2),
-                                const Text(
+                                const LText(
                                   'Tu caniche toy',
                                   style: AppText.display,
                                 ),
                                 const SizedBox(height: AppSpace.xs),
-                                const Text(
+                                const LText(
                                   'Elige el nombre que tendrá en casa.',
                                   style: AppText.body,
                                 ),
@@ -149,8 +178,14 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                                   onSubmitted: (_) => _adopt(),
                                   style: AppText.subtitle,
                                   decoration: InputDecoration(
-                                    labelText: 'Nombre de tu caniche',
-                                    errorText: _error,
+                                    labelText: localizeNullable(
+                                      context,
+                                      'Nombre de tu caniche',
+                                    ),
+                                    errorText: localizeNullable(
+                                      context,
+                                      _error,
+                                    ),
                                     counterText:
                                         '$count / ${PetName.maxGraphemes}',
                                     prefixIcon: const Icon(Icons.pets_rounded),
@@ -167,13 +202,10 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                                           Icons.auto_awesome_rounded,
                                           size: 18,
                                         ),
-                                        label: Text(n),
+                                        label: LText(n),
                                         onPressed: () {
                                           _name.text = n;
-                                          _game?.pet.react(
-                                            PetAnim.happy,
-                                            seconds: 1.2,
-                                          );
+                                          _react();
                                         },
                                         materialTapTargetSize:
                                             MaterialTapTargetSize.padded,
@@ -210,7 +242,7 @@ class _AdoptionScreenState extends State<AdoptionScreen> {
                         ),
                         if (!keyboard) ...[
                           const SizedBox(height: AppSpace.s),
-                          const Text(
+                          const LText(
                             'Empiezas con 0 monedas. Tu partida se guarda solo en este dispositivo.',
                             style: AppText.small,
                             textAlign: TextAlign.center,

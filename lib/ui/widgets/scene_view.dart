@@ -1,6 +1,11 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../../app/app_scope.dart';
+import '../../app/feedback.dart';
+import '../../game/scenes/stage_game.dart';
 
 /// Aloja una escena Flame creada fuera de build. Captura el primer puntero
 /// y entrega toque o arrastre en coordenadas de la escena; un segundo dedo
@@ -11,6 +16,7 @@ class SceneView extends StatefulWidget {
     required this.game,
     this.onTap,
     this.onPress,
+    this.onRelease,
     this.onDragUpdate,
     this.onDragEnd,
     this.onDragCancel,
@@ -23,6 +29,7 @@ class SceneView extends StatefulWidget {
 
   /// Inmediato al tocar (p. ej. saltar), sin esperar a soltar.
   final void Function(Offset p)? onPress;
+  final VoidCallback? onRelease;
   final void Function(Offset start, Offset p, Offset delta)? onDragUpdate;
   final void Function(Offset start, Offset end)? onDragEnd;
   final VoidCallback? onDragCancel;
@@ -33,11 +40,61 @@ class SceneView extends StatefulWidget {
   State<SceneView> createState() => _SceneViewState();
 }
 
-class _SceneViewState extends State<SceneView> {
+class _SceneViewState extends State<SceneView> with RouteAware {
   int? _pointer;
   Offset? _start;
   Offset? _last;
   bool _dragging = false;
+  FeedbackService? _feedback;
+  ModalRoute<dynamic>? _route;
+
+  StageGame? get _stage =>
+      widget.game is StageGame ? widget.game as StageGame : null;
+
+  void _soundVisible(bool visible) =>
+      _stage?.bindSound(_feedback, visible: visible);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final feedback = context
+        .getInheritedWidgetOfExactType<AppScope>()
+        ?.feedback;
+    final route = ModalRoute.of(context);
+    if (_feedback != feedback || _route != route) {
+      _feedback?.routes.unsubscribe(this);
+      _feedback = feedback;
+      _route = route;
+      if (route != null) feedback?.routes.subscribe(this, route);
+    }
+    _soundVisible(route?.isCurrent ?? true);
+  }
+
+  @override
+  void didUpdateWidget(SceneView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.game != widget.game) {
+      final old = oldWidget.game;
+      if (old is StageGame) old.bindSound(null, visible: false);
+      _soundVisible(_route?.isCurrent ?? true);
+    }
+  }
+
+  @override
+  void didPushNext() => _soundVisible(false);
+
+  @override
+  void didPopNext() => _soundVisible(true);
+
+  @override
+  void didPop() => _soundVisible(false);
+
+  @override
+  void dispose() {
+    _feedback?.routes.unsubscribe(this);
+    _stage?.bindSound(null, visible: false);
+    super.dispose();
+  }
 
   void _reset() {
     _pointer = null;
@@ -48,7 +105,7 @@ class _SceneViewState extends State<SceneView> {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       label: widget.semanticsLabel,
       child: Listener(
         behavior: HitTestBehavior.opaque,
@@ -77,11 +134,13 @@ class _SceneViewState extends State<SceneView> {
           } else {
             widget.onTap?.call(e.localPosition);
           }
+          widget.onRelease?.call();
           _reset();
         },
         onPointerCancel: (e) {
           if (e.pointer != _pointer) return;
           widget.onDragCancel?.call();
+          widget.onRelease?.call();
           _reset();
         },
         child: Stack(

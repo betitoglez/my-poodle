@@ -8,12 +8,14 @@ class Preferences {
     this.effects = true,
     this.reducedMotion = false,
     this.seenHints = const {},
+    this.language,
   });
 
   final bool music;
   final bool effects;
   final bool reducedMotion;
   final Set<String> seenHints;
+  final String? language;
 
   bool get muted => !music && !effects;
 
@@ -22,11 +24,14 @@ class Preferences {
     bool? effects,
     bool? reducedMotion,
     Set<String>? seenHints,
+    String? language,
+    bool systemLanguage = false,
   }) => Preferences(
     music: music ?? this.music,
     effects: effects ?? this.effects,
     reducedMotion: reducedMotion ?? this.reducedMotion,
     seenHints: seenHints ?? this.seenHints,
+    language: systemLanguage ? null : language ?? this.language,
   );
 }
 
@@ -48,9 +53,20 @@ class PetState {
     required this.lastSickUtc,
     required this.sickSeed,
     this.sickSinceUtc,
+    this.careCompletedUtc = const {},
+    this.gameStartedUtc = const [],
+    this.premiumTrialStartedUtc = const {},
+    this.restingSinceUtc,
+    this.restEnergyCursorUtc,
   });
 
   static const int schemaVersion = 1;
+
+  final Map<String, int> careCompletedUtc;
+  final List<int> gameStartedUtc;
+  final Map<String, int> premiumTrialStartedUtc;
+  final int? restingSinceUtc;
+  final int? restEnergyCursorUtc;
 
   final int revision;
   final String lastCommitId;
@@ -80,7 +96,7 @@ class PetState {
   /// Salud para presentar: sana 100, malita 35.
   int get healthPoints => isSick ? 35 : 100;
 
-  int need100(Need n) => needs100[n] ?? 0;
+  int need100(Need n) => needs100[n] ?? (n == Need.hydration ? 9000 : 0);
 
   /// Valor redondeado para presentar (0..100).
   int needPoints(Need n) => (need100(n) / 100).round();
@@ -97,11 +113,28 @@ class PetState {
     int? bestFrisbee,
     Preferences? prefs,
     int? sickSinceUtc,
+    Map<String, int>? careCompletedUtc,
+    List<int>? gameStartedUtc,
+    Map<String, int>? premiumTrialStartedUtc,
     bool cured = false,
+    int? restingSinceUtc,
+    int? restEnergyCursorUtc,
+    bool wake = false,
     int? lastSickUtc,
   }) => PetState(
     revision: revision ?? this.revision,
     lastCommitId: lastCommitId ?? this.lastCommitId,
+    careCompletedUtc: Map.unmodifiable(
+      careCompletedUtc ?? this.careCompletedUtc,
+    ),
+    gameStartedUtc: List.unmodifiable(gameStartedUtc ?? this.gameStartedUtc),
+    premiumTrialStartedUtc: Map.unmodifiable(
+      premiumTrialStartedUtc ?? this.premiumTrialStartedUtc,
+    ),
+    restingSinceUtc: wake ? null : restingSinceUtc ?? this.restingSinceUtc,
+    restEnergyCursorUtc: wake
+        ? null
+        : restEnergyCursorUtc ?? this.restEnergyCursorUtc,
     name: name,
     needsCursorUtc: needsCursorUtc ?? this.needsCursorUtc,
     needs100: Map.unmodifiable(needs100 ?? this.needs100),

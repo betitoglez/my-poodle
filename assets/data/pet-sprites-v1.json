@@ -1,6 +1,9 @@
 {
  "schemaVersion": 1,
  "unitHeightPx": 520,
+ "hairAliases": {
+  "hair.show": "hair.pom"
+ },
  "poses": {
   "front": {
    "size": [
@@ -135,6 +138,10 @@
     "headTop": [
      -0.025,
      -0.74
+    ],
+    "mouth": [
+     -0.015,
+     -0.16
     ]
    }
   },
@@ -153,8 +160,16 @@
      -0.031
     ],
     "headTop": [
-     -0.04,
-     -0.575
+     0,
+     -0.5
+    ],
+    "mouth": [
+     0,
+     -0.12
+    ],
+    "chest": [
+     0,
+     -0.4
     ]
    }
   },

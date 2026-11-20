@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-20",
+  "titles_verified_after_reload": [
+    {
+      "locale": "en",
+      "apple_locale": "English (U.S.)",
+      "native_title": "My Poodle",
+      "store_title": "My Poodle"
+    },
+    {
+      "locale": "es",
+      "apple_locale": "Spanish (Spain)",
+      "native_title": "Mi Caniche",
+      "store_title": "Mi Caniche: mascota virtual"
+    },
+    {
+      "locale": "fr",
+      "apple_locale": "French",
+      "native_title": "Mon Caniche",
+      "store_title": "Mon Caniche : animal virtuel"
+    },
+    {
+      "locale": "de",
+      "apple_locale": "German",
+      "native_title": "Mein Pudel",
+      "store_title": "Mein Pudel"
+    },
+    {
+      "locale": "pt-BR",
+      "apple_locale": "Portuguese (Brazil)",
+      "native_title": "Meu Poodle",
+      "store_title": "Meu Poodle"
+    },
+    {
+      "locale": "it",
+      "apple_locale": "Italian",
+      "native_title": "Il mio Barboncino",
+      "store_title": "Il mio Barboncino"
+    },
+    {
+      "locale": "ru",
+      "apple_locale": "Russian",
+      "native_title": "Мой пудель",
+      "store_title": "Мой пудель"
+    },
+    {
+      "locale": "ko",
+      "apple_locale": "Korean",
+      "native_title": "나의 푸들",
+      "store_title": "나의 푸들"
+    },
+    {
+      "locale": "ja",
+      "apple_locale": "Japanese",
+      "native_title": "マイプードル",
+      "store_title": "マイプードル"
+    },
+    {
+      "locale": "zh-Hans",
+      "apple_locale": "Chinese (Simplified)",
+      "native_title": "我的贵宾犬",
+      "store_title": "我的贵宾犬"
+    },
+    {
+      "locale": "zh-Hant",
+      "apple_locale": "Chinese (Traditional)",
+      "native_title": "我的貴賓犬",
+      "store_title": "我的貴賓犬"
+    }
+  ],
+  "iap": {
+    "product_id": "mypoodle.full_version",
+    "base_country": "Spain",
+    "base_currency": "EUR",
+    "base_price": "1.99",
+    "price_saved_and_verified": true,
+    "availability_saved_and_verified": "All 175 countries or regions",
+    "availability_explicitly_authorized": true,
+    "paid_apps_agreement": "Active",
+    "status": "Prepare for Submission",
+    "family_sharing_enabled": false
+  },
+  "testflight": {
+    "version": "0.5.0",
+    "build": 33,
+    "status": "Ready to Test",
+    "internal_only": true,
+    "group": "MVP Sandbox",
+    "testers": 1,
+    "owner_invited": true,
+    "installed_and_opened_on_iphone": "confirmed by owner and devicectl",
+    "sandbox_purchase": "not verified: product unavailable on initial request and retry"
+  }
+}

@@ -1,5 +1,8 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app/app_scope.dart';
+import '../../app/feedback.dart';
 import '../../domain/balance.dart';
 import '../theme.dart';
 
@@ -26,6 +29,16 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final action = onPressed;
+    final press = action == null
+        ? null
+        : () {
+            context.getInheritedWidgetOfExactType<AppScope>()?.feedback.play(
+              Sfx.tap,
+              haptic: false,
+            );
+            action();
+          };
     final size = Size(
       expand ? double.infinity : AppSizes.touch,
       big ? AppSizes.bigButton : AppSizes.touch,
@@ -37,7 +50,7 @@ class AppButton extends StatelessWidget {
         Icon(icon, size: big ? 28 : 22),
         const SizedBox(width: AppSpace.s),
         Flexible(
-          child: Text(
+          child: LText(
             label,
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
@@ -48,16 +61,16 @@ class AppButton extends StatelessWidget {
     );
     final button = secondary
         ? OutlinedButton(
-            onPressed: onPressed,
+            onPressed: press,
             style: OutlinedButton.styleFrom(minimumSize: size),
             child: child,
           )
         : FilledButton(
-            onPressed: onPressed,
+            onPressed: press,
             style: FilledButton.styleFrom(minimumSize: size),
             child: child,
           );
-    return Semantics(hint: semanticsHint, child: button);
+    return LSemantics(hint: semanticsHint, child: button);
   }
 }
 
@@ -69,7 +82,7 @@ class CoinBalance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    return LSemantics(
       label: '$coins monedas',
       excludeSemantics: true,
       child: Container(
@@ -87,7 +100,7 @@ class CoinBalance extends StatelessWidget {
           children: [
             CoinIcon(size: large ? 24 : 20),
             const SizedBox(width: 6),
-            Text(
+            LText(
               '$coins',
               style: AppText.number.copyWith(fontSize: large ? 20 : 17),
             ),
@@ -111,7 +124,7 @@ class CoinIcon extends StatelessWidget {
       border: Border.all(color: AppColors.coinDeep, width: size * 0.12),
     ),
     alignment: Alignment.center,
-    child: Text(
+    child: LText(
       'm',
       style: TextStyle(
         fontSize: size * 0.5,
@@ -129,12 +142,14 @@ extension NeedVisuals on Need {
     Need.hygiene => Icons.bubble_chart_rounded,
     Need.mood => Icons.favorite_rounded,
     Need.energy => Icons.bolt_rounded,
+    Need.hydration => Icons.water_drop_rounded,
   };
   Color get color => switch (this) {
     Need.satiety => AppColors.satiety,
     Need.hygiene => AppColors.hygiene,
     Need.mood => AppColors.mood,
     Need.energy => AppColors.energy,
+    Need.hydration => const Color(0xFF397CAA),
   };
 }
 
@@ -146,7 +161,9 @@ class NeedMeter extends StatelessWidget {
     required this.label,
     required this.value,
     this.highlight = false,
+    this.onTap,
   });
+  final VoidCallback? onTap;
   final Need need;
   final String label;
   final int value;
@@ -155,54 +172,59 @@ class NeedMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final low = value < 30;
-    return Semantics(
+    return LSemantics(
+      button: onTap != null,
+      onTap: onTap,
       label: '$label: $value de 100${low ? ', bajo' : ''}',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(AppRadii.s),
-          border: Border.all(
-            color: highlight ? need.color : const Color(0x22000000),
-            width: highlight ? 2 : 1,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(AppRadii.s),
+            border: Border.all(
+              color: highlight ? need.color : const Color(0x22000000),
+              width: highlight ? 2 : 1,
+            ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Icon(need.icon, size: 18, color: need.color),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: AppText.small.copyWith(color: AppColors.ink),
-                    overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(need.icon, size: 18, color: need.color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: LText(
+                      label,
+                      style: AppText.small.copyWith(color: AppColors.ink),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                if (low)
-                  const Icon(
-                    Icons.priority_high_rounded,
-                    size: 16,
-                    color: AppColors.coral,
-                  ),
-                Text('$value', style: AppText.number.copyWith(fontSize: 15)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              child: LinearProgressIndicator(
-                value: value / 100,
-                minHeight: 8,
-                color: need.color,
-                backgroundColor: need.color.withValues(alpha: 0.18),
+                  if (low)
+                    const Icon(
+                      Icons.priority_high_rounded,
+                      size: 16,
+                      color: AppColors.coral,
+                    ),
+                  LText('$value', style: AppText.number.copyWith(fontSize: 15)),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                child: LinearProgressIndicator(
+                  value: value / 100,
+                  minHeight: 8,
+                  color: need.color,
+                  backgroundColor: need.color.withValues(alpha: 0.18),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -257,7 +279,8 @@ class StepMarks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    final dotSize = total > 7 ? 17.0 : 22.0;
+    return LSemantics(
       label: 'Progreso $done de $total',
       excludeSemantics: true,
       child: Row(
@@ -268,8 +291,8 @@ class StepMarks extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 3),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 22,
-                height: 22,
+                width: dotSize,
+                height: dotSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: i < done ? AppColors.leaf : Colors.white,
@@ -285,7 +308,7 @@ class StepMarks extends StatelessWidget {
               ),
             ),
           const SizedBox(width: 8),
-          Text('$done / $total', style: AppText.number.copyWith(fontSize: 15)),
+          LText('$done / $total', style: AppText.number.copyWith(fontSize: 15)),
         ],
       ),
     );
@@ -312,7 +335,7 @@ class LockBadge extends StatelessWidget {
         Icon(Icons.lock_rounded, size: compact ? 12 : 16, color: Colors.white),
         if (!compact) ...[
           const SizedBox(width: 4),
-          const Text(
+          const LText(
             'Versión completa',
             style: TextStyle(
               color: Colors.white,
@@ -336,7 +359,7 @@ class DemoBadge extends StatelessWidget {
       color: AppColors.coral,
       borderRadius: BorderRadius.circular(AppRadii.pill),
     ),
-    child: const Text(
+    child: const LText(
       'DEMO',
       style: TextStyle(
         color: Colors.white,
@@ -351,53 +374,80 @@ class DemoBadge extends StatelessWidget {
 /// Medidor de salud: sano 100, malito 35. No es una necesidad más: solo el
 /// veterinario lo recupera.
 class HealthMeter extends StatelessWidget {
-  const HealthMeter({super.key, required this.points, required this.sick});
+  const HealthMeter({
+    super.key,
+    required this.points,
+    required this.sick,
+    this.onTap,
+  });
+  final VoidCallback? onTap;
   final int points;
   final bool sick;
 
   @override
   Widget build(BuildContext context) {
     final color = sick ? AppColors.coral : AppColors.leaf;
-    return Semantics(
+    return LSemantics(
+      button: onTap != null,
+      onTap: onTap,
       label: 'Salud: ${sick ? 'malito' : 'sano'}, $points de 100',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(AppRadii.s),
-          border: Border.all(
-            color: sick ? AppColors.coral : const Color(0x22000000),
-            width: sick ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              sick ? Icons.sick_rounded : Icons.favorite_rounded,
-              size: 18,
-              color: color,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(AppRadii.s),
+            border: Border.all(
+              color: sick ? AppColors.coral : const Color(0x22000000),
+              width: sick ? 2 : 1,
             ),
-            const SizedBox(width: 6),
-            Text('Salud', style: AppText.small.copyWith(color: AppColors.ink)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ClipRRect(
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    sick ? Icons.sick_rounded : Icons.favorite_rounded,
+                    size: 16,
+                    color: color,
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: LText(
+                      'Salud',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.small.copyWith(color: AppColors.ink),
+                    ),
+                  ),
+                  Flexible(
+                    child: LText(
+                      sick ? 'Malito' : 'Sano',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.number.copyWith(
+                        fontSize: 13,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
                 borderRadius: BorderRadius.circular(AppRadii.pill),
                 child: LinearProgressIndicator(
                   value: points / 100,
-                  minHeight: 8,
+                  minHeight: 7,
                   color: color,
                   backgroundColor: color.withValues(alpha: 0.18),
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              sick ? 'Malito' : 'Sano',
-              style: AppText.number.copyWith(fontSize: 14, color: color),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

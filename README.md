@@ -1,8 +1,8 @@
-# My Poodle
+# My Poodle / Mi Caniche
 
 Adopta un caniche toy, dale un nombre y cuídalo día a día. En el huerto saltarás con él para recoger frutas. En el prado le lanzarás un frisbee. Con las monedas que ganéis podrás elegir el color de su pelo, vestirlo y probar cortes de peluquería.
 
-La descarga es gratuita y lo básico se juega para siempre sin pagar. Una compra única de 1,99 € (o 1,99 US$) desbloquea la versión completa: más minijuegos, más armario y las novedades futuras. Sin anuncios y sin vender monedas. Detalle en [Versión gratuita y versión completa](docs/FUNCIONAL.md#versión-gratuita-y-versión-completa).
+La descarga es gratuita y lo básico se juega para siempre sin pagar. Cada minijuego premium permite una partida gratis cada 24 horas sin la versión completa. Una compra única de 1,99 € (o 1,99 US$) desbloquea la versión completa: más minijuegos, más armario y las novedades futuras. Sin anuncios y sin vender monedas. Detalle en [Versión gratuita y versión completa](docs/FUNCIONAL.md#versión-gratuita-y-versión-completa).
 
 **[Abrir el diseño del juego](docs/disenos.html)** desde el clon. Incluye el recorrido de adopción y un selector de pantallas y tamaños para revisión. [Ver las pantallas a tamaño fijo](docs/arte/pantallas.jpg).
 
@@ -10,7 +10,7 @@ La descarga es gratuita y lo básico se juega para siempre sin pagar. Una compra
 |---|---|
 | [Instrucciones del agente](CLAUDE.md) | Inicio de cada sesión y orden de ejecución |
 | [Producto y economía](docs/FUNCIONAL.md) | Reglas de adopción, tiempo, cuidados, catálogo, recompensas y versión completa |
-| [Arquitectura Flutter + Flame](docs/TECNICA.md) | Stack 2D, rutas, componentes, contratos, esquema y persistencia |
+| [Arquitectura Flutter + Flame](docs/TECNICA.md) | Visor 3D local, escenas Flame, contratos, esquema y persistencia |
 | [Integración de componentes](docs/INTEGRACION.md) y [balance importable](docs/datos/balance-v1.json) | Composición Flutter/Flame, puente nativo de backup, datos locales y diagnóstico |
 | [Implementación por entregas](docs/FASES.md) | Secuencia, archivos, acciones concretas y condiciones de salida |
 | [Minijuegos](docs/JUEGOS.md) | Física, entradas, niveles, puntuación y extensión del catálogo |
@@ -19,11 +19,13 @@ La descarga es gratuita y lo básico se juega para siempre sin pagar. Una compra
 | [Build y distribución](docs/ENTREGA.md) | Configuración nativa, compra integrada y precios, firma, beta, publicación y recuperación |
 | [Estado](docs/ESTADO.md) | Versiones, pruebas ejecutadas, evidencia y pendientes |
 
-El repositorio contiene la especificación y el diseño interactivo. La decisión del 16 de noviembre de 2026 fija **Flutter + Flame y arte completamente 2D** para personaje, escenarios y minijuegos. El prototipo Flutter jugable está en este repositorio (ver abajo y [ESTADO](docs/ESTADO.md)); el flujo de versión completa y el adaptador nativo están implementados; la validación móvil y la configuración de tiendas siguen pendientes. Los valores de balance y los objetivos de rendimiento son valores iniciales de diseño que el agente puede implementar y medir. Una partida por instalación, economía local, juego offline e infraestructura propia sin coste mensual. [GitHub](https://github.com/betitoglez/my-poodle) · `git@github.com:betitoglez/my-poodle.git` · clon del propietario en `/Users/agonzalez/Projects/Personal/my-poodle`.
+La app utiliza Flutter + Flame para la interfaz y las escenas, con el caniche y vestuario 3D locales en iOS/Android y un respaldo 2D. Partida, economía, álbum y ajustes son privados de cada instalación, sin cuentas de jugador ni backend. La música cambia entre Casa/menús, juegos y cuidados. El historial de compilación y aceptación está en [ESTADO](docs/ESTADO.md); la preparación de la primera beta está en [TESTFLIGHT](docs/TESTFLIGHT.md).
 
-## Prototipo Flutter
+## MVP Flutter
 
-Experiencia completa y navegable: 19 vistas, seis cuidados (comer, bañar, pasear, peluquería, dormir y veterinario), iconos de estado estilo Tamagotchi y salud (el caniche puede ponerse malito, como mucho una vez por semana, y lo cura el veterinario), Huerto saltarín y Frisbee en el prado con Flame, armario con 42 artículos (colores, peinados, ropa por variedad y accesorios con submenús), caniche visible desde cuatro ángulos y partida guardada solo en el dispositivo. Todo el texto visible está en español.
+Adopción, cuidados, salud, Huerto saltarín, Frisbee en el prado y armario de 43 artículos. La primera beta incluye modo foto con poses/giro y álbum privado de hasta 24 fotos, prueba diaria por juego premium y 11 variantes de idioma: es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans y zh-Hant. Inglés es el respaldo. La app se llama «Mi Caniche» en español y «My Poodle» en inglés; [nombres por idioma](docs/IDIOMAS.md).
+
+Parejas, Simón de perritos y laberinto están propuestos y pendientes de definición en [TODO](TODO.md). No se presentan como juegos implementados.
 
 ### Ejecutar
 
@@ -38,14 +40,21 @@ flutter run -d chrome
 ```
 
 ```bash
-flutter run -d <id-del-dispositivo>
+flutter run --dart-define=POODLE_LIVE_3D=true -d <id-del-dispositivo>
 ```
+
+En móvil, la opción anterior activa los diseños 3D. Para compilar la versión de iPhone usar `tool/build_ios_3d.sh`, que también comprueba que el visor está activado. La vista web usa la representación 2D.
 
 Comprobaciones antes de compilar:
 
 ```bash
-flutter analyze && dart run tool/validate_content.dart && flutter test
+flutter analyze
+dart run tool/validate_content.dart
+dart run tool/validate_localizations.dart
+flutter test
 ```
+
+Para generar la candidata interna de TestFlight: `tool/build_testflight.sh`, con firma autorizada en Xcode. El script verifica idiomas y 3D; una compilación no acredita procesamiento ni compra Sandbox.
 
 Pruebas de integración en iPhone y Android conectados: ver [recorrido físico iOS](docs/PRUEBAS.md#recorrido-físico-ios).
 
@@ -94,13 +103,13 @@ Casa → Ajustes → «Soy un adulto» → puerta numérica → Zona adulta → 
 | Fondos del huerto y del prado, miniaturas de tarjetas | Recortes de las ilustraciones de referencia del propietario (`docs/arte`) | Confirmar derechos y exportar a resolución final |
 | Armario ampliado | Peinados osito y cachorro, ropa, accesorios y colores nuevos con capas generadas por Meshy; los colores de una prenda son variantes de tono de una sola capa. Los artículos y peinados nuevos no tienen capas de salto, comer ni galope: en esas poses se usa el perfil o no se dibujan | Capas propias para cada pose |
 | Animaciones | Transformaciones por capas sobre un reloj común (reposo, parpadeo, caricia, comida, baño, cepillado, trote, olfateo, carrera, salto, captura, celebración, descanso) | Secuencias dibujadas |
-| Audio | No hay archivos; efectos con respuesta háptica y ajustes guardados | Música Mureka y efectos ElevenLabs, un reproductor y licencias por archivo |
+| Audio | [37 efectos locales activos](docs/audio/EFECTOS.md), reproducción por acción y ajuste de efectos guardado | Pistas instrumentales |
 | Tipografía | Fuentes del sistema | Empaquetar Young Serif y Nunito (OFL) |
 | Textos | Privacidad marcada como provisional; resto de textos de juego definitivos para revisión | Política legal real |
 | Veterinario y dormir | Escenas con efectos vectoriales (estetoscopio, lupa, pastilla, manta, noche); consulta ilustrada con Meshy | Animaciones dibujadas |
 | Acceso adulto | Puerta con número escrito en letras y espera tras tres fallos | Revisión de aceptación en teléfonos |
-| Monetización | Sin anuncios. 18 artículos y Frisbee gratis; 24 artículos y Huerto requieren versión completa. Adaptador nativo y StoreKit local implementados | Validaciones pendientes de F07.5 y producto real/sandbox en F07.6 ([estado](docs/ESTADO.md)) |
+| Monetización | Sin anuncios. 18 artículos y Frisbee gratis; 24 artículos y Huerto requieren versión completa. Adaptador nativo y StoreKit local implementados | Compra/cancelación, reinicio/offline y restauración con derecho existente iPhone TestFlight (33) confirmados; completar escenarios avanzados ([estado](docs/ESTADO.md)) |
 
-Falta además para publicar: completar la aceptación en teléfonos reales (modo avión, segundo plano, restauración de copia, rendimiento), identificador de app definitivo (ahora `dev.mypoodle.my_poodle`), producto «Versión completa» y precios en ambas tiendas, firma, fichas y autorización de distribución del propietario.
+La beta interna iPhone **0.5.0 (33)** está procesada e instalada. Identidad definitiva `com.betitoglez.mypoodle`, producto `mypoodle.full_version`, precio Apple base 1,99 € y 11 títulos de ficha configurados. El propietario confirma que ya aparece el precio, la cancelación funciona y la compra Sandbox desbloquea la versión completa; reinicio/offline y restauración conservando la partida también confirmados, junto con dos fotos 3D conservadas en el álbum. Comprobación básica de beta interna superada; aceptación ampliada pendiente. Ver [TestFlight](docs/TESTFLIGHT.md). Antes de producción faltan aceptación de compras y dispositivos, revisión lingüística/arte/licencias, fichas y capturas definitivas, preparación de ambas tiendas y autorización comercial del propietario.
 
 Capturas: [escenas ilustradas](docs/capturas/escenas-ilustradas.jpg) · [poses del caniche](docs/capturas/poses-caniche.jpg) · [armario con el caniche ilustrado](docs/capturas/armario-sprites.jpg) · [16 combinaciones](docs/capturas/meshy-16-combinaciones.jpg) · [comparativa con Meshy](docs/capturas/comparativa-meshy.jpg) · [Casa](docs/capturas/casa-salas.jpg) · [Casa antes](docs/capturas/casa.jpg) · [Cuidados](docs/capturas/cuidados.jpg) · [Baño](docs/capturas/bano.jpg) · [Huerto](docs/capturas/huerto.jpg) · [Frisbee](docs/capturas/frisbee.jpg) · [Resultado](docs/capturas/resultado-juego.jpg) · [Armario](docs/capturas/armario.jpg).

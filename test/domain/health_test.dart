@@ -98,7 +98,11 @@ void main() {
     });
 
     test('el veterinario cura sin reiniciar el plazo semanal', () {
-      final sick = adopt().copyWith(sickSinceUtc: t0, lastSickUtc: t0);
+      final sick = adopt().copyWith(
+        sickSinceUtc: t0,
+        lastSickUtc: t0,
+        coins: 30,
+      );
       final r = rules.finishCare(sick, CareKind.vet, 'vet-1', t0);
       expect(r.before.isSick, isTrue);
       expect(r.after.isSick, isFalse);
@@ -106,7 +110,12 @@ void main() {
       expect(r.after.needPoints(Need.mood), 80);
       expect(r.after.coins, 0);
       // Sano, la revisión no cambia la salud.
-      final healthy = rules.finishCare(adopt(), CareKind.vet, 'vet-2', t0);
+      final healthy = rules.finishCare(
+        adopt().copyWith(coins: 30),
+        CareKind.vet,
+        'vet-2',
+        t0,
+      );
       expect(healthy.after.isSick, isFalse);
     });
 
@@ -172,13 +181,13 @@ void main() {
       },
     );
 
-    test('dormir recupera 45 de energía con tope 100', () {
+    test('dormir recupera 60 de energía con tope 100', () {
       final s = adopt().copyWith(
         needs100: {...adopt().needs100, Need.energy: 3000},
       );
       final r = rules.finishCare(s, CareKind.sleep, 'z', t0);
-      expect(r.after.needPoints(Need.energy), 75);
-      expect(r.after.needPoints(Need.mood), 78);
+      expect(r.after.needPoints(Need.energy), 90);
+      expect(r.after.needPoints(Need.mood), 85);
       final full = rules.finishCare(adopt(), CareKind.sleep, 'z2', t0);
       expect(full.after.needPoints(Need.energy), 100);
     });

@@ -1,3 +1,4 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app/app_scope.dart';
@@ -21,7 +22,7 @@ class AskAdultScreen extends StatelessWidget {
     final c = AppScope.of(context);
     final l = Layout.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Versión completa')),
+      appBar: AppBar(title: const LText('Versión completa')),
       body: SafeArea(
         top: false,
         child: Center(
@@ -53,7 +54,7 @@ class AskAdultScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpace.l),
-                const Text(
+                const LText(
                   'Esto es de la versión completa. Pide ayuda a un adulto',
                   style: AppText.title,
                   textAlign: TextAlign.center,

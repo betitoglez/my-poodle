@@ -424,7 +424,7 @@ void main() {
               purchaseTime: 1794920000,
               purchaseToken: 'token',
               signature: '',
-              products: [id],
+              products: const [id],
               isAutoRenewing: false,
               originalJson: '{}',
               isAcknowledged: false,

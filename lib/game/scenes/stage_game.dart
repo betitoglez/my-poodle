@@ -1,3 +1,5 @@
+import '../../l10n/app_strings.dart';
+
 import 'dart:math' as math;
 import 'dart:ui' hide TextStyle;
 
@@ -6,6 +8,7 @@ import 'package:flutter/painting.dart' show TextPainter, TextSpan, TextStyle;
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
+import '../../app/feedback.dart';
 import '../pet/appearance_catalog.dart';
 import '../pet/pet_component.dart';
 import '../pet/pet_painter.dart';
@@ -50,6 +53,49 @@ class StageGame extends FlameGame {
   final PetComponent pet;
   void Function()? onChanged;
   double time = 0;
+  FeedbackService? _sound;
+  bool _soundVisible = false;
+  bool _panting = false;
+  final _lastSound = <Sfx, double>{};
+
+  Set<Sfx> get soundLoops => _panting ? const {Sfx.pant} : const {};
+
+  void setPanting(bool value) {
+    if (_panting == value) return;
+    _panting = value;
+    syncSound();
+  }
+
+  void bindSound(FeedbackService? service, {required bool visible}) {
+    if (service != _sound) _sound?.setLoops(this, const {});
+    _sound = service;
+    _soundVisible = visible;
+    syncSound();
+  }
+
+  void syncSound() {
+    _sound?.setLoops(this, _soundVisible && !paused ? soundLoops : const {});
+  }
+
+  void playSound(Sfx effect, {double minGap = 0, bool haptic = false}) {
+    if (!_soundVisible || paused) return;
+    final last = _lastSound[effect];
+    if (last != null && time - last < minGap) return;
+    _lastSound[effect] = time;
+    _sound?.play(effect, haptic: haptic);
+  }
+
+  @override
+  void pauseEngine() {
+    super.pauseEngine();
+    syncSound();
+  }
+
+  @override
+  void resumeEngine() {
+    super.resumeEngine();
+    syncSound();
+  }
 
   bool get reducedMotion => pet.reducedMotion;
   set reducedMotion(bool v) => pet.reducedMotion = v;
@@ -146,6 +192,7 @@ class StageGame extends FlameGame {
   void update(double dt) {
     super.update(dt);
     time += dt;
+    syncSound();
   }
 
   void setLook(PetLook look) => pet.setLook(look);
@@ -224,8 +271,13 @@ class HomeGame extends StageGame {
 
   final void Function()? onPetTapped;
   bool resting = false;
+  bool useLiveBed = false;
 
   final bed = BedProp();
+
+  @override
+  Set<Sfx> get soundLoops =>
+      resting ? const {Sfx.sleepBreath} : super.soundLoops;
 
   @override
   Future<void> onLoad() async {
@@ -242,23 +294,22 @@ class HomeGame extends StageGame {
     pet.baseAnim = value ? PetAnim.sleep : PetAnim.idle;
     if (value) pet.setView(PetView.front);
     pet.clearReaction();
+    syncSound();
   }
 
   Rect get _bedRect => bed.rect(pet.position.toOffset(), pet.petSize);
 
   void _bedBack(Canvas c) {
-    if (resting) bed.paintBack(c, _bedRect);
+    if (resting && !useLiveBed) bed.paintBack(c, _bedRect);
   }
 
   void _bedFront(Canvas c) {
-    if (resting) bed.paintFront(c, _bedRect);
+    if (resting && !useLiveBed) bed.paintFront(c, _bedRect);
   }
 
   void _zzz(Canvas c) {
-    if (!resting) return;
-    final head =
-        pet.position.toOffset() +
-        Offset(pet.petSize * 0.2, -pet.petSize * 0.95);
+    if (!resting || useLiveBed) return;
+    final head = pet.landmarkScene('headTop') + Offset(pet.petSize * .09, 0);
     for (var i = 0; i < 3; i++) {
       final k = ((time * 0.5 + i / 3) % 1);
       final tp = _text('z', 14 + i * 5.0, const Color(0xFF5C354E));
@@ -268,17 +319,19 @@ class HomeGame extends StageGame {
 
   @override
   void tapAt(Offset p) {
-    if (pet.hits(p)) {
-      if (resting) setResting(false);
-      pet.react(PetAnim.happy, seconds: 1.6);
-      onPetTapped?.call();
-    }
+    if (pet.hits(p)) reactToPetTap();
+  }
+
+  void reactToPetTap() {
+    if (resting) setResting(false);
+    pet.react(PetAnim.happy, seconds: 1.6);
+    onPetTapped?.call();
   }
 }
 
 TextPainter _text(String s, double size, Color color) => TextPainter(
   text: TextSpan(
-    text: s,
+    text: AppStrings.active.text(s),
     style: TextStyle(fontSize: size, color: color, fontWeight: FontWeight.w900),
   ),
   textDirection: TextDirection.ltr,

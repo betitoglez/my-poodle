@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -6,7 +8,7 @@ import '../../app/texts.dart';
 import '../../domain/rules.dart';
 import '../theme.dart';
 
-/// Fila de iconos de estado, estilo tamagotchi: los cinco siempre visibles;
+/// Fila o columna de iconos de estado, siempre visibles.
 /// los que no aplican se apagan y los que aplican se encienden, laten y
 /// llevan una exclamación (no depende solo del color). Tocar uno encendido
 /// lleva a la actividad que lo resuelve.
@@ -17,6 +19,7 @@ class StatusBubbles extends StatefulWidget {
     required this.onTap,
     this.reducedMotion = false,
     this.vertical = false,
+    this.itemExtent = AppSizes.touch - 4,
   });
 
   final Set<PetCondition> active;
@@ -25,6 +28,7 @@ class StatusBubbles extends StatefulWidget {
 
   /// En columna junto al borde cuando hay alto de sobra, para no tapar al caniche.
   final bool vertical;
+  final double itemExtent;
 
   static const order = [
     PetCondition.sick,
@@ -32,6 +36,7 @@ class StatusBubbles extends StatefulWidget {
     PetCondition.dirty,
     PetCondition.sad,
     PetCondition.tired,
+    PetCondition.thirsty,
   ];
 
   static String assetOf(PetCondition c) => 'assets/images/icons/${c.name}.webp';
@@ -42,6 +47,7 @@ class StatusBubbles extends StatefulWidget {
     PetCondition.dirty => Icons.bubble_chart_rounded,
     PetCondition.sad => Icons.sentiment_dissatisfied_rounded,
     PetCondition.tired => Icons.bedtime_rounded,
+    PetCondition.thirsty => Icons.water_drop_rounded,
   };
 
   @override
@@ -107,6 +113,7 @@ class _StatusBubblesState extends State<StatusBubbles>
                 on: widget.active.contains(cond),
                 phase: widget.reducedMotion ? 0 : _c.value,
                 onTap: () => widget.onTap(cond),
+                extent: widget.itemExtent,
               ),
           ],
         ),
@@ -121,43 +128,54 @@ class _Bubble extends StatelessWidget {
     required this.on,
     required this.phase,
     required this.onTap,
+    required this.extent,
   });
   final PetCondition condition;
   final bool on;
   final double phase;
   final VoidCallback onTap;
+  final double extent;
 
   @override
   Widget build(BuildContext context) {
     final name = Texts.conditionNames[condition]!;
     final pulse = on ? 1 + 0.08 * math.sin(phase * 2 * math.pi) : 1.0;
-    final icon = Image.asset(
-      StatusBubbles.assetOf(condition),
-      width: 36,
-      height: 36,
-      errorBuilder: (_, _, _) => Icon(
-        StatusBubbles.fallbackIcon(condition),
-        size: 30,
-        color: AppColors.plum,
-      ),
-    );
-    return Semantics(
-      button: on,
-      label: on ? '$name: encendido, toca para atender' : '$name: apagado',
+    final iconSize = math.min(36.0, extent - 7);
+    final icon = condition == PetCondition.thirsty
+        ? Icon(
+            Icons.water_drop_rounded,
+            color: const Color(0xFF397CAA),
+            size: iconSize * .84,
+          )
+        : Image.asset(
+            StatusBubbles.assetOf(condition),
+            width: iconSize,
+            height: iconSize,
+            errorBuilder: (_, _, _) => Icon(
+              StatusBubbles.fallbackIcon(condition),
+              size: iconSize * .84,
+              color: AppColors.plum,
+            ),
+          );
+    return LSemantics(
+      button: true,
+      label: on
+          ? '$name: encendido, toca para atender'
+          : '$name: apagado, toca para atender',
       excludeSemantics: true,
       child: InkResponse(
-        onTap: on ? onTap : null,
+        onTap: onTap,
         radius: 26,
         child: SizedBox(
-          width: AppSizes.touch - 4,
-          height: AppSizes.touch - 4,
+          width: extent,
+          height: extent,
           child: Stack(
             alignment: Alignment.center,
             children: [
               if (on)
                 Container(
-                  width: 42 * pulse,
-                  height: 42 * pulse,
+                  width: (extent - 2) * pulse,
+                  height: (extent - 2) * pulse,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.coral, width: 2.5),
@@ -189,7 +207,7 @@ class _Bubble extends StatelessWidget {
                       color: AppColors.coral,
                       shape: BoxShape.circle,
                     ),
-                    child: const Text(
+                    child: const LText(
                       '!',
                       style: TextStyle(
                         color: Colors.white,

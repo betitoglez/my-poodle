@@ -1,6 +1,11 @@
 # Producto y economía de la primera versión
 
-Juego móvil completamente 2D con Flutter + Flame: caniche, ropa, cortes, escenarios y minijuegos. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni publicidad. La descarga es gratuita y una única compra integrada desbloquea la versión completa (ver [Versión gratuita y versión completa](#versión-gratuita-y-versión-completa)).
+## Alcance MVP vigente · 19-11-2026
+
+Primera beta TestFlight con es/en/fr/de/pt-BR/it/ru/ko/ja/zh-Hans/zh-Hant, selector persistente y nombre localizado (Mi Caniche en español; My Poodle en inglés/respaldo). Modo foto con captura 3D y álbum privado local. Cada juego premium permite una partida gratuita cada 24 h por juego sin compra; el cupo se confirma al iniciar, se conserva al cerrar y no se consume si falla el guardado. La compra elimina el cupo de prueba; se mantienen energía y límites generales. Parejas, Simón de perritos y laberinto son propuestas por definir. Estas decisiones prevalecen sobre referencias históricas contradictorias.
+
+
+Juego móvil con Flutter + Flame, caniche y vestuario 3D locales en iOS/Android, escenarios 2D y respaldo ilustrado. La apariencia combina piezas reutilizables; el crecimiento del catálogo no requiere imágenes completas por combinación. Guardado, economía y recursos son locales. Sin login, backend, nube ni publicidad. La descarga es gratuita y una única compra integrada desbloquea la versión completa (ver [Versión gratuita y versión completa](#versión-gratuita-y-versión-completa)).
 
 ## La primera sesión
 
@@ -12,31 +17,50 @@ En casa, tocar al perro hace que mire al jugador. La tarjeta de bienestar sugier
 
 | Medida | Inicial | Cambio por hora transcurrida | Acción de cuidado |
 |---|---:|---:|---|
-| Saciedad | 65 | −3 | Una comida completa +20 |
+| Saciedad | 65 | −3 | Pienso +20; otras raciones, ver menú |
 | Higiene | 70 | −2 | Baño +25, cepillado +8 |
 | Ánimo | 75 | −2 | Paseo +15, juego terminado +8 |
-| Energía | 80 | +4 | Paseo −5, juego terminado −6 |
+| Energía | 80 | +4 | Paseo −5, juego −20; dormir +60 |
 
-Propuesta de equilibrio para una mascota tipo Tamagotchi amable. Registrar minutos UTC y aplicar bloques completos de 15 minutos tanto durante la sesión como al volver. Usar valores internos en centésimas para que un cuarto de hora de hambre reste exactamente 0,75. Procesar como máximo 8 horas por ausencia, avanzar el cursor hasta el último cuarto procesable de la hora actual y descartar el exceso. Si el reloj retrocede, aplicar cero y conservar el cursor previo. Limitar todos los valores a 0–100 y redondear solo al presentar. Cerrar y abrir repetidamente dentro de un cuarto no acumula pérdidas. La mascota siempre puede jugar, pasear y recuperarse. El descanso en casa recupera energía según el reloj. Los mensajes sugieren cuidados sin castigar al niño por ausencias. Si hay empate en saciedad/higiene/ánimo, priorizar comida, baño y juego por ese orden. Para energía baja sugerir descansar.
+Propuesta de equilibrio para una mascota tipo Tamagotchi amable. Registrar minutos UTC y aplicar bloques completos de 15 minutos tanto durante la sesión como al volver. Usar valores internos en centésimas para que un cuarto de hora de hambre reste exactamente 0,75. Procesar como máximo 8 horas por ausencia, avanzar el cursor hasta el último cuarto procesable de la hora actual y descartar el exceso. Si el reloj retrocede, aplicar cero y conservar el cursor previo. Limitar todos los valores a 0–100 y redondear solo al presentar. Cerrar y abrir repetidamente dentro de un cuarto no acumula pérdidas. Con energía a cero solo puede dormir; los demás cuidados y juegos se bloquean hasta recuperar energía. El descanso en casa recupera energía según el reloj. Los mensajes sugieren cuidados sin castigar al niño por ausencias. Si hay empate en saciedad/higiene/ánimo, priorizar comida, baño y juego por ese orden. Para energía baja sugerir descansar.
 
 ## Estado de salud
 
 La mascota puede ponerse **malita**. Se comprueba por bloque de 15 minutos (en sesión y al volver, con el mismo tope de ausencia) y solo si pasó una semana desde la última vez: máximo **una enfermedad cada 7 días** (604 800 s). La adopción cuenta como «hace 6 días», así que no enferma en el primer día. Probabilidad por bloque, sobre 10 000: azar de fondo 12; +250 si está hambriento (saciedad < 15), sucio (higiene < 15) o agotado (energía < 10). La tirada es determinista (misma partida e instante, mismo resultado, igual en móvil y web). Mientras está malito, el ánimo baja 0,5 por bloque adicional. Solo cura el veterinario con la pastilla; curar no reinicia el plazo de la semana.
 
-**Indicadores del visor (estilo Tamagotchi).** Cinco iconos sobre la escena de Casa: malito, hambriento (saciedad < 30), sucio (higiene < 30), triste (ánimo < 30) y cansado (energía < 25). Los que aplican se encienden, laten y llevan «!»; el resto se apagan. Tocar uno encendido abre la actividad que lo resuelve (veterinario, comer, bañar, jugar, dormir). La sugerencia y el botón de Casa priorizan: malito, hambre, suciedad, tristeza, cansancio. Una barra de salud (Sano / Malito) acompaña a las cuatro necesidades. Un caniche malito se ve pálido y verdoso, tiembla un poco y muestra gotas de sudor.
+**Indicadores del visor (estilo Tamagotchi).** Cinco iconos sobre la escena de Casa: malito, hambriento (saciedad < 30), sucio (higiene < 30), triste (ánimo < 30) y cansado (energía < 25). Los que aplican se encienden, laten y llevan «!»; el resto se apagan. Tocar cualquier icono, encendido o apagado, abre la actividad que lo resuelve (veterinario, comer, bañar, jugar, dormir). La sugerencia y el botón de Casa priorizan: malito, hambre, suciedad, tristeza, cansancio. Una barra de salud (Sano / Malito) acompaña a las cuatro necesidades. Los cinco paneles también son pulsables: saciedad → comida, higiene → baño, ánimo → juegos, energía → dormir y salud → veterinario. Un caniche malito se ve pálido y verdoso, tiembla un poco y muestra gotas de sudor.
 
 ## Cuidados
 
 | Pantalla | Secuencia válida | Feedback y resultado |
 |---|---|---|
-| Dar de comer | Elegir el cuenco gratuito, ofrecer tres bocados con toques sucesivos. Un toque mientras mastica no cuenta | El cuenco se vacía por tercios, el perro mastica y al tercer bocado gana saciedad |
-| Bañar | Mojar, enjabonar tres zonas distintas (lomo, patas, pecho), aclarar. Se puede tocar cada zona o pasar la esponja sobre ella | Desplegar marcas de espuma por zona. Aclarar limpia la máscara y confirma higiene |
+| Dar de comer | Elegir una ración del menú, ofrecer tres bocados con toques sucesivos. Un toque mientras mastica no cuenta | El cuenco se vacía por tercios, el perro mastica y al tercer bocado gana saciedad |
+| Bañar | Mantener ducha 5 s, frotar cabeza, lomo, patas y pecho, aclarar con ducha 5 s y secar con secador 5 s. Soltar detiene el tiempo de herramienta | Desplegar marcas de espuma por zona. Aclarar limpia la máscara y confirma higiene |
 | Pasear | Seguir el sendero de tres paradas. Tocar las huellas o el destino, esperar la llegada y olfatear antes de habilitar la siguiente parada | Cámara acompaña al caniche y muestra 1/3, 2/3, 3/3. El último punto mejora ánimo y consume energía |
-| Peluquería | Cepillar tres mechones, previsualizar el corte en espejo. El cepillado gratuito se confirma al terminar. Los cortes permanentes se adquieren o equipan aparte | Un mechón resuelto no vuelve a contar. Previsualizar nunca cambia inventario. Un corte nuevo usa el flujo de compra del armario |
-| Dormir | Llevarlo a su cama (se acurruca), arroparlo con la manta y apagar la luz. Duerme unos segundos y despierta | Energía +45, ánimo +3. La luz solo se apaga con la manta puesta. Salir a medias no aplica nada |
-| Veterinario | Escuchar el corazón, revisar las patas y, si está malito, darle la pastilla. Cada paso exige el instrumento y la zona indicados | Sano: dos pasos, +5 de ánimo. Malito: tres pasos, recupera la salud y +5 de ánimo |
+| Peluquería | Pasar peine, tijeras y secador por flequillo, orejas y lomo (nueve pasos); previsualizar el corte en espejo. El cuidado se confirma al terminar. Los cortes permanentes se adquieren o equipan aparte | Un mechón resuelto no vuelve a contar. Previsualizar nunca cambia inventario. Un corte nuevo usa el flujo de compra del armario |
+| Dormir | Llevarlo a su cama (se acurruca), arroparlo con la manta y apagar la luz. Duerme unos segundos y despierta | Energía +60, ánimo +10. La luz solo se apaga con la manta puesta. Salir a medias no aplica nada |
+| Veterinario | Escuchar el corazón, revisar las patas y, si está malito, darle la pastilla. Cada paso exige el instrumento y la zona indicados | Cuesta 30 monedas al completar. Seleccionar fonendo y mantenerlo en pecho 3 s; lupa sobre patas 3 s; si está enfermo, arrastrar pastilla a la boca. Sano: +5 de ánimo; malito: también cura |
+
+Cada cuidado se puede completar una vez cada 300 segundos, con plazo independiente por cuidado. Todas las raciones comparten el plazo de Comer. El plazo empieza al confirmar el cuidado y se conserva al reiniciar. Los juegos admiten tres inicios en una ventana móvil de 300 segundos, compartida entre ambos juegos; abandonar consume un inicio, sin premio.
 
 Los cuidados no otorgan monedas. Antes de confirmar se puede salir sin modificar atributos. Si el proceso se cierra después de confirmar, la próxima sesión muestra el efecto ya aplicado. Un indicador al máximo no impide disfrutar de la animación.
+
+## Menú de comidas
+
+El coste y los efectos se guardan juntos al completar los tres bocados; salir antes no cobra ni mejora. Sin monedas o sin el derecho requerido, la ración queda bloqueada. El pienso sigue siendo gratuito. Fuente única de las raciones: `lib/domain/food.dart`.
+
+| Ración | Monedas | Saciedad | Energía | Ánimo | Versión |
+|---|---:|---:|---:|---:|---|
+| Pienso diario | 0 | +20 | 0 | 0 | Gratuita |
+| Comida premium | 10 | +40 | 0 | 0 | Gratuita |
+| Salmón | 30 | +60 | +5 | +20 | Completa |
+| Vegana | 15* | +10 | +20 | +5 | Completa |
+| Tarta perruna | 25 | +5 | +10 | +60 | Completa |
+| Hueso | 5 | +5 | 0 | +30 | Completa |
+
+*Precio provisional de la vegana: el encargo no especifica precio. Ajustable en `Food.vegan` sin duplicar reglas en la interfaz. Todos los efectos se limitan a 100.
+
+La higiene tiene cinco fases visuales: 64–52, 51–39, 38–26, 25–13 y 12–0. A 65 o más el pelaje se ve limpio. Cada fase añade manchas y mechones levantados. El recoloreado conserva facciones oscuras y el relieve del pelo; las piezas del armario se dibujan por anclajes, sin fragmentos del pelaje fuente.
 
 ## Versión gratuita y versión completa
 
@@ -73,7 +97,7 @@ Con la versión gratuita hay 190 monedas de artículos por conseguir, con algo c
 5. **Nunca se ofrece sin pedirlo.** Ni al arrancar, ni sobre un resultado o un premio, ni durante un cuidado o un juego, ni con avisos repetidos. La única puerta de entrada es que el jugador toque un candado o el adulto abra la pantalla.
 6. **La compra es de la cuenta de la tienda, no de la partida.** Reiniciar la partida conserva la versión completa. En una reinstalación o en otro dispositivo, Android la recupera al arrancar con conexión e iOS con «Restaurar compras». En iOS se activa Compartir en familia.
 7. **Sin conexión** se usa el último estado conocido. La versión gratuita funciona siempre offline. Comprar o restaurar necesita conexión. Si la tienda no responde, el botón dice «No disponible ahora. Inténtalo con conexión» y el juego sigue igual.
-8. **Compra pendiente** (aprobación familiar de iOS o pago pendiente en Play): se muestra «Esperando la aprobación» y no se desbloquea nada hasta que la tienda confirme el pago.
+8. **Compra pendiente:** no se desbloquea nada hasta que la tienda confirme el pago. Android muestra «Esperando la aprobación» y reconcilia su estado. En iOS se permite enviar otra solicitud: StoreKit no notifica el rechazo de Ask to Buy, por lo que no se bloquea el botón esperando ese evento. La demostración conserva su estado de espera simulado.
 9. **Reembolso o revocación confirmados por la tienda:** vuelve a bloquear el Huerto y la compra de artículos de la versión completa. Los artículos ya comprados con monedas se conservan y se pueden seguir usando: nunca se le quita nada al caniche.
 10. **Contenido nuevo.** Por defecto entra en la versión completa. También se puede añadir contenido gratuito a criterio del propietario, siguiendo estas mismas reglas.
 

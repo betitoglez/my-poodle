@@ -152,3 +152,25 @@ Protocolo: [Google, pruebas de Billing](https://developer.android.com/google/pla
 
 
 Resultado físico 18-11-2026, Xiaomi/build 3, confirmado por el propietario: cancelación con Atrás sin bloqueo; tarjeta lenta rechazada conserva el bloqueo durante la espera y permite reintentar tras el rechazo/reanudación; Restaurar compras durante pendiente conserva la espera; tarjeta lenta aprobada solo desbloquea después de la confirmación y reanudación. En todos conserva caniche y monedas. La consola acredita además pedido lento rechazado como Cancelado (0,00 EUR) y el reembolso anterior como Reembolsado. Restauración en instalación nueva y aceptación iOS siguen pendientes.
+
+## MVP multilingüe, álbum y prueba diaria
+
+- `dart run tool/validate_localizations.dart`: mismos mensajes y parámetros en los 11 catálogos; bloquea catálogos vacíos/incompletos.
+- `test/l10n/app_strings_test.dart`: nombres, respaldo inglés, scripts chinos, parámetros, números de puerta adulta y persistencia.
+- `test/ui/localization_photo_test.dart`: pantalla 320×568, nombre de jugador literal, controles de foto, álbum, juegos y puerta adulta para cada idioma.
+- `test/domain/premium_trial_test.dart` y `test/ui/premium_trial_test.dart`: frontera 86.399/86.400 s, guardados antiguos, compra completa, fallo de escritura, concurrencia y abandono/reinicio.
+- `test/data/photo_album_test.dart`: reinicio, eliminación, índice dañado, fallo de reemplazo y capacidad bajo escrituras simultáneas.
+
+En iPhone comprobar con el 3D activo que la foto contiene al caniche con su ropa, pose y giro reales; volver del álbum no altera la partida. Probar guardar, ampliar, borrar y reabrir; los tests de widgets no acreditan el puente WebGL del dispositivo. Probar cambio de idioma, lectura CJK/cirílica, VoiceOver y textos largos a escala grande. La traducción inicial requiere revisión lingüística humana antes de producción. No marcar la compra Sandbox como aceptada por haber pasado la tienda simulada.
+
+### Captura 3D nativa con datos aislados
+
+```sh
+flutter drive --driver=test_driver/photo_test.dart --target=integration_test/photo_snapshot_test.dart -d <simulador-propio> --dart-define=POODLE_LIVE_3D=true
+```
+
+Usa mascota y álbum en memoria, sin compras. Comprueba píxeles del PNG nativo, giro visible por botón, captura/composición de las dos poses y conservación de aspecto/monedas. El driver guarda PNG y métricas en `.build/photo-evidence/` (o `POODLE_PHOTO_EVIDENCE`). No ejecutar sobre un dispositivo que tenga otra sesión de QA en curso. La evidencia de simulador del 20-11-2026 está en `reviews/testflight-20261120/`.
+
+## Comprobación manual TestFlight 0.5.0 (33) · 20-11-2026
+
+El propietario confirma en iPhone: precio visible, cancelación, compra Sandbox con desbloqueo, reinicio y modo avión con derecho conservado, restauración con derecho existente conservando mascota/monedas/armario, y dos fotos 3D (de pie/tumbado) conservadas tras reabrir el álbum. [Registro por caso](reviews/testflight-20261120/iphone-sandbox.json). Estas comprobaciones manuales de TestFlight no cambian el resultado fallido de StoreKitTest local registrado arriba ni acreditan restauración limpia, pendiente/rechazo o revocación/reembolso. Borrado físico de fotos y QA lingüística, de accesibilidad y rendimiento siguen pendientes.

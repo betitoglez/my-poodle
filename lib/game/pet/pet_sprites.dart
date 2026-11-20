@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart';
+
+import 'coat_recolor.dart';
 
 /// Lienzo común de una pose: todas sus capas comparten tamaño y ancla.
 class SpritePose {
@@ -69,6 +73,7 @@ class PetSprites {
     this.unitHeightPx,
     this.poses,
     this._hair,
+    this._hairAliases,
     this._items,
     this._expressions,
     this._states,
@@ -81,6 +86,7 @@ class PetSprites {
   final double unitHeightPx;
   final Map<String, SpritePose> poses;
   final Map<String, Map<String, _Entry>> _hair;
+  final Map<String, String> _hairAliases;
 
   /// artículo → pose → capa (null = «no se ve en esa pose»).
   final Map<String, Map<String, _Entry?>> _items;
@@ -97,17 +103,71 @@ class PetSprites {
   /// Se llama (agrupado) cada vez que llega una imagen nueva.
   void Function()? onImageLoaded;
 
+  // Colores preparados bajo demanda, con caché acotada (48 capas).
+  final Map<String, ui.Image> _colored = {};
+  final Map<String, Future<void>> _colorLoading = {};
+  String _colorKey(SpriteLayer layer, String coat) =>
+      '${layer.image.hashCode}/$coat';
+  SpriteLayer? coatedLayer(SpriteLayer? layer, String coat, List<int> palette) {
+    if (layer == null || coat == 'coat.apricot') return layer;
+    final key = _colorKey(layer, coat);
+    final ready = _colored.remove(key);
+    if (ready != null) {
+      _colored[key] = ready;
+      return SpriteLayer(ready, layer.box);
+    }
+    prepareCoat(layer, coat, palette);
+    return null;
+  }
+
+  Future<void> prepareCoat(SpriteLayer layer, String coat, List<int> palette) {
+    if (coat == 'coat.apricot') return Future.value();
+    final key = _colorKey(layer, coat);
+    if (_colored.containsKey(key)) return Future.value();
+    return _colorLoading[key] ??= () async {
+      try {
+        final bytes = await layer.image.toByteData(
+          format: ui.ImageByteFormat.rawStraightRgba,
+        );
+        if (bytes == null) return;
+        final pixels = await compute(recolorFur, <String, Object>{
+          'pixels': bytes.buffer.asUint8List(),
+          'palette': palette,
+        });
+        final done = Completer<ui.Image>();
+        ui.decodeImageFromPixels(
+          pixels,
+          layer.image.width,
+          layer.image.height,
+          ui.PixelFormat.rgba8888,
+          done.complete,
+        );
+        _colored[key] = await done.future;
+        while (_colored.length > 48) {
+          final old = _colored.remove(_colored.keys.first);
+          old?.dispose();
+        }
+      } finally {
+        _colorLoading.remove(key);
+        onImageLoaded?.call();
+      }
+    }();
+  }
+
   // ------------------------------------------------------------ consultas
 
   bool hasPose(String pose) => poses.containsKey(pose);
   bool hasCoat(String id) => _coats.containsKey(id);
   List<double>? coatMatrix(String id) => _coats[id];
-  bool hasHair(String id, String pose) => _hair[id]?.containsKey(pose) ?? false;
+  bool hasHair(String id, String pose) =>
+      _hair[_hairLayerId(id)]?.containsKey(pose) ?? false;
 
   Iterable<String> get hairIds => _hair.keys;
   Iterable<String> get itemIds => [..._items.keys, ..._variants.keys];
 
   String _layerId(String id) => _variants[id]?.of ?? id;
+  // The continental silhouette has a dedicated mesh in the 3D viewer.
+  String _hairLayerId(String id) => _hairAliases[id] ?? id;
 
   /// ¿Se conoce el artículo en el atlas (directo o como variante)?
   bool knowsItem(String id) => _items.containsKey(_layerId(id));
@@ -130,7 +190,10 @@ class PetSprites {
 
   // ------------------------------------------------------------ capas
 
-  SpriteLayer? hairLayer(String id, String pose) => _layer(_hair[id]?[pose]);
+  SpriteLayer? hairLayer(String id, String pose) => _layer(
+    _hair[_hairLayerId(id)]?[pose] ??
+        (pose == 'eat' ? _hair['hair.natural']!['eat'] : null),
+  );
 
   SpriteLayer? itemLayer(String id, String pose) =>
       _layer(_items[_layerId(id)]?[pose]);
@@ -139,7 +202,7 @@ class PetSprites {
       _layer(_expressions[id]?[pose]);
 
   SpriteLayer? stateLayer(String state, String hair, String pose) =>
-      _layer(_states[state]?[hair]?[pose]);
+      _layer(_states[state]?[_hairLayerId(hair)]?[pose]);
 
   SpriteLayer? _layer(_Entry? e) {
     if (e == null) return null;
@@ -184,8 +247,15 @@ class PetSprites {
     Iterable<String> extras = const ['blink', 'happy'],
   }) async {
     final files = <String>{};
+    final layerId = _hairLayerId(hair);
     for (final p in poseNames) {
-      final h = _hair[hair]?[p];
+      final h =
+          _hair[layerId]?[p] ??
+          (p == 'eat' ? _hair['hair.natural']!['eat'] : null);
+      if (p == 'eat' && !hasHair(hair, p)) {
+        final head = _hair[layerId]?['front'];
+        if (head != null) files.add(head.file);
+      }
       if (h != null) files.add(h.file);
       for (final i in items) {
         final e = _items[_layerId(i)]?[p];
@@ -195,7 +265,7 @@ class PetSprites {
         final e = _expressions[x]?[p];
         if (e != null) files.add(e.file);
       }
-      final m = _states['messy']?[hair]?[p];
+      final m = _states['messy']?[layerId]?[p];
       if (m != null) files.add(m.file);
     }
     await Future.wait([for (final f in files) _request(f)]);
@@ -279,6 +349,8 @@ class PetSprites {
       (j['unitHeightPx'] as num).toDouble(),
       poses,
       nonNull('hair'),
+      (j['hairAliases'] as Map<String, dynamic>?)?.cast<String, String>() ??
+          const {},
       group('items'),
       nonNull('expressions'),
       states,

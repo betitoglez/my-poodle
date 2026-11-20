@@ -11,30 +11,30 @@
     },
     "coat.silver": {
       "label": "Gris plata",
-      "base": "#B8B6BE",
-      "shade": "#86838F",
-      "light": "#E2E0E6",
+      "base": "#AAADB9",
+      "shade": "#666879",
+      "light": "#E4DBD2",
       "skin": "#D9CFC9"
     },
     "coat.lightgray": {
       "label": "Gris claro",
-      "base": "#CFCFD6",
-      "shade": "#A3A3AE",
-      "light": "#EEEEF2",
+      "base": "#C3C4CD",
+      "shade": "#8C8D9F",
+      "light": "#F7EEE1",
       "skin": "#E4D8D2"
     },
     "coat.white": {
       "label": "Blanco",
-      "base": "#F4F1EA",
-      "shade": "#CFC9BC",
-      "light": "#FFFFFF",
+      "base": "#EBE5DC",
+      "shade": "#AAA6AD",
+      "light": "#FFFCF4",
       "skin": "#F3E4DA"
     },
     "coat.black": {
       "label": "Negro",
-      "base": "#3A3640",
-      "shade": "#24212A",
-      "light": "#5A5562",
+      "base": "#343C50",
+      "shade": "#141824",
+      "light": "#737C91",
       "skin": "#6B5A58"
     }
   },
@@ -54,6 +54,10 @@
     "hair.puppy": {
       "label": "Corte cachorro",
       "style": "natural"
+    },
+    "hair.show": {
+      "label": "Corte de concurso",
+      "style": "pom"
     }
   },
   "outfits": {

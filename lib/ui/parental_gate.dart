@@ -1,3 +1,5 @@
+import 'package:my_poodle/l10n/localized_widgets.dart';
+
 import 'dart:async';
 import 'dart:math';
 
@@ -158,19 +160,19 @@ class _GateDialogState extends State<_GateDialog> {
     return AlertDialog(
       // Pantallas pequeñas y teclado abierto: el contenido se desplaza.
       scrollable: true,
-      title: const Text('Pregunta para personas adultas'),
+      title: const LText('Pregunta para personas adultas'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (wait > 0)
-            Text(
+            LText(
               'Demasiados intentos. Espera $wait s para volver a intentarlo.',
               style: AppText.body,
             )
           else ...[
-            Text(
-              'Escribe en cifras: ${ParentalGate.words(_number)}',
+            LText(
+              'Escribe en cifras: ${AppStrings.of(context).numberWords(_number)}',
               style: AppText.subtitle,
             ),
             const SizedBox(height: AppSpace.m),
@@ -183,15 +185,15 @@ class _GateDialogState extends State<_GateDialog> {
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(2),
               ],
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Número',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: localizeNullable(context, 'Número'),
               ),
               onSubmitted: (_) => _submit(),
             ),
             if (_failed) ...[
               const SizedBox(height: AppSpace.s),
-              const Text(
+              const LText(
                 'No es correcto. Prueba con este otro número.',
                 style: AppText.small,
               ),
@@ -202,11 +204,11 @@ class _GateDialogState extends State<_GateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancelar'),
+          child: const LText('Cancelar'),
         ),
         TextButton(
           onPressed: wait > 0 ? null : _submit,
-          child: const Text('Continuar'),
+          child: const LText('Continuar'),
         ),
       ],
     );
