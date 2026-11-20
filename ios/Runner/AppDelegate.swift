@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import StoreKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -14,6 +15,9 @@ import UIKit
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodleStorage") {
       StorageChannel.register(messenger: registrar.messenger())
+    }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodlePurchaseQA") {
+      PurchaseQAChannel.register(messenger: registrar.messenger())
     }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MyPoodle3D") {
       registrar.register(PoodleViewFactory(registrar: registrar), withId: "my_poodle/poodle_3d")
@@ -43,6 +47,52 @@ enum StorageChannel {
         result(dir.path)
       } catch {
         result(FlutterError(code: "storage", message: error.localizedDescription, details: nil))
+      }
+    }
+  }
+}
+
+
+/// Herramienta de la beta interna; nunca solicita reembolsos de producción.
+enum PurchaseQAChannel {
+  static func register(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "my_poodle/purchase_qa", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "requestSandboxRefund" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard #available(iOS 16.0, *) else {
+        result(FlutterError(code: "unsupported", message: nil, details: nil))
+        return
+      }
+      Task { @MainActor in
+        let productID = "mypoodle.full_version"
+        guard let verification = await Transaction.latest(for: productID),
+              case .verified(let transaction) = verification,
+              transaction.environment == .sandbox,
+              transaction.revocationDate == nil else {
+          result(FlutterError(code: "sandbox_only", message: nil, details: nil))
+          return
+        }
+        guard let scene = UIApplication.shared.connectedScenes
+          .compactMap({ $0 as? UIWindowScene })
+          .first(where: { $0.activationState == .foregroundActive }) else {
+          result(FlutterError(code: "no_active_scene", message: nil, details: nil))
+          return
+        }
+        do {
+          switch try await transaction.beginRefundRequest(in: scene) {
+          case .success:
+            result("submitted")
+          case .userCancelled:
+            result("cancelled")
+          @unknown default:
+            result(FlutterError(code: "unknown_status", message: nil, details: nil))
+          }
+        } catch {
+          result(FlutterError(code: "refund_request", message: nil, details: nil))
+        }
       }
     }
   }

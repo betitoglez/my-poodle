@@ -52,3 +52,11 @@ Usar Xcode Organizer para validar y subir el Archive/IPA autorizado, o la vía d
 7. Cambiar idioma y verificar adopción/Casa, cuidados, juegos, puerta adulta, compra, foto/álbum y mensajes de error. Guardar una foto con ropa/pose/giro 3D, reabrir, ampliar y borrar una foto de prueba.
 
 Registrar versión/build, dispositivo/iOS, entorno, fecha, pasos y resultado en ESTADO. Tener un Archive, una ficha o un producto no equivale a tener una beta instalada ni una compra Sandbox aceptada.
+
+## Sesión rápida de compras avanzadas · en curso
+
+La build 33 permitió observar estado nativo pending, full=false. El propietario informó de lista Ask to Buy sin solicitud; después confirmó que Contenido y compras seguía con la cuenta habitual. Se solicita cerrar esa sesión y volver a iniciar la cuenta Sandbox existente. No cerrar aprobación/rechazo como pasados hasta ver la solicitud en la cuenta correcta y su resultado. No se borra historial de cuentas con pruebas de otras apps.
+
+Candidata **0.5.0 (34)** en preparación: corrige el bloqueo de nuevas solicitudes iOS tras rechazo sin evento y añade la herramienta interna «Reembolso de prueba», con bandera `POODLE_PURCHASE_QA=true` y protección nativa Sandbox. 11 × 561 mensajes, análisis limpio y **226 pruebas** correctas; compilación/firma/subida y aceptación física de esta candidata todavía pendientes. La build física actual sigue siendo (33).
+
+Para el reembolso: abrir la hoja nativa desde la zona adulta de la candidata interna, enviar un motivo de prueba, esperar el evento de revocación y comprobar full=false con partida/armario conservados. Para restauración sin caché, respaldar los dos archivos de derecho, cerrar la app, preparar caché vacía, restaurar y verificar conservación; esto no equivale a reinstalar la app completa. Al terminar, recuperar los archivos originales, país y sesión de compras originales, y desactivar Ask to Buy/interrupciones de prueba.

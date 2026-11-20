@@ -1,5 +1,13 @@
 # Estado de la implementación
 
+## Pruebas rápidas avanzadas de compra · 20-11-2026 · en curso
+
+- Se ejecutan 36 regresiones de compras existentes: correctas. Se prepara el iPhone con la cuenta Sandbox existente; no se reciben credenciales ni se borra historial. Copias originales de los dos archivos locales del derecho verificadas, en ubicación privada fuera de Git. Solo se vacía la caché primaria de compra, sin tocar partida ni fotos. Reinicio explícito del Bundle ID correcto deja visible el botón de compra.
+- Ask to Buy: relectura del derecho confirma pending, full=false y source=store. El propietario no ve la solicitud en Sandbox y confirma que Contenido y compras seguía iniciado con la cuenta habitual; se solicita corregir sesión. Aprobación/rechazo pendientes de evidencia con la cuenta correcta. No se consideran pasados por la primera respuesta manual de poder reintentar, que ocurrió con caché state=none.
+- Regresión de interfaz reproduce el bloqueo tras pendiente sin evento de rechazo (Apple no lo notifica); corregido para iOS, manteniendo espera Android/demo. Dos tests nuevos, sin falsa entrega al solicitar otra vez y con desbloqueo solo al aprobar.
+- Candidata **0.5.0 (34)**: herramienta de reembolso visible solo con bandera QA interna en zona adulta iOS/full; el puente exige transacción verificada del producto fijo en Sandbox y no revocada. Solicitar no altera por sí solo el derecho; espera StoreKit. Tres tests del botón cubren duplicados, cancelación y error genérico sin datos privados. 11 × 561 mensajes, análisis limpio y **226/226 pruebas** correctas. Compilación/firma, revisión, distribución y comprobación física aún pendientes; la app del iPhone sigue siendo la build (33).
+- Los escenarios avanzados no se cierran por pasar estas pruebas automáticas. Restauración sin caché se registrará con ese alcance, sin llamarla reinstalación limpia. Al terminar debe restituirse la caché original y el propietario recuperará su sesión de compras habitual y desactivará controles Sandbox. Los archivos privados y cuentas no se versionan.
+
 ## Comprobación física básica de beta interna superada · 20-11-2026
 
 - **iPhone / TestFlight 0.5.0 (33)**: tras compra y cancelación correctas, el propietario confirma **«Todo correcto: reinicio, offline y restauración conservan el estado»**. Recorrido solicitado: cierre completo, modo avión y reapertura con versión completa; reconectar y Restaurar compras, conservando mascota, monedas y armario. Es restauración con derecho existente, no instalación limpia.

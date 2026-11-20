@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:my_poodle/l10n/localized_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -7,6 +8,7 @@ import 'navigation.dart';
 import 'screens/settings_screens.dart' show PrivacyScreen;
 import 'theme.dart';
 import 'widgets/common.dart';
+import 'widgets/sandbox_refund_button.dart';
 
 /// Pantalla «Versión completa». Solo se llega tras la puerta adulta (desde un
 /// candado o desde la Zona adulta). Emite intenciones al StoreController y
@@ -64,6 +66,13 @@ class _FullVersionScreenState extends State<FullVersionScreen> {
                   icon: const Icon(Icons.restore_rounded),
                   label: const LText('Restaurar compras'),
                 ),
+                if (SandboxRefundButton.enabled &&
+                    !kIsWeb &&
+                    defaultTargetPlatform == TargetPlatform.iOS &&
+                    !c.demo &&
+                    p.full &&
+                    p.flow == PurchaseFlow.idle)
+                  const SandboxRefundButton(),
                 TextButton.icon(
                   onPressed: () => pushScreen(context, const PrivacyScreen()),
                   icon: const Icon(Icons.privacy_tip_rounded),
@@ -179,7 +188,10 @@ class _Status extends StatelessWidget {
       );
     }
     if (p.flow == PurchaseFlow.buying) return busy('Comprando…');
-    if (p.pending) {
+    // iOS no notifica el rechazo de Ask to Buy ni permite consultar su estado
+    // en silencio. No bloquear otra solicitud esperando un evento que no
+    // llegará. Android sí reconcilia pendientes; la demo conserva ese estado.
+    if (p.pending && (demo || p.provider.silentOwnershipQuery)) {
       return message(
         Icons.hourglass_top_rounded,
         'Esperando la aprobación. Se desbloqueará cuando la tienda confirme el pago.',

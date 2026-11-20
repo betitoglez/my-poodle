@@ -557,5 +557,7 @@
   "completa": "完成",
   "compra pendiente": "待购买",
   "gratuita": "免费",
-  "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame.\n迷你贵宾 3D 和场景：项目资源。\n音乐：由所有者提供的曲目。音乐和音效可在设置中关闭。"
+  "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame.\n迷你贵宾 3D 和场景：项目资源。\n音乐：由所有者提供的曲目。音乐和音效可在设置中关闭。",
+  "Reembolso de prueba": "测试退款",
+  "Solicitud enviada": "请求已发送"
 }
