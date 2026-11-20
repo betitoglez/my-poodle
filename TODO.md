@@ -5,8 +5,8 @@ Recomendaciones de la revisión del 17 de noviembre de 2026. El plan por tareas 
 ## Falta para publicar
 
 - [x] **F07.5 · Adaptador nativo y configuración.** `IapStore` Android/iOS, precio localizado, compra/restauración, eventos, guardado antes de confirmar, StoreKit local y capacidad iOS, BILLING en Android. Ver [ESTADO](docs/ESTADO.md): implementar no equivale a cerrar todas las pruebas de aceptación.
-- [ ] **Cerrar validación F07.5.** APK Release y manifiesto/Billing Android ya verificados. Siguen pendientes StoreKitTest (Code=3/notEntitled en iOS 26.5) y los recorridos nativos de compra, pendiente, cancelación, restauración y reembolso.
-- [ ] **F07.6 · Productos y cuentas reales.** IDs definitivos, acuerdos de pagos, producto en ambas consolas, precios y pruebas sandbox/Play Internal en teléfonos.
+- [ ] **Cerrar validación F07.5.** Android físico: compra, reinicio offline, restauración con derecho existente, cancelación, pendientes aprobada/rechazada y reembolso con revocación confirmados (builds 1–3; ver ESTADO). Faltan restauración en instalación nueva y validación nativa iOS; StoreKitTest bloqueado por Code=3/notEntitled en iOS 26.5.
+- [ ] **F07.6 · Productos y cuentas reales.** Identificador definitivo, producto Play activo en España/EE. UU., firma y canal interno con licencia configurados. Recorridos de compra Android comprobados en Xiaomi; corrección de cancelación y pendientes en build 3. Faltan restauración en instalación nueva/otro dispositivo, precios internacionales, revisión de pagos y alta/sandbox Apple.
 - [x] **Smoke test iPhone y Xiaomi en Profile.** Adopción, alimentación, guardado nativo, puerta adulta, consulta de tienda y conservación entre procesos; evidencia en ESTADO.
 - [x] **Offline manual en Xiaomi.** El propietario confirma modo avión, comida y conservación al cerrar/reabrir.
 - [x] **Segundo plano manual en Xiaomi.** Frisbee muestra «En pausa» al volver y solo sigue al pulsar Continuar.
@@ -17,7 +17,7 @@ Recomendaciones de la revisión del 17 de noviembre de 2026. El plan por tareas 
 - [ ] **Audio (FASES 03.4).** No hay ningún sonido; hoy los efectos son solo háptica. Música corta en bucle, efectos de cuidados, minijuegos e interfaz, con canales Music/Pet/UI y silencio persistente. Registrar origen y licencia de cada archivo.
 - [ ] **Fuente local con licencia (FASES 00.3).** Se usan fuentes del sistema, que difieren entre Android e iOS.
 - [ ] **Coherencia del arte.** El sendero del paseo sigue siendo vectorial y la peluquería tiene un tono distinto al resto de salas.
-- [ ] **Nombre e identificador definitivos.** `CFBundleName` es `my_poodle`; los IDs `dev.mypoodle.*` son provisionales y condicionan el producto `mypoodle.full_version`.
+- [x] **Nombre e identificador definitivos.** My Poodle y `com.betitoglez.mypoodle` en Android/iOS, confirmados por el propietario. Producto `mypoodle.full_version` sin cambios. Las instalaciones anteriores con IDs provisionales conservan sus datos por separado; falta validar y distribuir la nueva identidad.
 - [ ] **Ficha de tienda (FASES 08.x).** URL de política de privacidad, capturas reales, clasificación por edades y formularios de privacidad de Play y App Store.
 
 ## Funcionales

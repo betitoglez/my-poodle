@@ -1,0 +1,6 @@
+# Copiar a android/key.properties (excluido de Git). No guardar secretos aquí.
+# storeFile admite ruta absoluta o relativa a android/.
+storeFile=/ruta/absoluta/privada/upload-keystore.jks
+keyAlias=upload
+storePassword=REEMPLAZAR_LOCALMENTE
+keyPassword=REEMPLAZAR_LOCALMENTE

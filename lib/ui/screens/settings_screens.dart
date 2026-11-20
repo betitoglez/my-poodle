@@ -215,7 +215,7 @@ class AdultZoneScreen extends StatelessWidget {
             const SizedBox(height: AppSpace.s),
             AppButton(
               label: c.fullVersion
-                  ? 'Ver versión completa'
+                  ? 'Ver versión completa y restaurar compras'
                   : 'Versión completa y restaurar compras',
               icon: Icons.lock_open_rounded,
               secondary: true,

@@ -1,0 +1,181 @@
+{
+  "date": "2026-11-17",
+  "app": {
+    "name": "My Poodle",
+    "package": "com.betitoglez.mypoodle",
+    "default_locale": "es-ES"
+  },
+  "product": {
+    "id": "mypoodle.full_version",
+    "name": "Versión completa",
+    "purchase_option_id": "full-version-buy",
+    "type": "buy",
+    "state": "active",
+    "backwards_compatible": true,
+    "multi_quantity": false,
+    "available_regions": {
+      "ES": {
+        "currency": "EUR",
+        "console_price": "1.99"
+      },
+      "US": {
+        "currency": "USD",
+        "console_price": "1.99"
+      }
+    },
+    "other_and_new_regions": "unavailable_pending_price_review"
+  },
+  "internal_track": {
+    "version_name": "0.1.0",
+    "version_code": 3,
+    "state": "available_to_internal_testers",
+    "console_publication_time": "18 nov 08:22",
+    "tester_list": "My Poodle - prueba interna",
+    "testers": 1,
+    "license_testing_configured": true,
+    "license_response": "RESPOND_NORMALLY",
+    "opt_in_url": "https://play.google.com/apps/internaltest/4701341682215171492"
+  },
+  "artifact": {
+    "path": "build/app/outputs/bundle/release/app-release.aab",
+    "sha256": "d510cd01b91f4d901c12660cba25fbdb81e92bb3573e18de9b9f3e7c9b448042",
+    "upload_certificate_sha256": "779B497ABA88C260CD1DA951FF9956A0F829CD2C8DA260D5545B1594F217EDB7",
+    "jar_signature_verified": true,
+    "version_code": 1
+  },
+  "native_purchase_test": "passed_owner_manual_confirmation",
+  "production_release": false,
+  "apple_remote_registration": "pending_service_outage",
+  "physical_validation": {
+    "device": "Xiaomi Redmi A5",
+    "evidence": "owner_manual_confirmation",
+    "installed_from_google_play": true,
+    "app_displayed_price": "1,99 €",
+    "native_purchase_sheet_opened": true,
+    "test_payment_method_visible": true,
+    "no_charge_notice_confirmed": true,
+    "purchase_completion": "passed_owner_manual_confirmation",
+    "full_version_unlock": "passed",
+    "test_payment_method": "test_card_always_approves",
+    "garden_access": "passed",
+    "offline_relaunch_with_purchased_entitlement": "passed_owner_manual_confirmation",
+    "acknowledgement_console_verification": "not_checked",
+    "pending_approval_rejection": "passed_build_3_owner_manual_confirmation",
+    "cancellation": "passed_build_3_owner_manual_confirmation",
+    "restore": "passed_on_existing_entitlement_build_2_owner_manual_confirmation",
+    "refund": "passed_revocation_and_game_preservation_build_2_owner_manual_confirmation",
+    "restore_on_fresh_install_or_other_device": "pending",
+    "purchase_and_offline_version_code": 1
+  },
+  "restore_ui_fix": {
+    "version_name": "0.1.0",
+    "version_code": 2,
+    "state": "available_to_internal_testers",
+    "aab_sha256": "8a03cc075f2af85c34ab9f9035cd8df5d5eb096854d6cfb2bbf424f0f2e2666d",
+    "same_upload_certificate_verified": true,
+    "analyze": "passed",
+    "automated_tests_passed": 127,
+    "regression": "restore_while_owned_success_busy_error_game_file_unchanged_320px",
+    "native_update_and_restore": "passed_owner_manual_confirmation",
+    "console_publication_time": "17 nov 22:18",
+    "same_installation": true,
+    "restore_button_visible": true,
+    "restore_finished_without_error": true,
+    "garden_access_preserved": true,
+    "pet_preserved": true,
+    "coins_unchanged": true
+  },
+  "android_additional_acceptance": {
+    "evidence": "play_console_and_owner_manual_confirmation",
+    "refund": {
+      "test_order_verified": true,
+      "revoke_access_selected": true,
+      "refund_percentage": 100,
+      "console_status": "refunded",
+      "console_total": "0.00 EUR",
+      "console_refund_time_utc": "2026-11-17 21:50:48",
+      "app_revocation_and_game_preservation": "passed_owner_manual_confirmation",
+      "app_confirmation_date": "2026-11-18",
+      "garden_locked": true,
+      "pet_preserved": true,
+      "coins_unchanged": true,
+      "version_code": 2
+    },
+    "cancellation": {
+      "version_code": 2,
+      "date": "2026-11-18",
+      "result": "failed_owner_manual_confirmation",
+      "observed": "buying_spinner_remains_after_dismissing_google_play_sheet",
+      "retest_build_3": {
+        "date": "2026-11-18",
+        "result": "passed_owner_manual_confirmation",
+        "buying_spinner_ends": true,
+        "canceled_notice_visible": true,
+        "garden_locked": true,
+        "pet_preserved": true,
+        "coins_unchanged": true
+      }
+    },
+    "slow_pending_approval": {
+      "version_code": 3,
+      "date": "2026-11-18",
+      "method": "slow_test_card_approves",
+      "pending_state": "passed_owner_manual_confirmation",
+      "garden_locked_while_pending": true,
+      "coins_unchanged_while_pending": true,
+      "final_approval": "passed_owner_manual_confirmation",
+      "full_version_recognized_after_return": true,
+      "garden_unlocked_after_approval": true,
+      "pet_preserved": true,
+      "coins_unchanged_after_approval": true
+    },
+    "slow_pending_rejection": {
+      "version_code": 3,
+      "date": "2026-11-18",
+      "method": "slow_test_card_declines",
+      "pending_state": "passed_owner_manual_confirmation",
+      "pending_notice_visible": true,
+      "garden_locked_while_pending": true,
+      "coins_unchanged_while_pending": true,
+      "restore_while_pending": {
+        "result": "pending_notice_remains_owner_manual_confirmation",
+        "early_unlock_observed": false,
+        "progress_indicator_observed": "not_reported"
+      },
+      "final_rejection": "passed_owner_manual_confirmation",
+      "pending_notice_cleared_after_return": true,
+      "can_retry_purchase": true,
+      "garden_locked_after_rejection": true,
+      "pet_preserved": true,
+      "coins_unchanged_after_rejection": true,
+      "console_status": "canceled",
+      "console_total": "0.00 EUR",
+      "console_order_time_utc": "2026-11-18 07:39"
+    },
+    "tested_version_codes": [
+      2,
+      3
+    ],
+    "requested_cases_result": "passed",
+    "final_entitlement": "full_after_slow_test_approval",
+    "remaining_native_cases": [
+      "restore_on_fresh_install_or_other_device",
+      "ios_acceptance"
+    ]
+  },
+  "last_updated": "2026-11-18",
+  "billing_flow_fix": {
+    "version_code": 3,
+    "date": "2026-11-18",
+    "state": "available_to_internal_testers",
+    "regressions_fail_before_fix": 5,
+    "automated_tests_passed": 132,
+    "analyze": "passed",
+    "native_cancellation": "passed_owner_manual_confirmation",
+    "native_slow_pending_approval": "passed_owner_manual_confirmation",
+    "native_slow_pending_rejection": "passed_owner_and_console_confirmation",
+    "aab_sha256": "72a0ebdee59afc839fcaff8309174234e9eaeaf6435bc053911c7eb45d5ec30f",
+    "same_upload_certificate_verified": true,
+    "console_publication_time": "18 nov 08:22"
+  }
+}

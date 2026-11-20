@@ -57,13 +57,12 @@ class _FullVersionScreenState extends State<FullVersionScreen> {
                 const SizedBox(height: AppSpace.l),
                 _Status(p: p, demo: c.demo),
                 const SizedBox(height: AppSpace.l),
-                if (!p.full)
-                  TextButton.icon(
-                    key: const Key('restore'),
-                    onPressed: p.flow == PurchaseFlow.idle ? p.restore : null,
-                    icon: const Icon(Icons.restore_rounded),
-                    label: const Text('Restaurar compras'),
-                  ),
+                TextButton.icon(
+                  key: const Key('restore'),
+                  onPressed: p.flow == PurchaseFlow.idle ? p.restore : null,
+                  icon: const Icon(Icons.restore_rounded),
+                  label: const Text('Restaurar compras'),
+                ),
                 TextButton.icon(
                   onPressed: () => pushScreen(context, const PrivacyScreen()),
                   icon: const Icon(Icons.privacy_tip_rounded),
@@ -147,14 +146,25 @@ class _Status extends StatelessWidget {
           child: CircularProgressIndicator(strokeWidth: 3),
         ),
         const SizedBox(width: AppSpace.m),
-        Text(text, style: AppText.body),
+        Expanded(child: Text(text, style: AppText.body)),
       ],
     );
 
+    if (p.flow == PurchaseFlow.restoring) return busy('Restaurando compras…');
     if (p.full) {
+      final fullNotice = switch (p.notice) {
+        StoreNotice.error => 'No se ha podido completar. Inténtalo de nuevo.',
+        StoreNotice.nothingToRestore =>
+          'No hay compras nuevas que restaurar. Tu versión completa sigue activa.',
+        _ => null,
+      };
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (fullNotice != null) ...[
+            message(Icons.info_outline_rounded, fullNotice),
+            const SizedBox(height: AppSpace.m),
+          ],
           message(
             Icons.favorite_rounded,
             '¡Gracias! Ya tienes la versión completa',
@@ -171,7 +181,6 @@ class _Status extends StatelessWidget {
       );
     }
     if (p.flow == PurchaseFlow.buying) return busy('Comprando…');
-    if (p.flow == PurchaseFlow.restoring) return busy('Restaurando compras…');
     if (p.pending) {
       return message(
         Icons.hourglass_top_rounded,

@@ -2,6 +2,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:my_poodle/domain/balance.dart';
+import 'package:my_poodle/app/app_scope.dart';
+import 'package:my_poodle/data/save_store.dart';
+import 'package:my_poodle/store/simulated_store.dart';
 import 'package:my_poodle/domain/needs_clock.dart';
 import 'package:my_poodle/domain/rules.dart';
 import 'package:my_poodle/game/frisbee_game.dart';
@@ -39,6 +42,23 @@ void main() {
       );
     },
   );
+
+  testWidgets('al reanudar consulta propiedad Android sin cambiar la partida', (
+    t,
+  ) async {
+    final backend = backendWith((s) => s);
+    final store = SimulatedStore(owned: true, delay: Duration.zero);
+    await boot(t, backend, store: store);
+    final controller = AppScope.read(t.element(find.byType(StatusBubbles)));
+    expect(controller.fullVersion, isTrue);
+    final before = backend.files[SaveStore.primary];
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    store.owned = false;
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await idle(t);
+    expect(controller.fullVersion, isFalse);
+    expect(backend.files[SaveStore.primary], before);
+  });
 
   testWidgets('frisbee se congela en segundo plano hasta Continuar', (t) async {
     final backend = backendWith((s) => s);
