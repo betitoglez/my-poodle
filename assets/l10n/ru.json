@@ -557,5 +557,7 @@
   "completa": "полное",
   "compra pendiente": "покупка в ожидании",
   "gratuita": "бесплатно",
-  "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame.\nПудель 3D и сценарии: ресурсы проекта.\nМузыка: треки предоставлены владельцем. Музыку и эффекты можно отключить в Настройках."
+  "{p0} · Flutter + Flame.\nCaniche 3D y escenarios: recursos del proyecto.\nMúsica: pistas aportadas por el propietario. Música y efectos se pueden desactivar en Ajustes.": "{p0} · Flutter + Flame.\nПудель 3D и сценарии: ресурсы проекта.\nМузыка: треки предоставлены владельцем. Музыку и эффекты можно отключить в Настройках.",
+  "Reembolso de prueba": "Тестовый возврат",
+  "Solicitud enviada": "Запрос отправлен"
 }

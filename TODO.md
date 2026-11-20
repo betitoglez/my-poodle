@@ -38,6 +38,8 @@ Son candidatos del MVP ampliado, no juegos ya implementados. Antes de construirl
 
 ## Aceptación y preparación de publicación
 
+- [ ] Terminar sesión avanzada Sandbox: corregir sesión de compras, verificar aprobación/rechazo, restauración sin caché, reembolso, interrupciones y otra divisa. Candidata interna (34) en preparación con corrección de espera iOS y reembolso limitado a Sandbox; 226 pruebas correctas. Restablecer estado original del iPhone al terminar.
+
 - [ ] Completar pendiente/aprobación/rechazo, restauración limpia y revocación/reembolso en instalación/cuenta de pruebas. No borrar la partida personal para crear esos casos.
 - [ ] Comprobar borrado de una foto de prueba en iPhone; captura de dos poses y persistencia del álbum ya confirmadas.
 - [ ] Revisar los 11 idiomas en adopción, cuidados, juegos, compras, modo foto, ajustes, ayuda, privacidad y estados de error; precios localizados por la tienda.
