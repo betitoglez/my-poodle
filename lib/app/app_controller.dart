@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../data/save_codec.dart';
 import '../data/save_store.dart';
 import '../data/storage_backend.dart';
+import '../domain/achievements.dart';
 import '../domain/appearance.dart';
 import '../domain/balance.dart';
 import '../domain/entitlements.dart';
@@ -139,7 +140,7 @@ class AppController extends ChangeNotifier {
         _confirmed = null;
         status = BootStatus.adoption;
       case LoadOk(:final state):
-        _confirmed = state;
+        _confirmed = await _syncAchievements(state);
         status = BootStatus.ready;
       case LoadCorrupted(:final detail):
         errorDetail = detail;
@@ -154,6 +155,75 @@ class AppController extends ChangeNotifier {
     _startTicker();
     notifyListeners();
   }
+
+  /// Partida anterior a los logros (o a uno nuevo): guarda los que ya
+  /// cumple, sin celebrarlos ni pagar. Si no se puede guardar, se sigue con
+  /// lo leído: la próxima operación confirmada los registrará.
+  Future<PetState> _syncAchievements(PetState loaded) async {
+    final synced = rules.syncAchievements(loaded, clock.nowUtcSeconds());
+    if (synced == null) return loaded;
+    try {
+      await _store.write(synced);
+      return synced;
+    } catch (_) {
+      return loaded;
+    }
+  }
+
+  // ------------------------------------------------------------ álbum
+
+  final List<String> _newStickers = [];
+
+  /// Pegatinas conseguidas desde la última celebración (en orden).
+  List<String> get newStickers => List.unmodifiable(_newStickers);
+
+  /// La capa de celebración las recoge una vez para mostrarlas.
+  List<String> takeNewStickers() {
+    final out = List<String>.of(_newStickers);
+    _newStickers.clear();
+    return out;
+  }
+
+  void _noteStickers(PetState? old, PetState next) {
+    for (final id in next.achievements.keys) {
+      if (old?.achievements.containsKey(id) ?? false) continue;
+      if (!_newStickers.contains(id)) _newStickers.add(id);
+    }
+  }
+
+  Achievements get achievements => rules.achievements;
+
+  /// «Recoger»: cobra el bono único de una página completa del álbum.
+  Future<ActionResult<Receipt>> collectAlbumPage(AlbumPage page) =>
+      _serial(() async {
+        final state = _confirmed;
+        if (state == null ||
+            hasPending ||
+            !achievements.canCollect(state, page)) {
+          return const Ignored();
+        }
+        final now = clock.nowUtcSeconds();
+        final receipt = rules.collectAlbumPage(
+          state,
+          page,
+          'album-${page.name}-$now-${state.revision}',
+          now,
+        );
+        return _write(receipt.after, receipt);
+      });
+
+  /// Foto guardada en el álbum privado (lo llama el modo foto tras guardar).
+  Future<ActionResult<Receipt>> recordPhotoTaken() => _serial(() async {
+    final state = _confirmed;
+    if (state == null || hasPending) return const Ignored();
+    final now = clock.nowUtcSeconds();
+    final receipt = rules.recordPhoto(
+      state,
+      'photo-$now-${state.revision}',
+      now,
+    );
+    return _write(receipt.after, receipt);
+  });
 
   void _startTicker() {
     _ticker?.cancel();
@@ -200,6 +270,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
     try {
       await _store.write(candidate);
+      _noteStickers(_confirmed, candidate);
       _confirmed = candidate;
       _pending = null;
       onCommitted?.call();
@@ -225,6 +296,7 @@ class AppController extends ChangeNotifier {
         if (await _store.committedId() != p.candidate.lastCommitId) {
           await _store.write(p.candidate);
         }
+        _noteStickers(_confirmed, p.candidate);
         _confirmed = p.candidate;
         _pending = null;
         p.onCommitted();
@@ -497,6 +569,7 @@ class AppController extends ChangeNotifier {
   /// Reinicio confirmado desde la zona adulta.
   Future<void> resetGame() => _serial(() async {
     await _store.reset();
+    _newStickers.clear();
     _confirmed = null;
     _pending = null;
     status = BootStatus.adoption;

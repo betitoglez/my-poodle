@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:my_poodle/domain/achievements.dart';
 import 'package:my_poodle/domain/appearance.dart';
 import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/entitlements.dart';
@@ -246,6 +247,28 @@ void main() {
   // Decoración del salón: IDs únicos con el prefijo de su hueco y distintos
   // de los del armario, un artículo vacío inicial y gratuito por hueco, al
   // menos uno gratuito comprable por hueco y precio positivo en lo comprable.
+  // Álbum: IDs de logro únicos y estables, cada página con logros y un bono
+  // positivo en `album.pageBonus`, sin páginas desconocidas.
+  if (balance != null) {
+    final achIds = <String>{};
+    for (final a in Achievements.catalog) {
+      if (!achIds.add(a.id)) errors.add('album: logro repetido ${a.id}');
+      if (!a.id.startsWith('ach.')) errors.add('album: ID sin «ach.» ${a.id}');
+    }
+    for (final page in AlbumPage.values) {
+      if (Achievements.onPage(page).isEmpty) {
+        errors.add('album: página ${page.name} sin logros');
+      }
+      if ((balance.albumPageBonus[page.name] ?? 0) <= 0) {
+        errors.add('album: página ${page.name} sin bono');
+      }
+    }
+    for (final key in balance.albumPageBonus.keys) {
+      if (!AlbumPage.values.any((p) => p.name == key)) {
+        errors.add('album: página desconocida $key');
+      }
+    }
+  }
   if (balance != null) {
     final styleIds = {for (final s in balance.styles) s.id};
     final decorIds = <String>{};

@@ -474,6 +474,9 @@
     "sadBelow": 30,
     "tiredBelow": 25
   },
+  "album": {
+    "pageBonus": { "care": 40, "games": 50, "wardrobe": 60, "photos": 30, "special": 80 }
+  },
   "decor": [
     { "id": "rug.none", "slot": "rug", "cost": 0, "initial": true, "tier": "free" },
     { "id": "rug.round", "slot": "rug", "cost": 40, "initial": false, "tier": "free" },

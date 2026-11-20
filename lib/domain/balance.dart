@@ -175,8 +175,10 @@ class Balance {
     required List<StyleItem> styles,
     List<DecorItem> decor = const [],
     this.fullVersionProductId = 'mypoodle.full_version',
+    Map<String, int> albumPageBonus = const {},
   }) : styles = List.unmodifiable(styles),
-       decor = List.unmodifiable(decor) {
+       decor = List.unmodifiable(decor),
+       albumPageBonus = Map.unmodifiable(albumPageBonus) {
     _validate();
   }
 
@@ -195,6 +197,10 @@ class Balance {
 
   /// Decoración del salón (vacía: sin decoración disponible).
   final List<DecorItem> decor;
+
+  /// Álbum de pegatinas: bono único (monedas) por página completa, por ID
+  /// de página (`care`, `games`…). Bloque `album.pageBonus` del JSON.
+  final Map<String, int> albumPageBonus;
 
   DecorItem? decorItem(String id) {
     for (final d in decor) {
@@ -307,6 +313,11 @@ class Balance {
         frisbee.starCatches.length != 3 ||
         !ascending(frisbee.starCatches, frisbee.maxScore)) {
       throw BalanceFormatException('Estrellas inválidas');
+    }
+    for (final e in albumPageBonus.entries) {
+      if (e.value < 0 || e.value > 500) {
+        throw BalanceFormatException('Bono de álbum inválido: ${e.key}');
+      }
     }
     final decorIds = <String>{};
     for (final d in decor) {
@@ -427,6 +438,16 @@ class Balance {
         })
         .toList();
     final fullVersion = req<Map<String, dynamic>>(j, 'fullVersion');
+    final albumJ = j['album'];
+    final albumBonus = <String, int>{};
+    if (albumJ != null) {
+      final pages = albumJ is Map<String, dynamic> ? albumJ['pageBonus'] : null;
+      if (pages is! Map<String, dynamic> ||
+          pages.values.any((v) => v is! int)) {
+        throw BalanceFormatException('album.pageBonus inválido');
+      }
+      albumBonus.addAll(pages.cast<String, int>());
+    }
 
     final healthJ = req<Map<String, dynamic>>(j, 'health');
     final statusJ = req<Map<String, dynamic>>(j, 'status');
@@ -485,6 +506,7 @@ class Balance {
       styles: styles,
       decor: decor,
       fullVersionProductId: req<String>(fullVersion, 'productId'),
+      albumPageBonus: albumBonus,
     );
   }
 }
