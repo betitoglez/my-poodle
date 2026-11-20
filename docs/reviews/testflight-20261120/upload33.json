@@ -14,8 +14,12 @@
     "warning_code": 90725,
     "warning_summary": "iOS 27 SDK required starting April 2027"
   },
-  "testflight_processing_verified": false,
-  "distributed_to_group": false,
-  "installed_on_iphone": false,
-  "sandbox_purchase_verified": false
+  "testflight_processing_verified": true,
+  "distributed_to_group": true,
+  "installed_on_iphone": true,
+  "sandbox_purchase_verified": false,
+  "testflight_status": "Ready to Test",
+  "group": "MVP Sandbox",
+  "physical_installation_evidence": "owner confirms installed/opened; devicectl confirms 0.5.0 (33)",
+  "sandbox_purchase_status": "product/price unavailable on initial query and retry after metadata configuration"
 }

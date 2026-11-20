@@ -1,5 +1,13 @@
 # Estado de la implementación
 
+## Beta instalada, títulos y precio guardados · 20-11-2026
+
+- Los 11 títulos de ficha están guardados y comprobados en una vista recargada: [tabla](IDIOMAS.md) y [registro](reviews/testflight-20261120/apple-configuration.json). Español: Mi Caniche: mascota virtual; francés: Mon Caniche : animal virtuel. Alemán/portugués conservan nombre corto; errores repetidos de una vista anterior resueltos desde estado actualizado, sin retirar localizaciones.
+- Precio base **1,99 €**, España (EUR), guardado y visible en Current Price. Disponibilidad en **175 países/regiones** guardada tras autorización explícita. Acuerdo Paid Apps activo. La autorización resuelve los bloqueos previos de revisión automática; no se envía app/IAP a revisión comercial ni se publica producción.
+- Apple terminó el procesamiento de **0.5.0 (33)**: **Ready to Test**, grupo interno **MVP Sandbox**, un tester (propietario). [Captura](reviews/testflight-20261120/testflight-ready33.jpg). El propietario confirma instalada y abierta desde TestFlight; devicectl confirma `com.betitoglez.mypoodle`, 0.5.0, build 33 en el iPhone 16 Pro.
+- **Compra no acreditada**: el propietario informa producto/precio no disponible, también al Reintentar. Se acababan de guardar precio/disponibilidad; Apple documenta hasta una hora de propagación. Se comprueban identidad/producto, selección de tienda nativa en Release, firma/App ID y acuerdo activo. Propagación es una hipótesis; no se declara causa demostrada ni éxito de compra. Reintentar consulta; si persiste tras esa ventana, diagnosticar respuesta nativa sin datos sensibles. La beta instalada no cierra la aceptación física.
+- [Precio guardado](reviews/testflight-20261120/apple-pricing.jpg), [disponibilidad guardada](reviews/testflight-20261120/apple-availability.jpg). Solo se versionan configuración pública y evidencia de la app; no datos bancarios/fiscales, credenciales, recibos ni partida.
+
 ## Títulos localizados y subida de beta · 20-11-2026
 
 - El propietario exige el título traducido también en la ficha de tienda de las 11 variantes. Los nombres dentro de la app y bajo el icono ya están empaquetados. Elige **Mi Caniche: mascota virtual** para la ficha española y autoriza expresamente el precio base real de **1,99 €**. El precio todavía no está guardado en Apple. Francés requiere **Mon Caniche : animal virtuel** por colisión del nombre corto; verificar persistencia remota tras renovar sesión.
