@@ -21,6 +21,8 @@
   "testflight_status": "Ready to Test",
   "group": "MVP Sandbox",
   "physical_installation_evidence": "owner confirms installed/opened; devicectl confirms 0.5.0 (33)",
-  "sandbox_purchase_status": "owner confirms cancellation and purchase unlocking full version; restart/offline/restore and advanced scenarios pending",
-  "physical_acceptance_record": "docs/reviews/testflight-20261120/iphone-sandbox.json"
+  "sandbox_purchase_status": "owner confirms cancellation, purchase unlocking full version, restart/offline and restore preserving game; advanced scenarios pending",
+  "physical_acceptance_record": "docs/reviews/testflight-20261120/iphone-sandbox.json",
+  "basic_internal_beta_acceptance": true,
+  "physical_photo_two_poses_and_album_persistence_verified": true
 }
