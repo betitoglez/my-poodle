@@ -782,3 +782,18 @@ Verificación: `flutter analyze` limpio; contenido válido (59 artículos, 21 de
 Se combina `codex/cuidados-armario-decoracion` (`b74ac4c`, PR #17 lista para fusionar) en `feature/album-logros-economia`. Conflictos resueltos: catálogo y apariencia unidos por ID (PR #17 como base, con sus precios por familia), traducciones unidas (prevalece el texto de PR #17), visor 3D con patrones de PR #17 y brillo dorado, decoración con imágenes de PR #17 y piezas vectoriales nuevas, armario de PR #17 con insignia «Lujo» y «Te faltan N monedas», cuidados con espera de 15 min y días de cuidado para logros, modo foto con giro por arrastre y editor. Precios nuevos ajustados a familia: petos 20, jerseys 40, impermeables 50, vestidos 70, chocolate 80 y pelaje dorado 1500 (por encima de los especiales de 1000).
 
 Verificación: `flutter analyze` limpio; contenido válido (92 artículos: 27 gratis y 65 completos, 21 de decoración, 9 packs de fotos, 84 imágenes); balance idéntico en `assets/` y `docs/`; 11 × 904 traducciones validadas; **409 pruebas correctas**. No probado en dispositivo.
+
+## Beta 0.6.0 (40) para TestFlight · 21-11-2026
+
+Rama `release/0.6.0-40`, desde main `fe2fd88` (PR #17 y #18 fusionadas). Flutter 3.50.0 / Dart 3.14.0; versión **0.6.0+40** (las builds Profile llegaron a 39). Contenido nuevo desde la beta 34: Parejas y Memory, cuidados por opción con espera de 15 min, armario por zonas y estampados, decoración realista, álbum de pegatinas y logros, decorar foto con packs de pegatinas, marcos y texto, catálogo ampliado con artículos de lujo.
+
+Verificación previa: `flutter analyze` limpio; contenido válido (92 artículos, 21 de decoración, 9 packs de fotos, 84 imágenes); balance idéntico en `assets/` y `docs/`; 11 idiomas validados; **415 pruebas correctas**. `tool/build_testflight.sh` con `POODLE_LIVE_3D=true`: archivo firmado y IPA de 85,4 MB (`My Poodle.ipa`, SHA-256 `c68bad9273218ccd125cb6ac7c2afef10633d3c19c7efee6eb182b6e782f88d6`); `verify_ios_release.py` confirma 3D, 11 idiomas, nombres nativos y compra nativa. **Pendiente: subida desde Organizer por el propietario, procesamiento en TestFlight e instalación.**
+
+Lista de comprobación en el iPhone tras instalar:
+- [ ] Actualiza desde la 34 conservando caniche, monedas, armario, fotos y versión completa.
+- [ ] Parejas y Memory completos: sonido, silencio, interrupciones y VoiceOver.
+- [ ] Cuidados con espera de 15 min y cortes por zona en el armario.
+- [ ] Álbum: pegatinas al cuidar, jugar y hacer fotos; recoger un bono.
+- [ ] Decorar foto: pegatinas, marco y texto; guardar y ver en el álbum; comprar un pack.
+- [ ] Lujo en 3D: pelaje dorado con brillo y corona con joyas; aviso «Te faltan N monedas».
+- [ ] Decoración realista bajo el caniche 3D y guirnaldas a todo el ancho.
