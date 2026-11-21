@@ -24,6 +24,32 @@ void main() {
         }
         final before = saved(backend);
         expect(find.text('Probando'), findsOneWidget);
+        final buttonFinder = find.ancestor(
+          of: find.text('Probando'),
+          matching: find.byType(FilledButton),
+        );
+        final button = t.widget<FilledButton>(buttonFinder);
+        final theme = Theme.of(t.element(buttonFinder));
+        final foreground =
+            button.style?.foregroundColor?.resolve({}) ??
+            theme.filledButtonTheme.style!.foregroundColor!.resolve({})!;
+        final background =
+            button.style?.backgroundColor?.resolve({}) ??
+            theme.filledButtonTheme.style!.backgroundColor!.resolve({})!;
+        final light =
+            foreground.computeLuminance() > background.computeLuminance()
+            ? foreground
+            : background;
+        final dark =
+            foreground.computeLuminance() > background.computeLuminance()
+            ? background
+            : foreground;
+        expect(
+          (light.computeLuminance() + .05) / (dark.computeLuminance() + .05),
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'el texto/ojito deben contrastar con el fondo del botón grande',
+        );
         final expanded = t.getSize(find.byType(PreviewBadge));
         await tapText(t, 'Probando');
         expect(find.text('Probando'), findsNothing);

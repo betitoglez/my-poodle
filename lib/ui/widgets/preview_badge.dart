@@ -19,7 +19,10 @@ class _PreviewBadgeState extends State<PreviewBadge> {
     if (_collapsed) {
       return IconButton.filledTonal(
         tooltip: localize(context, 'Mostrar texto de vista previa'),
-        style: IconButton.styleFrom(backgroundColor: AppColors.cream),
+        style: IconButton.styleFrom(
+          backgroundColor: AppColors.cream,
+          foregroundColor: AppColors.plum,
+        ),
         onPressed: () => setState(() => _collapsed = false),
         icon: const Icon(Icons.visibility_rounded, size: 20),
       );
@@ -27,7 +30,10 @@ class _PreviewBadgeState extends State<PreviewBadge> {
     return Tooltip(
       message: localize(context, 'Ocultar texto de vista previa'),
       child: FilledButton.tonalIcon(
-        style: FilledButton.styleFrom(backgroundColor: AppColors.cream),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.cream,
+          foregroundColor: AppColors.plum,
+        ),
         onPressed: () => setState(() => _collapsed = true),
         icon: const Icon(Icons.visibility_rounded, size: 18),
         label: const LText('Probando'),

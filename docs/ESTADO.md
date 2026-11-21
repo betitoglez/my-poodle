@@ -758,3 +758,11 @@ Además, corregido el P2 de Codex sobre `6925ca4`: las variantes nuevas de jerse
 
 
 Verificación final: análisis limpio, **345 pruebas correctas**, validadores de contenido e idiomas correctos (**11 × 749 mensajes**). Diez capturas del dibujante real: ambos artículos a 320, 390, 600, 844 y 1024 px; píxeles presentes en ambos bordes y primeros adornos iguales al ampliar el ancho, demostrando ausencia de estiramiento. Pruebas de plegado/restauración de «Probando» en ambos menús sin cambios de compra o aspecto. Regresión del jersey reproduce el fallo anterior y pasa corregida. Web Release e iOS Profile firmada **0.5.0 (38)** correctas con `POODLE_LIVE_3D=true`; nuevos adornos y traducciones empaquetados comprobados. Instalación preparada con copia privada; aceptación visual manual final pendiente.
+
+
+## Capturas de tablet y contraste de Probando · 21-11-2026
+
+Inicio desde `8e19c5f`: capturar Casa con guirnalda y estrellas, Decoración, Armario, Cuidados, Foto y los cuatro juegos en el mismo iPad Pro de 13 pulgadas, sin cambiar sus dimensiones entre capturas. Simulador iOS 26.5 con visor 3D nativo; partida de demostración solo en memoria. El propietario informa de que el aviso grande «Probando» se ve vacío: el tema global hereda texto crema sobre el nuevo fondo crema. Se fija primer plano ciruela explícito para texto/icono, conservando el estado plegable. Corregido el contraste y completadas las capturas nativas.
+
+
+Resultado: **15 capturas nativas** del simulador iPad Pro 13 (M5), iOS 26.5, **2064×2752 px / 1032×1376 puntos**, mismo tamaño en todas. Casa con guirnalda/estrellas, Decoración con aviso grande y estrellas colocadas; Armario con aviso grande/plegado, Cuidados, Comer, Foto, catálogo, instrucciones de Parejas y cuatro juegos activos. Visor WKWebView/WebGL cargado en todas las escenas que lo usan, sin respaldo por fallo; recorrido sin excepciones ni desbordes. [Galería y reproducción](reviews/tablet-13/README.md). PNG originales sin modificar y ZIP entregables en la carpeta externa de revisión. Análisis limpio y dos recorridos de prueba del aviso correctos con contraste mínimo 4,5:1. Build normal iOS Profile firmada **0.5.0 (39)**, `lib/main.dart` y 3D activo; preparada para actualizar el iPhone. Sin dependencias nuevas ni cambio de orientación admitida en producción.
