@@ -7,7 +7,13 @@ abstract final class StyleCatalog {
     'coat.dalmatian',
     'coat.tiger',
   };
-  static const specialPatterns = {'zebra', 'redwhite', 'greenwhite', 'dots'};
+  static const specialPatterns = {
+    'zebra',
+    'redwhite',
+    'greenwhite',
+    'dots',
+    'elf',
+  };
   static String? specialFamily(String id) {
     if (specialCoats.contains(id)) return 'coat';
     final model = clothingModels[id];
@@ -17,7 +23,11 @@ abstract final class StyleCatalog {
     return model;
   }
 
+  /// Seasonal items share the outfit slot and remain available all year.
+  static const christmasItems = {'outfit.sweater_elf'};
+
   static const clothingModels = {
+    'outfit.sweater_elf': 'outfit.sweater_red',
     "outfit.overalls_blue": "outfit.teal",
     "outfit.overalls_white": "outfit.teal",
     "outfit.overalls_black": "outfit.teal",

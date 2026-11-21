@@ -39,6 +39,7 @@ void main() {
             'redwhite',
             'greenwhite',
             'dots',
+            'elf',
           ]) {
             final appearance = base.withSlot(
               Slot.outfit,

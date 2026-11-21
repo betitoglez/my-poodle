@@ -1,4 +1,5 @@
 export const catalogVariants = {
+  "outfit.sweater_elf": ["outfit.sweater_red", "#D8C8A8", "#D8C8A8", "elf"],
   "outfit.overalls_blue": [
     "outfit.teal",
     "#326FC0",

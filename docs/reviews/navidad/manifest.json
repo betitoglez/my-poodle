@@ -1,0 +1,50 @@
+{
+  "device": "iPad Pro 13-inch (M5)",
+  "simulator": "9495CF14-6CFE-4489-8D61-5A80673C803F",
+  "runtime": "iOS 26.5",
+  "capture": "simctl framebuffer, native WKWebView 3D enabled",
+  "files": [
+    "01-navidad-frente",
+    "02-navidad-perfil",
+    "03-navidad-espalda",
+    "04-navidad-tumbado",
+    "05-navidad-modo-foto"
+  ],
+  "captures": [
+    {
+      "name": "01-navidad-frente",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "02-navidad-perfil",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "03-navidad-espalda",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "04-navidad-tumbado",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "05-navidad-modo-foto",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    }
+  ]
+}

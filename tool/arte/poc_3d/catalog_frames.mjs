@@ -7,6 +7,7 @@ const frames = {
 };
 
 export function frameForItem(id, slot) {
+  if (id === 'outfit.sweater_elf') return {...frames.profile, yaw:1.15};
   const zone = id.startsWith('cut.') ? id.split('.')[1] : null;
   if (zone === 'back' || zone === 'tail') return frames.profile;
   if (zone === 'head' || slot === 'head' || slot === 'eyes') return frames.head;

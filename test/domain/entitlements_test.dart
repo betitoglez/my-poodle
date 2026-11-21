@@ -14,11 +14,12 @@ void main() {
       PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance);
 
   // Catálogo de PR #17 (23 + 53) y ampliación de lujo y colores: +4 gratis
-  // (pelaje crema, petos vaquero y rosa, perlas doradas) y +12 completos.
-  test('catálogo: 27 artículos del modo gratuito, 65 completos', () {
+  // (pelaje crema, petos vaquero y rosa, perlas doradas), +12 completos
+  // y el jersey navideño (+1 completo).
+  test('catálogo: 27 artículos del modo gratuito, 66 completos', () {
     final free = balance.styles.where((s) => s.tier == Tier.free).toList();
     expect(free.length, 27);
-    expect(balance.styles.length - free.length, 65);
+    expect(balance.styles.length - free.length, 66);
     expect(rules.gameTier(GameId.frisbee), Tier.free);
     expect(rules.gameTier(GameId.fruit), Tier.full);
     expect(balance.item('outfit.sweater_red')!.tier, Tier.full);

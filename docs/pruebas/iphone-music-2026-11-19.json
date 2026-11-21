@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-19",
+  "app": "My Poodle",
+  "bundleIdentifier": "com.betitoglez.mypoodle",
+  "previousVersion": "0.4.10 (28)",
+  "installedVersion": "0.4.11 (29)",
+  "configuration": "Profile",
+  "sourceBase": "bb85158",
+  "included": [
+    "caniche 3D",
+    "cuidados ampliados",
+    "efectos ElevenLabs",
+    "música Casa/menús",
+    "música minijuegos",
+    "música actividades"
+  ],
+  "analysis": "passed",
+  "testsPassed": 182,
+  "contentValidation": "passed",
+  "signatureVerification": "passed after re-signing frameworks and app",
+  "installation": "success, update without uninstall",
+  "launch": "success after unlocking; app activated in foreground and process verified running",
+  "physicalAudioValidation": "not performed",
+  "evidenceType": "historical report recovered from the previous local copy; not a new device test"
+}

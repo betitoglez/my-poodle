@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-21",
+  "testsPassed": 419,
+  "analysis": "passed",
+  "contentValidation": "passed",
+  "localizations": "11 × 906",
+  "webglFittingCaptures": 10,
+  "nativeIPadCaptures": 5,
+  "normalBuild": {
+    "platform": "iOS simulator",
+    "configuration": "Debug",
+    "target": "lib/main.dart",
+    "POODLE_LIVE_3D": true,
+    "packagedAssets": {
+      "assets/wardrobe_live/patterns.js": "48a8ae6f281912502ddd146871edea4c97bc18460fc54492a0cbda675cc7fd53",
+      "assets/wardrobe_live/catalog_variants.js": "0e5bcbce6e22ebacc4cf2fef1811da0714befc13fc986c1fd45b0e682d658ef2",
+      "assets/wardrobe_live/viewer.js": "a2d9ac42f539df5af8c9ecb1683f816ca332c109abef24b9254e467718eba0d0",
+      "assets/data/balance-v1.json": "9dfc5db639086b9ae26c68709ec729b34e1ff35fea8017596672342d372557ec",
+      "assets/data/appearance-v1.json": "2f5952c332b37c4b2697e351b81e041788e82d0319091040aaa848d22377cd14",
+      "assets/images/wardrobe_thumbs/outfit.sweater_elf.webp": "18de74fce50b39075658febfc7ff45f8d222f1654b3a75c4f33d226c57c88bfd",
+      "assets/audio/background.mp3": "9069a99ed91a3b699b21beaf5ea767a548123dc099db5523ca99852169f13bbc",
+      "assets/audio/games.mp3": "c3f18e309a01cd2721e456054529fff946fe138e90adb7547bbeaa61b02f43d9",
+      "assets/audio/activities.mp3": "def7c396b74a8deb0c0037d0adb329d187ebbccfdb2b1799b8ffd758cfee86ee"
+    }
+  },
+  "physicalIPhone": "not installed or tested in this task"
+}

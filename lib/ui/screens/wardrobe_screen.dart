@@ -12,6 +12,7 @@ import '../../domain/appearance.dart';
 import '../../domain/haircuts.dart';
 import '../../domain/balance.dart';
 import '../../domain/rules.dart';
+import '../../domain/style_catalog.dart';
 import '../../game/pet/appearance_catalog.dart';
 import '../../game/pet/pet_painter.dart';
 import '../../game/scenes/room_painter.dart';
@@ -58,20 +59,28 @@ extension SlotUi on Slot {
   };
 }
 
-/// Categorías principales del armario; «Accesorios» tiene submenús.
+/// Categorías principales del armario, incluida la colección de Navidad.
 enum _Category {
   coat(Slot.coat),
   hair(Slot.hair),
   outfit(Slot.outfit),
-  accessories(Slot.head);
+  accessories(Slot.head),
+  christmas(Slot.outfit);
 
   const _Category(this.firstSlot);
   final Slot firstSlot;
 
-  /// Las de una sola ranura usan su nombre e icono; solo «Accesorios» es propia.
-  String get label => this == accessories ? 'Accesorios' : firstSlot.label;
-  IconData get icon =>
-      this == accessories ? Icons.diamond_rounded : firstSlot.icon;
+  /// Las colecciones y accesorios tienen nombre e icono propios.
+  String get label => switch (this) {
+    accessories => 'Accesorios',
+    christmas => 'Navidad',
+    _ => firstSlot.label,
+  };
+  IconData get icon => switch (this) {
+    accessories => Icons.diamond_rounded,
+    christmas => Icons.forest_rounded,
+    _ => firstSlot.icon,
+  };
 
   static _Category of(Slot s) => s.isAccessory
       ? _Category.accessories
@@ -108,9 +117,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   HairZone? _hairZone;
   PetView _view = PetView.front;
   bool _busy = false;
+  bool _christmas = false;
   ShellController? _shell;
 
-  _Category get _category => _Category.of(_slot);
+  _Category get _category =>
+      _christmas ? _Category.christmas : _Category.of(_slot);
 
   @override
   void didChangeDependencies() {
@@ -290,6 +301,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
         ...c.balance.itemsFor(Slot.collar).where((item) => !item.initial),
     ];
     for (final it in items) {
+      if (slot == Slot.outfit &&
+          !it.initial &&
+          StyleCatalog.christmasItems.contains(it.id) != _christmas) {
+        continue;
+      }
       final v = c.looks.varietyOf(it.id);
       if (v == null) {
         if (out.isEmpty || out.last.variety != null) {
@@ -525,7 +541,10 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                             icon: cat.icon,
                             selected: cat == _category,
                             onTap: () => setState(() {
-                              if (cat != _category) _slot = cat.firstSlot;
+                              if (cat != _category) {
+                                _slot = cat.firstSlot;
+                                _christmas = cat == _Category.christmas;
+                              }
                             }),
                           ),
                         ),

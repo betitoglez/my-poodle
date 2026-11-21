@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-19",
+  "branch": "codex/elevenlabs-sfx",
+  "main": "54279f65ff57eea8e557c503b76ae322aa6d8ed3",
+  "version": "0.4.12",
+  "build": 30,
+  "configuration": "Profile",
+  "bundleIdentifier": "com.betitoglez.mypoodle",
+  "testsPassed": 182,
+  "analysis": "passed",
+  "contentValidation": "passed",
+  "installation": "success; update without uninstall",
+  "launch": "success; activated in foreground after terminating previous instance",
+  "oldDuplicate": "dev.mypoodle.myPoodle 0.1.0 (1), untouched",
+  "physicalAudioValidation": "manual review pending",
+  "evidenceType": "historical report recovered from the previous local copy; not a new device test"
+}

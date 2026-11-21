@@ -22,9 +22,11 @@ import 'package:my_poodle/ui/widgets/live_poodle_view.dart';
 /// no usa archivos personales ni la tienda Apple. No cambia el tamaño del visor.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  testWidgets('iPad Pro 13: pared, zonas y los cuatro juegos a igual ancho', (
-    t,
-  ) async {
+  const christmas = bool.fromEnvironment('CHRISTMAS_CAPTURE');
+  const title = christmas
+      ? 'iPad Pro 13: Navidad con visor 3D'
+      : 'iPad Pro 13: pared, zonas y los cuatro juegos a igual ancho';
+  testWidgets(title, (t) async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     expect(LivePoodleView.enabled, isTrue);
     final balance = Balance.fromJson(
@@ -181,6 +183,35 @@ void main() {
         await text('Empezar');
       }
       await t.pump(const Duration(milliseconds: 500));
+    }
+
+    if (christmas) {
+      await boot('wall.garland');
+      await text('Armario');
+      await text('Navidad');
+      await text('Jersey de elfo');
+      await capture('01-navidad-frente');
+      final controller = t
+          .widget<LivePoodleView>(find.byType(LivePoodleView))
+          .controller;
+      controller.front();
+      controller.rotate(-1.15 / .013);
+      await capture('02-navidad-perfil');
+      controller.front();
+      controller.rotate(-3.14159265 / .013);
+      await capture('03-navidad-espalda');
+      await text('Tumbarse');
+      await capture('04-navidad-tumbado');
+      await text('Levantarse');
+      await text('Usar');
+      expect(
+        codec.decode(current!.files[SaveStore.primary]!).appearance.outfit,
+        'outfit.sweater_elf',
+      );
+      await text('Casa');
+      await tap(find.byIcon(Icons.camera_alt_rounded));
+      await capture('05-navidad-modo-foto');
+      return;
     }
 
     await boot('wall.garland');

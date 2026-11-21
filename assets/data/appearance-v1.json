@@ -612,6 +612,14 @@
       "variety": "dress",
       "colorLabel": "Coral",
       "swatch": "#EE8E78"
+    },
+    "outfit.sweater_elf": {
+      "label": "Jersey de elfo",
+      "style": "overalls",
+      "color": "#12764B",
+      "shade": "#06482D",
+      "trim": "#C92E37",
+      "swatch": "#12764B"
     }
   },
   "necks": {

@@ -131,6 +131,79 @@ abstract final class PetAccessories {
       c.save();
       c.clipPath(garment);
       final pattern = ids.outfit.split('_').last;
+      if (pattern == 'elf') {
+        const red = Color(0xFFCC2937), green = Color(0xFF12764B);
+        const cream = Color(0xFFF5EEDD), gold = Color(0xFFE4B545);
+        const black = Color(0xFF202625);
+        c.drawRect(r.inflate(.04), Paint()..color = green);
+        final collar = Path()
+          ..moveTo(r.left - .04, r.top - .04)
+          ..lineTo(r.right + .04, r.top - .04)
+          ..lineTo(r.right + .04, r.top + height * .25);
+        for (var x = r.right + .04; x > r.left - .04; x -= width / 6) {
+          collar
+            ..lineTo(x, r.top + height * .27)
+            ..lineTo(x - width / 12, r.top + height * .38);
+        }
+        collar.close();
+        c.drawPath(collar, Paint()..color = red);
+        for (final y in [.81, .93]) {
+          c.drawRect(
+            Rect.fromLTWH(
+              r.left - .04,
+              r.top + height * y,
+              width + .08,
+              height * .055,
+            ),
+            Paint()..color = cream,
+          );
+        }
+        c.drawRect(
+          Rect.fromLTWH(
+            r.left - .04,
+            r.top + height * .67,
+            width + .08,
+            height * .12,
+          ),
+          Paint()..color = black,
+        );
+        c.drawRect(
+          Rect.fromCenter(
+            center: Offset(r.center.dx, r.top + height * .73),
+            width: width * .21,
+            height: height * .17,
+          ),
+          Paint()
+            ..color = gold
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = .008,
+        );
+        for (final y in [.45, .57]) {
+          final cy = r.top + height * y;
+          line(
+            Offset(r.center.dx - width * .16, cy),
+            Offset(r.center.dx + width * .16, cy),
+            black,
+            .007,
+          );
+          for (final sign in [-1, 1]) {
+            final at = Offset(r.center.dx + sign * width * .17, cy);
+            c.drawCircle(at, .012, Paint()..color = gold);
+            line(
+              at - const Offset(.004, 0),
+              at + const Offset(.004, 0),
+              red,
+              .003,
+            );
+            line(
+              at - const Offset(0, .004),
+              at + const Offset(0, .004),
+              red,
+              .003,
+            );
+          }
+        }
+      }
       if (const {'zebra', 'redwhite', 'greenwhite', 'dots'}.contains(pattern)) {
         c.drawRect(r.inflate(.04), Paint()..color = const Color(0xFFF7F2E9));
         if (pattern == 'dots') {
