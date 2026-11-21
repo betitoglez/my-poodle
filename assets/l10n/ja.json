@@ -745,5 +745,7 @@
   "4 parejas: 5 monedas": "4組：5コイン",
   "6 parejas: 15 monedas": "6組：15コイン",
   "8 parejas: 25 monedas": "8組：25コイン",
-  "Si sales antes de terminar, no hay premio.": "終了する前にやめると、報酬はもらえません。"
+  "Si sales antes de terminar, no hay premio.": "終了する前にやめると、報酬はもらえません。",
+  "Ocultar texto de vista previa": "プレビューテキストを隠す",
+  "Mostrar texto de vista previa": "プレビューテキストを表示"
 }

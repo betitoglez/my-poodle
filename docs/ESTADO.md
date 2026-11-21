@@ -747,3 +747,14 @@ Ampliación durante la validación de catálogo: guirnaldas de extremo a extremo
 
 
 Validación final del conjunto: análisis limpio, **342 pruebas completas correctas**, contenido válido (76 artículos base/packs, 12 de decoración, 84 imágenes de los catálogos principales), 11 × 747 mensajes y prueba Node de cámaras correcta. Visor real: 101 miniaturas y 74 combinaciones de ajuste de ropa/cabeza sin errores JS/GLSL. Web Release e iOS Profile firmada **0.5.0 (37)** compilados con `POODLE_LIVE_3D=true`; JS, GLB, 101 miniaturas y traducciones empaquetadas coinciden con las fuentes. Sin nuevas dependencias. [Evidencia y comparativas](reviews/catalog-tuning/README.md). Instalación preparada con copia privada; la aceptación física manual completa y revisión lingüística humana siguen pendientes.
+
+
+## Pared adaptable y aviso de prueba plegable · 21-11-2026
+
+Inicio desde `6925ca4`: el propietario rechaza la guirnalda anterior estirada y pide nuevos recursos realistas para guirnaldas y estrellas que cubran todo el ancho en distintos dispositivos. Se regeneran dos tiras con transparencia y continuidad lateral, conservando sus proporciones al repetirlas. Además, «Probando» se pliega al tocarlo y deja solo el ojo arriba a la derecha en Armario y Decoración. Flutter 3.50.0 / Dart 3.14.0; dependencias conservadas. Implementado y verificado con los resultados siguientes.
+
+
+Además, corregido el P2 de Codex sobre `6925ca4`: las variantes nuevas de jersey se veían rojas con materiales 2D integrados. La ruta del material original solo acepta rojo/azul/mostaza; los otros seis colores/estampados usan el dibujante que los representa. La regresión reproduce blanco idéntico a rojo antes del cambio y después distingue todas las variantes entre sí en tres vistas. [Arte, prompts y evidencia](reviews/wall-spans/README.md).
+
+
+Verificación final: análisis limpio, **345 pruebas correctas**, validadores de contenido e idiomas correctos (**11 × 749 mensajes**). Diez capturas del dibujante real: ambos artículos a 320, 390, 600, 844 y 1024 px; píxeles presentes en ambos bordes y primeros adornos iguales al ampliar el ancho, demostrando ausencia de estiramiento. Pruebas de plegado/restauración de «Probando» en ambos menús sin cambios de compra o aspecto. Regresión del jersey reproduce el fallo anterior y pasa corregida. Web Release e iOS Profile firmada **0.5.0 (38)** correctas con `POODLE_LIVE_3D=true`; nuevos adornos y traducciones empaquetados comprobados. Instalación preparada con copia privada; aceptación visual manual final pendiente.

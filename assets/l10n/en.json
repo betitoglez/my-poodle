@@ -745,5 +745,7 @@
   "4 parejas: 5 monedas": "4 pairs: 5 coins",
   "6 parejas: 15 monedas": "6 pairs: 15 coins",
   "8 parejas: 25 monedas": "8 pairs: 25 coins",
-  "Si sales antes de terminar, no hay premio.": "If you leave before finishing, there is no reward."
+  "Si sales antes de terminar, no hay premio.": "If you leave before finishing, there is no reward.",
+  "Ocultar texto de vista previa": "Hide preview text",
+  "Mostrar texto de vista previa": "Show preview text"
 }

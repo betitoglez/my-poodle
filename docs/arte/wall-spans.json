@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-21",
+  "tool": "image_gen.imagegen",
+  "mode": "built-in",
+  "transparent_background": true,
+  "export": "Uniform downscale to 1536×512, WebP quality 95, alpha preserved; no retouching or horizontal stretch.",
+  "layout": "Repeat proportional horizontal segments; clip only the last segment at the viewport edge.",
+  "assets": [
+    {
+      "id": "wall.garland",
+      "output": "assets/images/decor/wall.garland.webp",
+      "generated_file": "exec-1bbbc23c-fc24-4d20-bb74-45180f45cccf.png",
+      "prompt": "Use case: product-mockup. Asset type: NEW production raster sprite, a horizontally repeatable wall bunting strip for a cozy realistic mobile poodle game. Create an ultra-wide 3:1 landscape composition. A single thin natural cotton cord crosses the ENTIRE canvas from exact left edge to exact right edge, with both endpoints at the same height near the upper 12 percent, gentle shallow natural drape. Six beautifully made triangular linen pennants distributed evenly along the full width, alternating dusty coral, cream, sage teal, muted plum; realistic woven fabric, tiny stitched hems and soft folds, flags narrow and correctly proportioned, modest depth. Frontal orthographic product photography, warm soft daylight, high quality tangible fabric. The strip will be repeated horizontally at UNCHANGED aspect ratio: left and right cord edges must join seamlessly, no hooks, knots, mounting blocks or end caps, no blank horizontal margins, do not cluster in center. Transparent background with genuine alpha including spaces between flags, no wall, no floor, no backdrop, no text, no logo, no watermark. Only cord and flags. This is a wholly new asset, not a stretched version of an old photo.",
+      "size": [
+        1536,
+        512
+      ],
+      "sha256": "15971eefa686e04e31fbdb452eba8a9e053d968e8732b9422749b305d6a15a1b",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "wall.stars",
+      "output": "assets/images/decor/wall.stars.webp",
+      "generated_file": "exec-d889fa98-80a1-4293-a4ab-7ca65d97484e.png",
+      "prompt": "Use case: product-mockup. Asset type: NEW production raster sprite, a horizontally repeatable luminous star garland for a cozy realistic mobile poodle game. Ultra-wide 3:1 landscape composition. A delicate warm gold wire crosses the ENTIRE canvas, touching exact left and right edges at the SAME height near the upper 12 percent, with a gentle shallow natural drape. Six elegant small five pointed brass stars hang at varied heights, distributed evenly along the FULL width. Each star has a clearly glowing warm white LED outline along all five pointed edges, soft restrained golden bloom with alpha transparency, realistic brushed brass interiors and thin hanging wires, convincing three dimensional materials viewed straight on. Keep stars and wire physically proportional, never stretched. The strip will be repeated horizontally at unchanged aspect ratio: make left and right wire edges seamless, no hooks or mounting hardware, no end caps and no blank horizontal margins. Genuine transparent background everywhere outside the objects and glow, no room, wall, floor or backdrop, no text, no logo, no watermark. Wholly new asset.",
+      "size": [
+        1536,
+        512
+      ],
+      "sha256": "d6ee83d709c4cb3c170e540a46afd2403b77c1afa95fe3df1b9cfbea61f44061",
+      "alpha_range": [
+        0,
+        255
+      ]
+    }
+  ]
+}

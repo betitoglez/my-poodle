@@ -745,5 +745,7 @@
   "4 parejas: 5 monedas": "4 пары: 5 монет",
   "6 parejas: 15 monedas": "6 пар: 15 монет",
   "8 parejas: 25 monedas": "8 пар: 25 монет",
-  "Si sales antes de terminar, no hay premio.": "Если выйти до конца игры, награды не будет."
+  "Si sales antes de terminar, no hay premio.": "Если выйти до конца игры, награды не будет.",
+  "Ocultar texto de vista previa": "Скрыть текст предпросмотра",
+  "Mostrar texto de vista previa": "Показать текст предпросмотра"
 }

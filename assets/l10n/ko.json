@@ -745,5 +745,7 @@
   "4 parejas: 5 monedas": "4쌍: 5코인",
   "6 parejas: 15 monedas": "6쌍: 15코인",
   "8 parejas: 25 monedas": "8쌍: 25코인",
-  "Si sales antes de terminar, no hay premio.": "끝나기 전에 나가면 보상이 없어요."
+  "Si sales antes de terminar, no hay premio.": "끝나기 전에 나가면 보상이 없어요.",
+  "Ocultar texto de vista previa": "미리보기 텍스트 숨기기",
+  "Mostrar texto de vista previa": "미리보기 텍스트 표시"
 }

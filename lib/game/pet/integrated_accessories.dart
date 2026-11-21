@@ -25,8 +25,13 @@ class _Cloth {
 /// La malla sigue torso y mangas; sombras y pelaje se componen por separado.
 class IntegratedAccessories {
   static const assetDirectory = 'assets/images/materials/';
-  static bool sweater(Appearance ids) =>
-      ids.outfit.startsWith('outfit.sweater_');
+  // Only these dyes are represented by the original knitted material.
+  // Other variants use PetAccessories, which supports their colors/patterns.
+  static bool sweater(Appearance ids) => const {
+    'outfit.sweater_red',
+    'outfit.sweater_blue',
+    'outfit.sweater_mustard',
+  }.contains(ids.outfit);
   static bool beanie(Appearance ids) => ids.head == 'head.beanie';
   static bool bandana(Appearance ids) => ids.neck == 'neck.coral';
   static String? neckMaterial(String id) => switch (id) {

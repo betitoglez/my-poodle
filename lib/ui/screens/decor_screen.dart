@@ -15,6 +15,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
+import '../widgets/preview_badge.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/scene_view.dart';
 import '../widgets/live_poodle_view.dart';
@@ -294,11 +295,7 @@ class _DecorScreenState extends State<DecorScreen> {
                       const Positioned(
                         right: AppSpace.s,
                         top: AppSpace.s,
-                        child: Chip(
-                          avatar: Icon(Icons.visibility_rounded, size: 18),
-                          label: LText('Probando'),
-                          backgroundColor: AppColors.cream,
-                        ),
+                        child: PreviewBadge(),
                       ),
                   ],
                 ),
