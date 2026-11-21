@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../domain/achievements.dart' show secondsPerDay;
 import '../domain/appearance.dart';
 import '../domain/haircuts.dart';
 import '../domain/balance.dart';
@@ -58,6 +59,13 @@ class SaveCodec {
     'sickSinceUtc': s.sickSinceUtc,
     'lastSickUtc': s.lastSickUtc,
     'sickSeed': s.sickSeed,
+    // Logros y álbum (opcionales al leer).
+    'achievements': s.achievements,
+    'albumCollected': (s.albumCollected.toList()..sort()),
+    'coinsEarnedTotal': s.coinsEarnedTotal,
+    'careDayCount': s.careDayCount,
+    'lastCareDay': s.lastCareDay,
+    'photosTaken': s.photosTaken,
   });
 
   PetState decode(String text) {
@@ -185,7 +193,14 @@ class SaveCodec {
         gameTimes.any((v) => v is! int || v < 0)) {
       throw SaveFormatException('Límites de actividad inválidos');
     }
+    final album = _decodeAlbum(j, coins: coins, owned: owned, care: careTimes);
     return PetState(
+      achievements: album.achievements,
+      albumCollected: album.collected,
+      coinsEarnedTotal: album.coinsEarned,
+      careDayCount: album.careDays,
+      lastCareDay: album.lastCareDay,
+      photosTaken: album.photos,
       restingSinceUtc: restStart is int && restStart >= 0 ? restStart : null,
       restEnergyCursorUtc: restCursor is int && restCursor >= 0
           ? restCursor
@@ -237,4 +252,92 @@ class SaveCodec {
       sickSeed: seed is int ? seed : (cursor & 0x7fffffff),
     );
   }
+
+  /// Campos de logros y álbum. Opcionales: una partida anterior los deduce
+  /// de lo guardado (días de cuidado por `careCompletedUtc`, monedas ganadas
+  /// como cota inferior: saldo + artículos comprados − saldo inicial; fotos
+  /// desde cero). Un campo presente con forma inválida rechaza la partida.
+  _AlbumFields _decodeAlbum(
+    Map<String, dynamic> j, {
+    required int coins,
+    required Set<String> owned,
+    required Map<String, dynamic> care,
+  }) {
+    int? optCount(String k) {
+      final v = j[k];
+      if (v == null) return null;
+      if (v is! int || v < 0) throw SaveFormatException('$k inválido');
+      return v;
+    }
+
+    final achRaw = j['achievements'] ?? <String, dynamic>{};
+    if (achRaw is! Map<String, dynamic> ||
+        achRaw.values.any((v) => v is! int || v < 0)) {
+      throw SaveFormatException('Logros inválidos');
+    }
+    final collectedRaw = j['albumCollected'] ?? <dynamic>[];
+    if (collectedRaw is! List || collectedRaw.any((v) => v is! String)) {
+      throw SaveFormatException('Álbum inválido');
+    }
+    var careDays = optCount('careDayCount');
+    var lastDay = optCount('lastCareDay');
+    if (careDays == null) {
+      final days = {
+        for (final e in care.entries)
+          if (e.key != 'greeting') (e.value as int) ~/ secondsPerDay,
+      };
+      careDays = days.length;
+      lastDay = days.isEmpty ? null : days.reduce((a, b) => a > b ? a : b);
+    }
+    var earned = optCount('coinsEarnedTotal');
+    if (earned == null) {
+      // Cortes por zona a su precio; el peinado completo `hair.<estilo>` solo
+      // cuenta si no hay cortes por zona de ese estilo (sería un alias).
+      var spent = 0;
+      final cutStyles = <String>{};
+      for (final id in owned) {
+        if (!Haircuts.valid(id)) continue;
+        final style = id.split('.').last;
+        spent += Haircuts.cost(style);
+        cutStyles.add(style);
+      }
+      for (final id in owned) {
+        final style = balance.item(id);
+        final decor = balance.decorItem(id);
+        if (style != null && !style.initial) {
+          final alias =
+              style.slot == Slot.hair && cutStyles.contains(id.split('.').last);
+          if (!alias) spent += style.cost;
+        }
+        if (decor != null && !decor.initial) spent += decor.cost;
+      }
+      earned = coins + spent - balance.startCoins;
+      if (earned < 0) earned = 0;
+    }
+    return _AlbumFields(
+      achievements: Map.unmodifiable(achRaw.cast<String, int>()),
+      collected: Set.unmodifiable(collectedRaw.cast<String>()),
+      coinsEarned: earned,
+      careDays: careDays,
+      lastCareDay: lastDay,
+      photos: optCount('photosTaken') ?? 0,
+    );
+  }
+}
+
+class _AlbumFields {
+  const _AlbumFields({
+    required this.achievements,
+    required this.collected,
+    required this.coinsEarned,
+    required this.careDays,
+    required this.lastCareDay,
+    required this.photos,
+  });
+  final Map<String, int> achievements;
+  final Set<String> collected;
+  final int coinsEarned;
+  final int careDays;
+  final int? lastCareDay;
+  final int photos;
 }

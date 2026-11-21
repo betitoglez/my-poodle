@@ -124,6 +124,10 @@ class StatusRule {
   final int tiredBelow;
 }
 
+/// Precio desde el que un artículo (armario o salón) se presenta como «de
+/// lujo»: una meta de ahorro visible desde el principio con su precio.
+const luxuryCost = 250;
+
 class StyleItem {
   const StyleItem({
     required this.id,
@@ -139,6 +143,9 @@ class StyleItem {
 
   /// Versión que permite comprarlo (los poseídos siempre se pueden usar).
   final Tier tier;
+
+  /// Meta de ahorro «de lujo» (precio [luxuryCost] o más).
+  bool get luxury => cost >= luxuryCost;
 }
 
 /// Huecos de decoración del salón: independientes del aspecto del caniche.
@@ -157,6 +164,34 @@ class DecorItem {
   final int cost;
   final bool initial;
   final Tier tier;
+
+  /// Meta de ahorro «de lujo» (precio [luxuryCost] o más).
+  bool get luxury => cost >= luxuryCost;
+}
+
+/// Tipo de pieza que contiene un pack de fotos.
+enum PhotoPackKind { sticker, frame, text }
+
+/// Pack de decoración de fotos: se desbloquea una sola vez con monedas
+/// (coste 0: disponible desde el principio). La propiedad se guarda en
+/// `PetState.owned` con el propio ID del pack (`photo.<pack>`).
+class PhotoPack {
+  const PhotoPack({
+    required this.id,
+    required this.kind,
+    required this.cost,
+    required this.pieces,
+    this.tier = Tier.free,
+  });
+  final String id;
+  final PhotoPackKind kind;
+  final int cost;
+  final Tier tier;
+
+  /// IDs de las piezas (`sticker.*`, `frame.*` o `text.*`).
+  final List<String> pieces;
+
+  bool get free => cost == 0;
 }
 
 class Balance {
@@ -174,9 +209,13 @@ class Balance {
     required this.status,
     required List<StyleItem> styles,
     List<DecorItem> decor = const [],
+    List<PhotoPack> photoPacks = const [],
     this.fullVersionProductId = 'mypoodle.full_version',
+    Map<String, int> albumPageBonus = const {},
   }) : styles = List.unmodifiable(styles),
-       decor = List.unmodifiable(decor) {
+       decor = List.unmodifiable(decor),
+       photoPacks = List.unmodifiable(photoPacks),
+       albumPageBonus = Map.unmodifiable(albumPageBonus) {
     _validate();
   }
 
@@ -195,6 +234,10 @@ class Balance {
 
   /// Decoración del salón (vacía: sin decoración disponible).
   final List<DecorItem> decor;
+
+  /// Álbum de pegatinas: bono único (monedas) por página completa, por ID
+  /// de página (`care`, `games`…). Bloque `album.pageBonus` del JSON.
+  final Map<String, int> albumPageBonus;
 
   DecorItem? decorItem(String id) {
     for (final d in decor) {
@@ -215,6 +258,27 @@ class Balance {
 
   /// Producto de la tienda que desbloquea la versión completa.
   final String fullVersionProductId;
+
+  /// Packs de decoración de fotos (vacío: solo la foto básica).
+  final List<PhotoPack> photoPacks;
+
+  PhotoPack? photoPack(String id) {
+    for (final p in photoPacks) {
+      if (p.id == id) return p;
+    }
+    return null;
+  }
+
+  /// Pack al que pertenece una pieza de foto.
+  PhotoPack? photoPackOfPiece(String pieceId) {
+    for (final p in photoPacks) {
+      if (p.pieces.contains(pieceId)) return p;
+    }
+    return null;
+  }
+
+  List<PhotoPack> photoPacksOf(PhotoPackKind kind) =>
+      photoPacks.where((p) => p.kind == kind).toList(growable: false);
 
   StyleItem? item(String id) {
     for (final s in styles) {
@@ -308,6 +372,11 @@ class Balance {
         !ascending(frisbee.starCatches, frisbee.maxScore)) {
       throw BalanceFormatException('Estrellas inválidas');
     }
+    for (final e in albumPageBonus.entries) {
+      if (e.value < 0 || e.value > 500) {
+        throw BalanceFormatException('Bono de álbum inválido: ${e.key}');
+      }
+    }
     final decorIds = <String>{};
     for (final d in decor) {
       if (!decorIds.add(d.id) || ids.contains(d.id)) {
@@ -334,6 +403,47 @@ class Balance {
           );
         }
       }
+    }
+    _validatePhotoPacks({...ids, ...decorIds});
+  }
+
+  /// Packs de fotos: IDs `photo.*` únicos, piezas con el prefijo de su tipo
+  /// y sin repetir, coste 0 solo en la versión gratuita, un pack gratuito de
+  /// pegatinas y de texto y al menos un pack de pago en la versión gratuita.
+  void _validatePhotoPacks(Set<String> otherIds) {
+    if (photoPacks.isEmpty) return;
+    final packIds = <String>{};
+    final pieceIds = <String>{};
+    for (final p in photoPacks) {
+      if (!p.id.startsWith('photo.') ||
+          !packIds.add(p.id) ||
+          otherIds.contains(p.id)) {
+        throw BalanceFormatException('Pack de fotos inválido: ${p.id}');
+      }
+      if (p.cost < 0) throw BalanceFormatException('Coste negativo: ${p.id}');
+      if (p.free && p.tier != Tier.free) {
+        throw BalanceFormatException('Pack gratuito de la versión completa');
+      }
+      if (p.pieces.isEmpty) {
+        throw BalanceFormatException('Pack sin piezas: ${p.id}');
+      }
+      for (final piece in p.pieces) {
+        if (!piece.startsWith('${p.kind.name}.') ||
+            !pieceIds.add(piece) ||
+            otherIds.contains(piece)) {
+          throw BalanceFormatException('Pieza inválida: $piece');
+        }
+      }
+    }
+    for (final kind in [PhotoPackKind.sticker, PhotoPackKind.text]) {
+      if (!photoPacks.any((p) => p.kind == kind && p.free)) {
+        throw BalanceFormatException('Falta un pack gratuito de ${kind.name}');
+      }
+    }
+    if (!photoPacks.any((p) => !p.free && p.tier == Tier.free)) {
+      throw BalanceFormatException(
+        'Hace falta un pack de fotos de pago en la versión gratuita',
+      );
     }
   }
 
@@ -426,7 +536,42 @@ class Balance {
           );
         })
         .toList();
+    // Partidas y balances anteriores a la decoración de fotos: sin packs.
+    final photoPacks =
+        (j['photoPacks'] is List ? j['photoPacks'] as List<dynamic> : const [])
+            .map((e) {
+              final m = e as Map<String, dynamic>;
+              final kindName = req<String>(m, 'kind');
+              final kind = PhotoPackKind.values
+                  .where((k) => k.name == kindName)
+                  .firstOrNull;
+              if (kind == null) {
+                throw BalanceFormatException('Tipo de pack desconocido');
+              }
+              final pieces = req<List<dynamic>>(m, 'pieces');
+              if (pieces.any((e) => e is! String)) {
+                throw BalanceFormatException('Piezas inválidas en ${m['id']}');
+              }
+              return PhotoPack(
+                id: req<String>(m, 'id'),
+                kind: kind,
+                cost: req<int>(m, 'cost'),
+                tier: tierOf(m, '${m['id']}'),
+                pieces: List.unmodifiable(pieces.cast<String>()),
+              );
+            })
+            .toList();
     final fullVersion = req<Map<String, dynamic>>(j, 'fullVersion');
+    final albumJ = j['album'];
+    final albumBonus = <String, int>{};
+    if (albumJ != null) {
+      final pages = albumJ is Map<String, dynamic> ? albumJ['pageBonus'] : null;
+      if (pages is! Map<String, dynamic> ||
+          pages.values.any((v) => v is! int)) {
+        throw BalanceFormatException('album.pageBonus inválido');
+      }
+      albumBonus.addAll(pages.cast<String, int>());
+    }
 
     final healthJ = req<Map<String, dynamic>>(j, 'health');
     final statusJ = req<Map<String, dynamic>>(j, 'status');
@@ -484,7 +629,9 @@ class Balance {
       ),
       styles: styles,
       decor: decor,
+      photoPacks: photoPacks,
       fullVersionProductId: req<String>(fullVersion, 'productId'),
+      albumPageBonus: albumBonus,
     );
   }
 }

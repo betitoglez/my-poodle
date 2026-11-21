@@ -77,7 +77,8 @@ Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en disp
 ## Después del MVP
 
 - [ ] Exportación/importación de partida detrás de la puerta adulta, sin servidor.
-- [ ] Logros/álbum de pegatinas y nuevas actividades.
+- [x] Logros/álbum de pegatinas (21-11-2026, pendiente de probar en dispositivo).
+- [ ] Nuevas actividades.
 - [ ] Recordatorios locales opcionales desde la zona adulta.
 
 

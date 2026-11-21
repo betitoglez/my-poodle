@@ -1,3 +1,4 @@
+import 'achievements.dart';
 import 'appearance.dart';
 import 'balance.dart';
 import 'care_options.dart';
@@ -39,6 +40,7 @@ class Receipt {
     this.newBest = false,
     this.stars = 0,
     this.newBestStars = false,
+    this.newAchievements = const [],
   });
 
   final String opId;
@@ -51,6 +53,9 @@ class Receipt {
   /// Estrellas de la partida (0..3) y si mejoran la mejor marca.
   final int stars;
   final bool newBestStars;
+
+  /// Logros conseguidos en esta operación (para celebrarlos).
+  final List<String> newAchievements;
 
   int needChange(Need n) => after.needPoints(n) - before.needPoints(n);
 }
@@ -71,6 +76,19 @@ class Rules {
 
   PetState _commit(PetState s, String opId) =>
       s.copyWith(revision: s.revision + 1, lastCommitId: opId);
+
+  late final Achievements achievements = Achievements(balance);
+
+  /// Guarda en [after] los logros nuevos respecto de [before], en la misma
+  /// escritura que la operación confirmada.
+  (PetState, List<String>) _unlock(
+    PetState before,
+    PetState after,
+    int nowUtc,
+  ) {
+    final ids = achievements.newlyUnlocked(before, after);
+    return (achievements.record(after, ids, nowUtc), ids);
+  }
 
   Map<Need, int> _applyDelta(PetState s, Map<Need, int> deltaPoints) {
     final out = Map<Need, int>.of(s.needs100);
@@ -329,18 +347,32 @@ class Rules {
             before.owned.contains(groomingHair)
         ? before.appearance.withSlot(Slot.hair, groomingHair)
         : before.appearance;
-    final after = _commit(
-      before.copyWith(
-        appearance: appearance,
-        coins: before.coins - cost,
-        careCompletedUtc: _careTimes(before, kind, option, nowUtc),
-        needs100: _applyDelta(before, selected?.delta ?? rule.delta),
-        cured: rule.cures,
-        wake: true,
+    final day = nowUtc ~/ secondsPerDay;
+    final lastDay = before.lastCareDay;
+    final newDay = lastDay == null || day > lastDay;
+    final (after, unlocked) = _unlock(
+      before,
+      _commit(
+        before.copyWith(
+          appearance: appearance,
+          coins: before.coins - cost,
+          careCompletedUtc: _careTimes(before, kind, option, nowUtc),
+          needs100: _applyDelta(before, selected?.delta ?? rule.delta),
+          cured: rule.cures,
+          wake: true,
+          careDayCount: newDay ? before.careDayCount + 1 : null,
+          lastCareDay: newDay ? day : null,
+        ),
+        opId,
       ),
-      opId,
+      nowUtc,
     );
-    return Receipt(opId: opId, before: before, after: after);
+    return Receipt(
+      opId: opId,
+      before: before,
+      after: after,
+      newAchievements: unlocked,
+    );
   }
 
   int fruitCoins(int apples) {
@@ -431,24 +463,30 @@ class Rules {
     final newBest = score > best;
     final previousStars = before.bestStars[game.name];
     final newBestStars = stars > (previousStars ?? 0);
-    final after = _commit(
-      before.copyWith(
-        needs100: _applyDelta(before, balance.gameCompleteDelta),
-        coins: before.coins + coins,
-        bestFruit: game == GameId.fruit && newBest ? score : null,
-        bestFrisbee: game == GameId.frisbee && newBest ? score : null,
-        bestPairs: game == GameId.pairs && newBest ? score : null,
-        bestMemory: game == GameId.memory && newBest ? score : null,
-        bestStars: {
-          ...before.bestStars,
-          game.name: newBestStars || previousStars == null
-              ? stars
-              : previousStars,
-        },
+    final (after, unlocked) = _unlock(
+      before,
+      _commit(
+        before.copyWith(
+          coinsEarnedTotal: before.coinsEarnedTotal + coins,
+          needs100: _applyDelta(before, balance.gameCompleteDelta),
+          coins: before.coins + coins,
+          bestFruit: game == GameId.fruit && newBest ? score : null,
+          bestFrisbee: game == GameId.frisbee && newBest ? score : null,
+          bestPairs: game == GameId.pairs && newBest ? score : null,
+          bestMemory: game == GameId.memory && newBest ? score : null,
+          bestStars: {
+            ...before.bestStars,
+            game.name: newBestStars || previousStars == null
+                ? stars
+                : previousStars,
+          },
+        ),
+        opId,
       ),
-      opId,
+      nowUtc,
     );
     return Receipt(
+      newAchievements: unlocked,
       opId: opId,
       before: before,
       after: after,
@@ -468,7 +506,11 @@ class Rules {
     GameId.memory => Tier.full,
   };
 
-  bool ownsStyle(PetState s, String id) {
+  bool ownsStyle(PetState s, String id) => ownsStyleIn(s, id);
+
+  /// Propiedad de un artículo de aspecto, incluidos los cortes por zona
+  /// (`cut.<zona>.<estilo>`) y los peinados completos equivalentes.
+  static bool ownsStyleIn(PetState s, String id) {
     if (s.owned.contains(id)) return true;
     if (Haircuts.valid(id)) {
       final style = id.split('.').last;
@@ -477,7 +519,7 @@ class Rules {
     }
     if (id.startsWith('hair.')) {
       return HairZone.values.every(
-        (z) => ownsStyle(s, Haircuts.id(z, Haircuts.styleOf(id))),
+        (z) => ownsStyleIn(s, Haircuts.id(z, Haircuts.styleOf(id))),
       );
     }
     return false;
@@ -558,15 +600,27 @@ class Rules {
     if (cost > s.coins) return InsufficientCoins(cost - s.coins, cost);
     final before = clock.advance(s, nowUtc);
     final owned = {...before.owned, ...target.ids};
-    final after = _commit(
-      before.copyWith(
-        coins: before.coins - cost,
-        owned: owned,
-        appearance: target,
+    final (after, unlocked) = _unlock(
+      before,
+      _commit(
+        before.copyWith(
+          coins: before.coins - cost,
+          owned: owned,
+          appearance: target,
+        ),
+        opId,
       ),
-      opId,
+      nowUtc,
     );
-    return Purchased(Receipt(opId: opId, before: before, after: after), cost);
+    return Purchased(
+      Receipt(
+        opId: opId,
+        before: before,
+        after: after,
+        newAchievements: unlocked,
+      ),
+      cost,
+    );
   }
 
   /// Coloca [id] en su hueco del salón; compra antes lo que no se posea.
@@ -588,11 +642,115 @@ class Rules {
     }
     if (cost > s.coins) return InsufficientCoins(cost - s.coins, cost);
     final before = clock.advance(s, nowUtc);
+    final (after, unlocked) = _unlock(
+      before,
+      _commit(
+        before.copyWith(
+          coins: before.coins - cost,
+          owned: {...before.owned, if (!item.initial) id},
+          decor: {...before.decor, item.slot: id},
+        ),
+        opId,
+      ),
+      nowUtc,
+    );
+    return Purchased(
+      Receipt(
+        opId: opId,
+        before: before,
+        after: after,
+        newAchievements: unlocked,
+      ),
+      cost,
+    );
+  }
+
+  // ------------------------------------------------- logros y álbum
+
+  /// Foto guardada en el álbum privado: cuenta para los logros de fotos.
+  Receipt recordPhoto(PetState s, String opId, int nowUtc) {
+    final before = clock.advance(s, nowUtc);
+    final (after, unlocked) = _unlock(
+      before,
+      _commit(before.copyWith(photosTaken: before.photosTaken + 1), opId),
+      nowUtc,
+    );
+    return Receipt(
+      opId: opId,
+      before: before,
+      after: after,
+      newAchievements: unlocked,
+    );
+  }
+
+  /// «Recoger»: cobra una sola vez el bono de una página completa. Es la
+  /// única forma de ganar monedas aparte de jugar; no suma a
+  /// `coinsEarnedTotal` (monedas ganadas jugando).
+  Receipt collectAlbumPage(
+    PetState s,
+    AlbumPage page,
+    String opId,
+    int nowUtc,
+  ) {
+    if (!achievements.canCollect(s, page)) {
+      throw RuleException('Página del álbum sin bono disponible: ${page.name}');
+    }
+    final bonus = achievements.pageBonus(page);
+    final before = clock.advance(s, nowUtc);
+    final after = _commit(
+      before.copyWith(
+        coins: before.coins + bonus,
+        albumCollected: {...before.albumCollected, page.name},
+      ),
+      opId,
+    );
+    return Receipt(
+      opId: opId,
+      before: before,
+      after: after,
+      coinsEarned: bonus,
+    );
+  }
+
+  /// Al abrir una partida: guarda los logros que ya cumple, sin celebrarlos
+  /// ni pagar nada. Null si no hay cambios. No avanza las necesidades.
+  PetState? syncAchievements(PetState s, int nowUtc) {
+    final ids = achievements.newlyUnlocked(s, s);
+    if (ids.isEmpty) return null;
+    return _commit(
+      achievements.record(s, ids, nowUtc),
+      'album-sync-$nowUtc-${s.revision}',
+    );
+  }
+
+  /// Un pack de fotos gratuito está disponible desde el principio; los de
+  /// pago, después de comprarlos una vez (su ID queda en `owned`).
+  bool photoPackOwned(PetState s, PhotoPack pack) =>
+      pack.free || s.owned.contains(pack.id);
+
+  /// Desbloquea un pack de decoración de fotos una sola vez. Lo poseído
+  /// cuesta cero; lo de la versión completa sin derecho no se compra. Hacer
+  /// y decorar fotos nunca cobra: solo se paga al desbloquear un pack.
+  PurchaseOutcome buyPhotoPack(
+    PetState s,
+    String id,
+    String opId,
+    int nowUtc, {
+    required bool fullVersion,
+  }) {
+    final pack = balance.photoPack(id);
+    if (pack == null) throw RuleException('Pack de fotos desconocido: $id');
+    final owned = photoPackOwned(s, pack);
+    final cost = owned ? 0 : pack.cost;
+    if (!owned && pack.tier == Tier.full && !fullVersion) {
+      return RequiresFull([id]);
+    }
+    if (cost > s.coins) return InsufficientCoins(cost - s.coins, cost);
+    final before = clock.advance(s, nowUtc);
     final after = _commit(
       before.copyWith(
         coins: before.coins - cost,
-        owned: {...before.owned, if (!item.initial) id},
-        decor: {...before.decor, item.slot: id},
+        owned: {...before.owned, if (!pack.free) id},
       ),
       opId,
     );

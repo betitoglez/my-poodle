@@ -24,6 +24,23 @@ const colourways = {
   'outfit.raincoat_pink': ['outfit.raincoat_blue', '#c25c83', '#7f3956'],
   'outfit.dress_lilac': ['outfit.dress_pink', '#ab83b8', '#785389'],
   'outfit.dress_turquoise': ['outfit.dress_pink', '#64acaa', '#378481'],
+  'outfit.overalls_denim': ['outfit.teal', '#3d5f8f', '#26405f'],
+  'outfit.overalls_pink': ['outfit.teal', '#c26a8c', '#7f3f5a'],
+  'outfit.sweater_green': ['outfit.sweater_red', '#3f7d4f', '#2b5737'],
+  'outfit.sweater_purple': ['outfit.sweater_red', '#7a5aa6', '#553d78'],
+  'outfit.raincoat_red': ['outfit.raincoat_blue', '#b8372f', '#702220'],
+  'outfit.raincoat_green': ['outfit.raincoat_blue', '#4f9a4a', '#2f6230'],
+  'outfit.dress_yellow': ['outfit.dress_pink', '#d8b84a', '#9a7e26'],
+  'outfit.dress_coral': ['outfit.dress_pink', '#e0806a', '#a4523f'],
+};
+// Luxury accessories reuse a fitted mesh and restyle some of its materials
+// (prefix of the material name -> [colour, metalness, roughness]).
+const accessoryLooks = {
+  'collar.pearls_gold': ['collar.pearls', { 'Collar · nácar': ['#f2c255', .55, .24] }],
+  'head.crown_jewels': ['head.crown', {
+    'Corona · latón pulido': ['#ffd463', .5, .24],
+    'Corona · granates': ['#2a5fd0', .15, .12],
+  }],
 };
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -195,7 +212,12 @@ function wagTail(angle) {
   tail.rotateOnAxis(tailAxis, angle);
 }
 
-const shade = { silver: '#9693a1', lightgray: '#b6b3bf', white: '#e4ded4', black: '#586078', zebra: '#efece6', blue: '#2578d7', green: '#40a85e', redwhite: '#efece6', dalmatian: '#efece6', tiger: '#e47b26' };
+const shade = { silver: '#9693a1', lightgray: '#b6b3bf', white: '#e4ded4', black: '#586078', zebra: '#efece6', blue: '#2578d7', green: '#40a85e', redwhite: '#efece6', dalmatian: '#efece6', tiger: '#e47b26',
+  cream: '#eedbb0', chocolate: '#8a5a40', cinnamon: '#c0643c', latte: '#c49e7c',
+  slate: '#7888a2', golden: '#f2bd3e' };
+// Coats with a metallic glitter on top of the dye.
+const sheenCoats = { golden: 1 };
+const sheen = { value: 0 };
 const furColor = { value: new THREE.Color(1, 1, 1) };
 const recolor = { value: 0 };
 const wetness = { value: new THREE.Vector4() };
@@ -218,7 +240,7 @@ for (const root of items) {
     if (wear !== 'base') return;
     bindTail(object, bones.get('tronco'), tail);
     for (const material of [object.material].flat()) {
-      patchCoat(material, {poodleFur: furColor, poodleRecolor: recolor,
+      patchCoat(material, {poodleFur: furColor, poodleRecolor: recolor, poodleSheen: sheen,
         poodleZones: zones, poodlePatternCode: coatPattern, poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts, poodleExtraCurl: extraCurl,
         poodleMouthOpen: idle.mouthOpen, poodleCover: cover});
     }
@@ -567,7 +589,9 @@ window.poodle = {
       const [model, fabric, binding, pattern] = colourways[id];
       return [model, { fabric, binding, pattern }];
     }));
-    wear = new Set(selected.map(id => colourways[id]?.[0] ?? id));
+    wear = new Set(selected.map(id => colourways[id]?.[0] ?? accessoryLooks[id]?.[0] ?? id));
+    const restyled = new Map(selected.filter(id => accessoryLooks[id])
+      .map(id => accessoryLooks[id]));
     cover.value.set(wear.has('head.beanie') ? 1 : wear.has('head.crown') ? 2 : 0,
       wear.has('outfit.teal') ? 1 : wear.has('outfit.sweater_red') ? 2 :
       wear.has('outfit.raincoat_blue') ? 3 : wear.has('outfit.dress_pink') ? 4 : 0,
@@ -588,14 +612,32 @@ window.poodle = {
     groom.setSource(granular ? false : configuration.pom, granular ? false : configuration.puppy, configuration.grooming);
     furColor.value.set(coat || '#ffffff');
     recolor.value = coat ? 1 : 0;
+    sheen.value = sheenCoats[configuration.coat] ?? 0;
     for (const item of items) {
       const part = item.userData.wear;
       item.visible = (part === 'base' || wear.has(part)) &&
         !(neckwear && item.userData.underNeckwear);
       if (!item.visible) continue;
       const palette = variants.get(part);
+      const looks = restyled.get(part);
       item.traverse(mesh => {
         for (const material of [mesh.material].flat()) {
+          if (material && !dyes.has(material) && (looks || material.userData.poodleBase)) {
+            const base = material.userData.poodleBase ??= {
+              color: material.color.clone(), metalness: material.metalness, roughness: material.roughness,
+            };
+            const look = looks && Object.entries(looks)
+              .find(([prefix]) => material.name.startsWith(prefix))?.[1];
+            if (look) {
+              material.color.set(look[0]);
+              material.metalness = look[1];
+              material.roughness = look[2];
+            } else {
+              material.color.copy(base.color);
+              material.metalness = base.metalness;
+              material.roughness = base.roughness;
+            }
+          }
           const fabricPattern = fabricPatterns.get(material);
           if (fabricPattern) fabricPattern.value = patternCodes[palette?.pattern] || 0;
           const tint = dyes.get(material);

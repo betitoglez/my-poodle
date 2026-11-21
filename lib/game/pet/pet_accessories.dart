@@ -304,7 +304,11 @@ abstract final class PetAccessories {
         final pearls = ids.collar.contains('pearls');
         shape(
           fit.band(back ? 0.016 : 0.026),
-          pearls ? const Color(0xFFA49391) : const Color(0xFF447E81),
+          pearls
+              ? (ids.collar == 'collar.pearls_gold'
+                    ? const Color(0xFFC79A3A)
+                    : const Color(0xFFA49391))
+              : const Color(0xFF447E81),
         );
         if (pearls) {
           for (var i = 0; i < 9; i++) {
@@ -509,7 +513,7 @@ abstract final class PetAccessories {
       }
     } else if (ids.head == 'head.bow' && !skipPilot) {
       bow(top + const Offset(0.07, 0.035), const Color(0xFFE297B0), 0.09);
-    } else if (ids.head == 'head.crown' && !skipPilot) {
+    } else if (ids.head.startsWith('head.crown') && !skipPilot) {
       final center = top - const Offset(0, 0.035);
       shape(
         Path()

@@ -1149,6 +1149,138 @@
       0,
       1,
       0
+    ],
+    "coat.cream": [
+      0.3374,
+      0.6624,
+      0.1286,
+      0,
+      0,
+      0.3094,
+      0.6074,
+      0.118,
+      0,
+      0,
+      0.252,
+      0.4947,
+      0.0961,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "coat.chocolate": [
+      0.1498,
+      0.2941,
+      0.0571,
+      0,
+      0,
+      0.0938,
+      0.1842,
+      0.0358,
+      0,
+      0,
+      0.0672,
+      0.1319,
+      0.0256,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "coat.cinnamon": [
+      0.2534,
+      0.4975,
+      0.0966,
+      0,
+      0,
+      0.1176,
+      0.2309,
+      0.0448,
+      0,
+      0,
+      0.0644,
+      0.1264,
+      0.0246,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "coat.latte": [
+      0.2744,
+      0.5387,
+      0.1046,
+      0,
+      0,
+      0.2156,
+      0.4233,
+      0.0822,
+      0,
+      0,
+      0.1624,
+      0.3188,
+      0.0619,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "coat.slate": [
+      0.1554,
+      0.3051,
+      0.0593,
+      0,
+      0,
+      0.1778,
+      0.3491,
+      0.0678,
+      0,
+      0,
+      0.2086,
+      0.4095,
+      0.0795,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "coat.golden": [
+      0.3248,
+      0.6377,
+      0.1238,
+      0,
+      0,
+      0.259,
+      0.5085,
+      0.0988,
+      0,
+      0,
+      0.084,
+      0.1649,
+      0.032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
     ]
   },
   "variants": {
@@ -1367,6 +1499,54 @@
       "sat": 1,
       "light": 1,
       "pattern": "dots"
+    },
+    "outfit.overalls_denim": {
+      "of": "outfit.teal",
+      "hue": 40
+    },
+    "outfit.overalls_pink": {
+      "of": "outfit.teal",
+      "hue": 160,
+      "sat": 0.8,
+      "light": 1.3
+    },
+    "outfit.sweater_green": {
+      "of": "outfit.sweater_red",
+      "hue": 130
+    },
+    "outfit.sweater_purple": {
+      "of": "outfit.sweater_red",
+      "hue": 275
+    },
+    "outfit.raincoat_red": {
+      "of": "outfit.raincoat_yellow",
+      "hue": -45,
+      "light": 0.9
+    },
+    "outfit.raincoat_green": {
+      "of": "outfit.raincoat_yellow",
+      "hue": 60
+    },
+    "outfit.dress_yellow": {
+      "of": "outfit.dress_pink",
+      "hue": 80,
+      "light": 1.05
+    },
+    "outfit.dress_coral": {
+      "of": "outfit.dress_pink",
+      "hue": 30,
+      "sat": 1.1
+    },
+    "head.crown_jewels": {
+      "of": "head.crown",
+      "hue": 0,
+      "sat": 1.35,
+      "light": 1.12
+    },
+    "collar.pearls_gold": {
+      "of": "collar.pearls",
+      "hue": 30,
+      "sat": 2.2
     }
   },
   "states": {

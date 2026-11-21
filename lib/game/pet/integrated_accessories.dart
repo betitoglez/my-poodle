@@ -39,16 +39,35 @@ class IntegratedAccessories {
     'neck.knit' => 'knit',
     _ => null,
   };
+
+  /// Familia de prenda a medida: solo los colores lisos que se tiñen sobre
+  /// la ilustración. Los estampados (cebra, rayas, lunares…) y los demás
+  /// colores siguen en PetAccessories, que sí dibuja su patrón.
   static String? tailoredFamily(String outfit) => switch (outfit) {
     'outfit.teal' ||
     'outfit.overalls_red' ||
-    'outfit.overalls_yellow' => 'overalls',
+    'outfit.overalls_yellow' ||
+    'outfit.overalls_denim' ||
+    'outfit.overalls_pink' => 'overalls',
     'outfit.raincoat_yellow' ||
     'outfit.raincoat_blue' ||
-    'outfit.raincoat_pink' => 'raincoat',
+    'outfit.raincoat_pink' ||
+    'outfit.raincoat_red' ||
+    'outfit.raincoat_green' => 'raincoat',
     'outfit.dress_pink' ||
     'outfit.dress_lilac' ||
-    'outfit.dress_turquoise' => 'dress',
+    'outfit.dress_turquoise' ||
+    'outfit.dress_yellow' ||
+    'outfit.dress_coral' => 'dress',
+    _ => null,
+  };
+
+  /// Tono del jersey (la ilustración base es roja).
+  static ColorFilter? sweaterFilter(String outfit) => switch (outfit) {
+    'outfit.sweater_blue' => ColorFilter.matrix(PetSprites.hueMatrix(220)),
+    'outfit.sweater_mustard' => ColorFilter.matrix(
+      PetSprites.hueMatrix(42, light: 1.1),
+    ),
     _ => null,
   };
   static bool supportsPose(String pose) =>
@@ -375,11 +394,7 @@ class IntegratedAccessories {
         -0.181,
       ),
     };
-    final filter = ids.outfit == 'outfit.sweater_blue'
-        ? ColorFilter.matrix(PetSprites.hueMatrix(220))
-        : ids.outfit == 'outfit.sweater_mustard'
-        ? ColorFilter.matrix(PetSprites.hueMatrix(42, light: 1.1))
-        : null;
+    final filter = sweaterFilter(ids.outfit);
     _shadow(c, name, rect, pose, base, petRect);
     if (pose == 'back') {
       _paintBackSeam(c, rect, filter);

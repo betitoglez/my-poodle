@@ -133,8 +133,10 @@ void main() {
   });
 
   group('V03 decoración del salón', () {
-    test('catálogo: 12 artículos, uno inicial y uno gratis por hueco', () {
-      expect(balance.decor.length, 12);
+    // Ampliación del catálogo: 3 artículos nuevos por hueco (dos de
+    // variedad y una meta de lujo).
+    test('catálogo: 21 artículos, uno inicial y uno gratis por hueco', () {
+      expect(balance.decor.length, 21);
       for (final slot in DecorSlot.values) {
         final items = balance.decorFor(slot);
         expect(items.where((d) => d.initial).length, 1);
@@ -146,7 +148,7 @@ void main() {
       final full = balance.decor
           .where((d) => d.tier.name == 'full')
           .fold<int>(0, (a, d) => a + d.cost);
-      expect((free, full), (125, 510));
+      expect((free, full), (620, 2135));
     });
 
     test('la adopción empieza con el salón vacío', () {

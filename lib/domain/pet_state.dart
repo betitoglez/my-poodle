@@ -63,6 +63,12 @@ class PetState {
     this.restEnergyCursorUtc,
     this.bestStars = const {},
     this.decor = const {},
+    this.achievements = const {},
+    this.albumCollected = const {},
+    this.coinsEarnedTotal = 0,
+    this.careDayCount = 0,
+    this.lastCareDay,
+    this.photosTaken = 0,
   });
 
   static const int schemaVersion = 1;
@@ -73,6 +79,24 @@ class PetState {
 
   /// Decoración colocada en el salón: un ID por hueco ocupado.
   final Map<DecorSlot, String> decor;
+
+  /// Logros conseguidos: ID (`ach.…`) → segundo UTC en que se consiguió.
+  /// Nunca se retiran (ver `domain/achievements.dart`).
+  final Map<String, int> achievements;
+
+  /// Páginas del álbum cuyo bono ya se recogió (ID de página).
+  final Set<String> albumCollected;
+
+  /// Monedas ganadas jugando en total (no cuenta bonos del álbum).
+  final int coinsEarnedTotal;
+
+  /// Días UTC distintos con al menos un cuidado y el último de ellos
+  /// (`segundos ~/ 86400`).
+  final int careDayCount;
+  final int? lastCareDay;
+
+  /// Fotos guardadas en el álbum privado desde esta versión.
+  final int photosTaken;
 
   final Map<String, int> careCompletedUtc;
   final List<int> gameStartedUtc;
@@ -141,7 +165,19 @@ class PetState {
     int? lastSickUtc,
     Map<String, int>? bestStars,
     Map<DecorSlot, String>? decor,
+    Map<String, int>? achievements,
+    Set<String>? albumCollected,
+    int? coinsEarnedTotal,
+    int? careDayCount,
+    int? lastCareDay,
+    int? photosTaken,
   }) => PetState(
+    achievements: Map.unmodifiable(achievements ?? this.achievements),
+    albumCollected: Set.unmodifiable(albumCollected ?? this.albumCollected),
+    coinsEarnedTotal: coinsEarnedTotal ?? this.coinsEarnedTotal,
+    careDayCount: careDayCount ?? this.careDayCount,
+    lastCareDay: lastCareDay ?? this.lastCareDay,
+    photosTaken: photosTaken ?? this.photosTaken,
     bestStars: Map.unmodifiable(bestStars ?? this.bestStars),
     decor: Map.unmodifiable(decor ?? this.decor),
     revision: revision ?? this.revision,

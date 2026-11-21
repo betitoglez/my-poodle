@@ -766,3 +766,19 @@ Inicio desde `8e19c5f`: capturar Casa con guirnalda y estrellas, Decoración, Ar
 
 
 Resultado: **15 capturas nativas** del simulador iPad Pro 13 (M5), iOS 26.5, **2064×2752 px / 1032×1376 puntos**, mismo tamaño en todas. Casa con guirnalda/estrellas, Decoración con aviso grande y estrellas colocadas; Armario con aviso grande/plegado, Cuidados, Comer, Foto, catálogo, instrucciones de Parejas y cuatro juegos activos. Visor WKWebView/WebGL cargado en todas las escenas que lo usan, sin respaldo por fallo; recorrido sin excepciones ni desbordes. [Galería y reproducción](reviews/tablet-13/README.md). PNG originales sin modificar y ZIP entregables en la carpeta externa de revisión. Análisis limpio y dos recorridos de prueba del aviso correctos con contraste mínimo 4,5:1. Build normal iOS Profile firmada **0.5.0 (39)**, `lib/main.dart` y 3D activo; preparada para actualizar el iPhone. Sin dependencias nuevas ni cambio de orientación admitida en producción.
+
+## Álbum, logros y economía · 21-11-2026
+
+Rama `feature/album-logros-economia`, desde `codex/minijuegos-parejas-memory` (`76712ee`, imágenes de Parejas/Memory reducidas a WebP 512 px). Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas. Tres incrementos combinados:
+
+- **Álbum de pegatinas y logros**: 23 logros en 5 páginas con bono por página completa (40/50/60/30/80 monedas), botón en la cabecera de Juegos y celebración al conseguir una pegatina. Campos nuevos de partida con valores por defecto; partidas antiguas compatibles.
+- **Decorar foto**: editor tras «Hacer foto» con pegatinas, marcos y texto. Guardar es gratis; las monedas desbloquean packs una vez (0–250). El texto no se guarda en la partida. Cada foto guardada cuenta una vez para los logros.
+- **Catálogo ampliado**: 16 artículos de armario y 9 de decoración nuevos, cinco colores por prenda y artículos de lujo (≥ 250, hasta 520) con insignia y aviso «Te faltan N monedas». IDs y precios anteriores intactos.
+
+Verificación: `flutter analyze` limpio; contenido válido (59 artículos, 21 de decoración, 9 packs de fotos, 73 imágenes); balance de `assets/` y `docs/` idéntico; 11 × 826 traducciones validadas; **374 pruebas correctas**. Implementado y probado en pruebas y Chrome headless; **no probado en dispositivo** (brillo dorado y joyas en 3D, editor de fotos en iPhone).
+
+## Integración de PR #17 en álbum, logros y economía · 21-11-2026
+
+Se combina `codex/cuidados-armario-decoracion` (`b74ac4c`, PR #17 lista para fusionar) en `feature/album-logros-economia`. Conflictos resueltos: catálogo y apariencia unidos por ID (PR #17 como base, con sus precios por familia), traducciones unidas (prevalece el texto de PR #17), visor 3D con patrones de PR #17 y brillo dorado, decoración con imágenes de PR #17 y piezas vectoriales nuevas, armario de PR #17 con insignia «Lujo» y «Te faltan N monedas», cuidados con espera de 15 min y días de cuidado para logros, modo foto con giro por arrastre y editor. Precios nuevos ajustados a familia: petos 20, jerseys 40, impermeables 50, vestidos 70, chocolate 80 y pelaje dorado 1500 (por encima de los especiales de 1000).
+
+Verificación: `flutter analyze` limpio; contenido válido (92 artículos: 27 gratis y 65 completos, 21 de decoración, 9 packs de fotos, 84 imágenes); balance idéntico en `assets/` y `docs/`; 11 × 904 traducciones validadas; **409 pruebas correctas**. No probado en dispositivo.

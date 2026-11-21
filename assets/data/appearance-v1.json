@@ -78,6 +78,48 @@
       "shade": "#6A442B",
       "light": "#FFD59E",
       "skin": "#EDC39A"
+    },
+    "coat.cream": {
+      "label": "Crema",
+      "base": "#F1DDB4",
+      "shade": "#C9AE80",
+      "light": "#FFF4DC",
+      "skin": "#F3DCC4"
+    },
+    "coat.chocolate": {
+      "label": "Chocolate",
+      "base": "#6B4330",
+      "shade": "#3F2519",
+      "light": "#9A6C52",
+      "skin": "#8A6656"
+    },
+    "coat.cinnamon": {
+      "label": "Rojo canela",
+      "base": "#B5542E",
+      "shade": "#823519",
+      "light": "#D9845A",
+      "skin": "#D9A184"
+    },
+    "coat.latte": {
+      "label": "Café con leche",
+      "base": "#C49A74",
+      "shade": "#8F6A4C",
+      "light": "#E3C4A2",
+      "skin": "#E2C3A8"
+    },
+    "coat.slate": {
+      "label": "Azul pizarra",
+      "base": "#6F7F95",
+      "shade": "#47546A",
+      "light": "#A3B0C2",
+      "skin": "#C9BDBA"
+    },
+    "coat.golden": {
+      "label": "Pelaje dorado",
+      "base": "#E8B93C",
+      "shade": "#A87818",
+      "light": "#FFE38A",
+      "skin": "#F0D3A0"
     }
   },
   "hair": {
@@ -490,6 +532,86 @@
       "variety": "dress",
       "colorLabel": "Círculos de colores",
       "swatch": "#F4EDE0"
+    },
+    "outfit.overalls_denim": {
+      "label": "Peto vaquero",
+      "style": "overalls",
+      "color": "#4A6FA5",
+      "shade": "#334F7A",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Vaquero",
+      "swatch": "#4A6FA5"
+    },
+    "outfit.overalls_pink": {
+      "label": "Peto rosa",
+      "style": "overalls",
+      "color": "#D97FA3",
+      "shade": "#A85A7A",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Rosa",
+      "swatch": "#D97FA3"
+    },
+    "outfit.sweater_green": {
+      "label": "Jersey verde",
+      "style": "overalls",
+      "color": "#3F8A55",
+      "shade": "#2B613B",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Verde",
+      "swatch": "#3F8A55"
+    },
+    "outfit.sweater_purple": {
+      "label": "Jersey morado",
+      "style": "overalls",
+      "color": "#8A68B8",
+      "shade": "#634A88",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Morado",
+      "swatch": "#8A68B8"
+    },
+    "outfit.raincoat_red": {
+      "label": "Impermeable rojo",
+      "style": "overalls",
+      "color": "#C8423A",
+      "shade": "#952C27",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Rojo",
+      "swatch": "#C8423A"
+    },
+    "outfit.raincoat_green": {
+      "label": "Impermeable verde",
+      "style": "overalls",
+      "color": "#5BAA55",
+      "shade": "#3F7D3B",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Verde",
+      "swatch": "#5BAA55"
+    },
+    "outfit.dress_yellow": {
+      "label": "Vestido amarillo",
+      "style": "overalls",
+      "color": "#EBCB5C",
+      "shade": "#BB9C38",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Amarillo",
+      "swatch": "#EBCB5C"
+    },
+    "outfit.dress_coral": {
+      "label": "Vestido coral",
+      "style": "overalls",
+      "color": "#EE8E78",
+      "shade": "#BE6754",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Coral",
+      "swatch": "#EE8E78"
     }
   },
   "necks": {
@@ -601,6 +723,9 @@
     },
     "head.crown": {
       "label": "Corona dorada"
+    },
+    "head.crown_jewels": {
+      "label": "Corona real con joyas"
     }
   },
   "eyes": {
@@ -629,6 +754,9 @@
     },
     "collar.pearls": {
       "label": "Collar de perlas"
+    },
+    "collar.pearls_gold": {
+      "label": "Collar de perlas doradas"
     }
   },
   "paws": {

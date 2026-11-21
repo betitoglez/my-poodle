@@ -14,6 +14,7 @@ import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import 'album_screen.dart';
 import 'main_shell.dart';
 import 'minigame_screens.dart';
 import 'puzzle_screens.dart';
@@ -30,7 +31,13 @@ class GamesScreen extends StatelessWidget {
       bottom: false,
       child: Column(
         children: [
-          const TabHeader(kicker: 'En el parque', title: 'A jugar'),
+          // Álbum en Juegos: la mayoría de pegatinas salen de jugar y la
+          // cabecera de Casa ya lleva tres botones.
+          const TabHeader(
+            kicker: 'En el parque',
+            title: 'A jugar',
+            trailing: AlbumButton(),
+          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: l.gutter),
             child: const CoinText(
