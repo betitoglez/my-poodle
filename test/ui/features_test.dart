@@ -207,11 +207,11 @@ void main() {
       expect(find.text(sub), findsWidgets, reason: sub);
     }
     await tapText(t, 'Lazo rosa');
-    await tapText(t, 'Comprar y usar · 14');
+    await tapText(t, 'Comprar y usar · 20');
     expect(find.text('Saldo restante'), findsOneWidget);
     await tapText(t, 'Confirmar');
     final s = saved(backend);
-    expect([s.coins, s.appearance.head], [16, 'head.bow']);
+    expect([s.coins, s.appearance.head], [10, 'head.bow']);
     // Sin la versión completa, las zapatillas se prueban pero no se compran.
     await tapText(t, 'Patucos');
     await tapText(t, 'Zapatillas');
@@ -231,7 +231,7 @@ void main() {
     expect(find.text('Faltan 24 · Jugar'), findsOneWidget);
   });
 
-  testWidgets('armario: ropa por variedad, colores al mismo precio', (t) async {
+  testWidgets('armario: ropa por variedad y precios redondeados', (t) async {
     final backend = backendWith((s) => s.copyWith(coins: 50));
     await boot(t, backend, store: fullStore());
     await tapText(t, 'Armario');
@@ -239,14 +239,15 @@ void main() {
     expect(find.text('Peto'), findsOneWidget);
     // Todos los colores de una prenda cuestan lo mismo; la prenda marca el precio.
     await scrollTo(t, find.text('Jersey'));
-    expect(find.text('32 · todos los colores'), findsOneWidget);
+
     await scrollTo(t, find.text('Mostaza'));
     await tapText(t, 'Mostaza');
-    expect(find.text('Comprar y usar · 32'), findsOneWidget);
+    expect(find.text('Comprar y usar · 40'), findsOneWidget);
     await scrollTo(t, find.text('Impermeable'));
-    expect(find.text('46 · todos los colores'), findsOneWidget);
-    await tapText(t, 'Azul');
-    expect(find.text('Comprar y usar · 46'), findsOneWidget);
+
+    await t.tap(find.text('Azul').hitTestable().last);
+    await idle(t);
+    expect(find.text('Comprar y usar · 50'), findsOneWidget);
     await scrollTo(t, find.text('Vestido'));
     expect(find.text('Vestido'), findsOneWidget);
   });

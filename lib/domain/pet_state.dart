@@ -52,6 +52,9 @@ class PetState {
     required this.prefs,
     required this.lastSickUtc,
     required this.sickSeed,
+    this.bestPairs = 0,
+    this.bestMemory = 0,
+    this.puzzleDeals = const {},
     this.sickSinceUtc,
     this.careCompletedUtc = const {},
     this.gameStartedUtc = const [],
@@ -89,6 +92,9 @@ class PetState {
   final Appearance appearance;
   final int bestFruit;
   final int bestFrisbee;
+  final int bestPairs;
+  final int bestMemory;
+  final Map<String, List<String>> puzzleDeals;
   final Preferences prefs;
 
   /// Salud: segundos UTC en que enfermó (null = sano).
@@ -120,6 +126,9 @@ class PetState {
     Appearance? appearance,
     int? bestFruit,
     int? bestFrisbee,
+    int? bestPairs,
+    int? bestMemory,
+    Map<String, List<String>>? puzzleDeals,
     Preferences? prefs,
     int? sickSinceUtc,
     Map<String, int>? careCompletedUtc,
@@ -156,6 +165,12 @@ class PetState {
     appearance: appearance ?? this.appearance,
     bestFruit: bestFruit ?? this.bestFruit,
     bestFrisbee: bestFrisbee ?? this.bestFrisbee,
+    bestPairs: bestPairs ?? this.bestPairs,
+    bestMemory: bestMemory ?? this.bestMemory,
+    puzzleDeals: Map.unmodifiable({
+      for (final entry in (puzzleDeals ?? this.puzzleDeals).entries)
+        entry.key: List<String>.unmodifiable(entry.value),
+    }),
     prefs: prefs ?? this.prefs,
     sickSinceUtc: cured ? null : (sickSinceUtc ?? this.sickSinceUtc),
     lastSickUtc: lastSickUtc ?? this.lastSickUtc,

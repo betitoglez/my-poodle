@@ -69,6 +69,8 @@ flutter:
     - assets/audio/
     - assets/audio/sfx/
     - assets/data/
+    - assets/images/poodles/
+    - assets/images/decor/
     - assets/images/cards/
     - assets/images/scenes/
     - assets/images/rooms/

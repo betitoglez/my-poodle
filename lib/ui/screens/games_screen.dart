@@ -13,8 +13,10 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
+import '../widgets/dialogs.dart';
 import 'main_shell.dart';
 import 'minigame_screens.dart';
+import 'puzzle_screens.dart';
 
 /// P10 · Selección de juegos: tarjetas leídas de [GameCatalog].
 class GamesScreen extends StatelessWidget {
@@ -31,7 +33,7 @@ class GamesScreen extends StatelessWidget {
           const TabHeader(kicker: 'En el parque', title: 'A jugar'),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: l.gutter),
-            child: const LText(
+            child: const CoinText(
               'Elige dónde ganar monedas con tu caniche.',
               style: AppText.body,
             ),
@@ -50,19 +52,22 @@ class GamesScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: AppSpace.m),
                     child: _GameCard(
                       def: def,
-                      best: def.id == GameId.fruit
-                          ? c.pet.bestFruit
-                          : c.pet.bestFrisbee,
+                      waitSeconds: c.gameWaitSeconds,
+                      best: c.rules.gameBest(c.pet, def.id),
                       bestStars: c.pet.bestStars[def.id.name] ?? 0,
                       locked: !c.canPlay(def.id),
                       trial: c.isGameTrial(def.id),
                       trialLabel: c.trialLabel(def.id),
-                      onOpen: () => c.canPlay(def.id)
-                          ? pushScreen(
-                              context,
-                              InstructionsScreen(game: def.id),
-                            )
-                          : showAskAdult(context),
+                      onOpen: () {
+                        final blocked = c.gameBlocked;
+                        if (c.gameWaitSeconds > 0 && blocked != null) {
+                          showGameBlocked(context, blocked);
+                        } else if (c.canPlay(def.id)) {
+                          pushScreen(context, InstructionsScreen(game: def.id));
+                        } else {
+                          showAskAdult(context);
+                        }
+                      },
                     ),
                   ),
               ],
@@ -79,6 +84,7 @@ class _GameCard extends StatelessWidget {
     required this.def,
     required this.best,
     required this.onOpen,
+    this.waitSeconds = 0,
     this.bestStars = 0,
     this.locked = false,
     this.trial = false,
@@ -86,6 +92,7 @@ class _GameCard extends StatelessWidget {
   });
   final GameDefinition def;
   final int best;
+  final int waitSeconds;
   final VoidCallback onOpen;
 
   /// Mejor marca de estrellas guardada (0..3).
@@ -110,6 +117,7 @@ class _GameCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
+      onTap: onOpen,
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -160,7 +168,9 @@ class _GameCard extends StatelessWidget {
                     const SizedBox(height: AppSpace.s),
                     AppButton(
                       expand: true,
-                      label: locked
+                      label: waitSeconds > 0
+                          ? countdown(waitSeconds)
+                          : locked
                           ? 'Ver'
                           : trial
                           ? 'Probar gratis'
@@ -183,9 +193,16 @@ class _GameCard extends StatelessWidget {
 }
 
 /// P11 · Instrucciones: demostración del gesto, objetivo, límite, Jugar/Volver.
-class InstructionsScreen extends StatelessWidget {
+class InstructionsScreen extends StatefulWidget {
   const InstructionsScreen({super.key, required this.game});
   final GameId game;
+  @override
+  State<InstructionsScreen> createState() => _InstructionsScreenState();
+}
+
+class _InstructionsScreenState extends State<InstructionsScreen> {
+  int _pairs = 4;
+  GameId get game => widget.game;
 
   @override
   Widget build(BuildContext context) {
@@ -218,19 +235,20 @@ class InstructionsScreen extends StatelessWidget {
                       children: [
                         Image.asset(def.thumbnail, fit: BoxFit.cover),
                         Container(color: const Color(0x3334283B)),
-                        _GestureDemo(
-                          drag: game == GameId.frisbee,
-                          reducedMotion: reduced,
-                        ),
+                        if (game == GameId.fruit || game == GameId.frisbee)
+                          _GestureDemo(
+                            drag: game == GameId.frisbee,
+                            reducedMotion: reduced,
+                          ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSpace.l),
                 _Line(
-                  icon: game == GameId.fruit
-                      ? Icons.touch_app_rounded
-                      : Icons.swipe_up_rounded,
+                  icon: game == GameId.frisbee
+                      ? Icons.swipe_up_rounded
+                      : Icons.touch_app_rounded,
                   text: def.gesture,
                 ),
                 _Line(icon: Icons.flag_rounded, text: def.objective),
@@ -243,11 +261,46 @@ class InstructionsScreen extends StatelessWidget {
                   icon: Icons.timer_rounded,
                   text: 'Duración: ${def.limitLabel}.',
                 ),
-                _Line(
-                  icon: Icons.savings_rounded,
-                  text:
-                      'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
-                ),
+                if (game == GameId.pairs) ...[
+                  const SizedBox(height: AppSpace.s),
+                  const LText('Premios', style: AppText.subtitle),
+                  for (final line in def.rewardLabel.split('\n'))
+                    _Line(icon: Icons.savings_rounded, text: line),
+                  const LText(
+                    'Si sales antes de terminar, no hay premio.',
+                    style: AppText.body,
+                  ),
+                ] else
+                  _Line(
+                    icon: Icons.savings_rounded,
+                    text:
+                        'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
+                  ),
+                if (game == GameId.pairs) ...[
+                  const SizedBox(height: AppSpace.m),
+                  const LText('Elige un nivel', style: AppText.subtitle),
+                  const SizedBox(height: AppSpace.s),
+                  Wrap(
+                    spacing: AppSpace.s,
+                    runSpacing: AppSpace.s,
+                    children: [
+                      for (final count in [4, 6, 8])
+                        AppButton(
+                          label: '$count parejas',
+                          icon: _pairs == count
+                              ? Icons.check_circle_rounded
+                              : Icons.grid_view_rounded,
+                          secondary: _pairs != count,
+                          onPressed: () => setState(() => _pairs = count),
+                        ),
+                    ],
+                  ),
+                ],
+                if (game == GameId.memory)
+                  const _Line(
+                    icon: Icons.lock_rounded,
+                    text: 'Solo disponible en la versión completa.',
+                  ),
                 const SizedBox(height: AppSpace.xl),
                 Row(
                   children: [
@@ -267,13 +320,12 @@ class InstructionsScreen extends StatelessWidget {
                         icon: Icons.play_arrow_rounded,
                         big: true,
                         expand: true,
-                        onPressed: () => replaceScreen(
-                          context,
-                          game == GameId.fruit
-                              ? const OrchardScreen()
-                              : const FrisbeeScreen(),
-                          music: MusicTrack.games,
-                        ),
+                        onPressed: () => replaceScreen(context, switch (game) {
+                          GameId.fruit => const OrchardScreen(),
+                          GameId.frisbee => const FrisbeeScreen(),
+                          GameId.pairs => PairsScreen(pairs: _pairs),
+                          GameId.memory => const MemoryScreen(),
+                        }, music: MusicTrack.games),
                       ),
                     ),
                   ],
@@ -300,6 +352,16 @@ class _Challenges extends StatelessWidget {
   Widget build(BuildContext context) {
     final b = AppScope.of(context).balance;
     final lines = switch (game) {
+      GameId.pairs => [
+        'Estrella 1: 4 parejas',
+        'Estrella 2: 6 parejas',
+        'Estrella 3: 8 parejas',
+      ],
+      GameId.memory => [
+        'Estrella 1: 3 pasos',
+        'Estrella 2: 6 pasos',
+        'Estrella 3: 10 pasos',
+      ],
       GameId.frisbee => [
         'Estrella 1: ${b.frisbee.starCatches[0]} capturas',
         'Estrella 2: ${b.frisbee.starCatches[1]} capturas',
@@ -312,6 +374,7 @@ class _Challenges extends StatelessWidget {
       ],
     };
     final variety = switch (game) {
+      GameId.pairs || GameId.memory => 'Los objetivos cambian en cada partida.',
       GameId.frisbee => 'Los objetivos cambian en cada partida.',
       GameId.fruit =>
         'Cada partida esconde ${b.fruit.starGolden} frutas doradas.',
@@ -357,7 +420,7 @@ class _Line extends StatelessWidget {
       children: [
         Icon(icon, color: iconColor ?? AppColors.leaf),
         const SizedBox(width: AppSpace.m),
-        Expanded(child: LText(text, style: AppText.body)),
+        Expanded(child: CoinText(text, style: AppText.body)),
       ],
     ),
   );

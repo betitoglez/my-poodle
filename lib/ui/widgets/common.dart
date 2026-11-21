@@ -453,3 +453,36 @@ class HealthMeter extends StatelessWidget {
     );
   }
 }
+
+/// Sustituye la unidad monetaria por su icono sin perder la lectura accesible.
+class CoinText extends StatelessWidget {
+  const CoinText(this.source, {super.key, this.style});
+  final String source;
+  final TextStyle? style;
+  @override
+  Widget build(BuildContext context) {
+    final text = localize(context, source);
+    final coins = RegExp(
+      r'monedas?|coins?|pièces?|Münzen?|moedas?|monete|монет[а-я]*|코인|コイン|金币|金幣',
+      caseSensitive: false,
+    );
+    final spans = <InlineSpan>[];
+    var cursor = 0;
+    for (final match in coins.allMatches(text)) {
+      spans.add(TextSpan(text: text.substring(cursor, match.start)));
+      spans.add(
+        const WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: CoinIcon(size: 18),
+        ),
+      );
+      cursor = match.end;
+    }
+    spans.add(TextSpan(text: text.substring(cursor)));
+    return Semantics(
+      label: text,
+      excludeSemantics: true,
+      child: Text.rich(TextSpan(children: spans), style: style),
+    );
+  }
+}

@@ -266,49 +266,46 @@ void main() {
       },
     );
 
-    test(
-      'catálogo: precios crecientes por categoría y mismo precio por variedad',
-      () {
-        for (final slot in Slot.values) {
-          final prices = balance.itemsFor(slot).map((i) => i.cost).toList();
-          expect(prices.first, 0, reason: slot.name);
-          expect(prices, orderedEquals([...prices]..sort()), reason: slot.name);
-        }
-        int cost(String id) => balance.item(id)!.cost;
-        for (final v in ['overalls', 'sweater', 'raincoat', 'dress']) {
-          final prices = balance.styles
-              .where(
-                (i) =>
-                    i.id.startsWith(
-                      'outfit.${v == 'overalls' ? 'overalls_' : '${v}_'}',
-                    ) ||
-                    (v == 'overalls' && i.id == 'outfit.teal'),
-              )
-              .map((i) => i.cost)
-              .toSet();
-          expect(prices, hasLength(1), reason: v);
-        }
-        expect(cost('outfit.teal') < cost('outfit.sweater_red'), isTrue);
+    test('catálogo: precios redondeados y colores especiales por ocho', () {
+      for (final slot in Slot.values) {
+        final prices = balance.itemsFor(slot).map((i) => i.cost).toList();
+        expect(prices.first, 0, reason: slot.name);
         expect(
-          cost('outfit.sweater_red') < cost('outfit.raincoat_pink'),
+          prices.every((cost) => cost % 10 == 0),
           isTrue,
+          reason: slot.name,
         );
-        expect(
-          cost('outfit.raincoat_pink') < cost('outfit.dress_pink'),
-          isTrue,
-        );
-        // Compatibilidad: los IDs y precios originales no cambian.
-        expect(
-          [
-            cost('coat.silver'),
-            cost('hair.pom'),
-            cost('outfit.teal'),
-            cost('neck.coral'),
-          ],
-          [24, 30, 18, 10],
-        );
-      },
-    );
+      }
+      int cost(String id) => balance.item(id)!.cost;
+      for (final v in ['overalls', 'sweater', 'raincoat', 'dress']) {
+        final prices = balance.styles
+            .where(
+              (i) =>
+                  i.id.startsWith(
+                    'outfit.${v == 'overalls' ? 'overalls_' : '${v}_'}',
+                  ) ||
+                  (v == 'overalls' && i.id == 'outfit.teal'),
+            )
+            .map((i) => i.cost)
+            .toSet();
+        expect(prices, hasLength(2), reason: v);
+        final sorted = prices.toList()..sort();
+        expect(sorted.last, sorted.first * 8, reason: v);
+      }
+      expect(cost('outfit.teal') < cost('outfit.sweater_red'), isTrue);
+      expect(cost('outfit.sweater_red') < cost('outfit.raincoat_pink'), isTrue);
+      expect(cost('outfit.raincoat_pink') < cost('outfit.dress_pink'), isTrue);
+      // Compatibilidad: los IDs y precios originales no cambian.
+      expect(
+        [
+          cost('coat.silver'),
+          cost('hair.pom'),
+          cost('outfit.teal'),
+          cost('neck.coral'),
+        ],
+        [30, 200, 20, 10],
+      );
+    });
 
     test('comprar varios artículos de ranuras distintas suma sus costes', () {
       final a = adopt().appearance
@@ -316,9 +313,9 @@ void main() {
           .withSlot(Slot.eyes, 'eyes.sun')
           .withSlot(Slot.paws, 'paws.rain');
       final s = adopt().copyWith(coins: 200);
-      expect(rules.lookCost(s, a), 14 + 36 + 56);
+      expect(rules.lookCost(s, a), 20 + 40 + 60);
       final r = rules.applyLook(s, a, 'o', t0, fullVersion: true) as Purchased;
-      expect(r.receipt.after.coins, 200 - 106);
+      expect(r.receipt.after.coins, 200 - 120);
       expect(
         r.receipt.after.owned,
         containsAll(['head.bow', 'eyes.sun', 'paws.rain']),

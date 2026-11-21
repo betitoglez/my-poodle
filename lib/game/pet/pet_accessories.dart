@@ -130,6 +130,55 @@ abstract final class PetAccessories {
       shape(garment, fill);
       c.save();
       c.clipPath(garment);
+      final pattern = ids.outfit.split('_').last;
+      if (const {'zebra', 'redwhite', 'greenwhite', 'dots'}.contains(pattern)) {
+        c.drawRect(r.inflate(.04), Paint()..color = const Color(0xFFF7F2E9));
+        if (pattern == 'dots') {
+          const colors = [
+            Color(0xFFD62D43),
+            Color(0xFFE9BE29),
+            Color(0xFF32945A),
+            Color(0xFF326AC5),
+          ];
+          var row = 0;
+          for (var y = r.top; y < r.bottom + .04; y += .035) {
+            var column = 0;
+            for (var x = r.left - .03; x < r.right + .04; x += .035) {
+              c.drawCircle(
+                Offset(x, y),
+                .009,
+                Paint()..color = colors[(row + column++) % 4],
+              );
+            }
+            row++;
+          }
+        } else {
+          final ink = pattern == 'zebra'
+              ? const Color(0xFF282932)
+              : pattern == 'redwhite'
+              ? const Color(0xFFBF2D42)
+              : const Color(0xFF2B8B55);
+          for (var y = r.top - .04; y < r.bottom + .05; y += .032) {
+            final stripe = Path()
+              ..moveTo(r.left - .04, y)
+              ..cubicTo(
+                r.center.dx,
+                y + .025,
+                r.center.dx,
+                y - .025,
+                r.right + .04,
+                y,
+              );
+            c.drawPath(
+              stripe,
+              Paint()
+                ..color = ink
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = .014,
+            );
+          }
+        }
+      }
       final seam = Color.lerp(fill, const Color(0xFFFFFFFF), 0.4)!;
       if (overalls) {
         for (var x = r.left; x < r.right; x += 0.018) {

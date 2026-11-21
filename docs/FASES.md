@@ -6,8 +6,8 @@ Actualizado el 20-11-2026. Sustituye las fichas antiguas centradas en un juego e
 
 - Gratis con compra única no consumible de versión completa; sin publicidad ni venta de monedas. Una partida local por instalación, sin login de jugadores ni backend.
 - Primera beta TestFlight con **11 variantes de idioma y modo foto**. Inglés es el respaldo; español muestra el nombre Mi Caniche. Chino simplificado y tradicional son requisitos separados.
-- Juegos premium: un intento gratuito por juego cada 24 horas para quien no tenga la compra. El inicio confirmado consume el cupo; abandono lo consume y un fallo de guardado no. Propiedad de artículos y cupo de juegos son reglas distintas.
-- Nuevos candidatos: parejas, Simón de perritos y laberinto. Su inclusión exacta y reglas quedan por definir; no bloquear el hito de compras con un juego cuya definición no está aprobada.
+- Huerto premium: un intento gratuito cada 24 horas para quien no tenga la compra. El inicio confirmado consume el cupo; abandono lo consume y un fallo de guardado no. Propiedad de artículos y cupo de juegos son reglas distintas.
+- Parejas y Memory definidos e implementados por petición del propietario el 20-11-2026. Parejas es gratuito y Memory requiere versión completa sin prueba diaria. Laberinto continúa por definir.
 - El objetivo inmediato es una beta funcional en **Sandbox de TestFlight**, no una publicación de producción.
 
 ## Secuencia de trabajo y criterios de salida
@@ -27,9 +27,9 @@ Actualizado el 20-11-2026. Sustituye las fichas antiguas centradas en un juego e
 | F08 · TestFlight | Primera beta interna funcional; comprobación básica superada | 0.5.0 (34) en MVP Sandbox e instalada, con corrección de espera iOS y herramienta de reembolso solo Sandbox. Comprobación básica en (33), restauración sin principal comprado, fallo sin conexión e inglés/USD en (34) superados. Continuar QA ampliada y feedback | Build procesada por Apple, instalable desde TestFlight y compra Sandbox probada |
 | F09 · Idiomas MVP | Implementado y probado automáticamente | 11 títulos de ficha guardados y verificados; catálogos, nombres nativos y selector implementados. Revisión lingüística y aceptación física pendientes | Catálogos completos, persistencia, nombres nativos y recorridos sin desbordes; revisión lingüística identificada |
 | F10 · Modo foto MVP | Captura/álbum probados físicamente | Dos poses 3D, giro/ropa, conservación tras reabrir y álbum confirmados; comprobar borrado físico y matriz de aspectos | Imagen real del render; fotos conservadas tras reiniciar; sin acceso a fotos ajenas |
-| F11 · Juegos nuevos | Por definir | Parejas, Simón de perritos y laberinto | Reglas, premios, tier y alcance aprobados antes de implementar |
+| F11 · Juegos nuevos | Parejas y Memory implementados | Aceptación física y nueva beta; laberinto por definir | Premios, acceso, no repetición, guardado, cronómetros y pausas verificados; aceptar en dispositivos |
 
-F09 y F10 forman parte de F08 y están incluidos en la primera beta interna: 11 variantes empaquetadas y foto/álbum con comprobación física básica. La beta no cierra la revisión lingüística ni la aceptación ampliada de producción. F11 mantiene definición pendiente por indicación del propietario.
+F09 y F10 forman parte de F08 y están incluidos en la primera beta interna: 11 variantes empaquetadas y foto/álbum con comprobación física básica. La beta no cierra la revisión lingüística ni la aceptación ampliada de producción. F11 incorpora Parejas y Memory en esta rama por indicación del propietario; no forman parte de la IPA (34) ya instalada.
 
 ## Ruta de integración
 

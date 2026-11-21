@@ -70,7 +70,7 @@ void main() {
     await tapText(t, 'Cuidados');
     await tapText(t, 'Peluquería');
     expect(player.tracks.last, MusicTrack.activities);
-    await tapText(t, 'Probar cortes');
+    await tapText(t, 'Armario');
     expect(player.tracks.last, MusicTrack.home);
     await t.tap(find.byType(BackButton));
     await idle(t);

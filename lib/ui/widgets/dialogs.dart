@@ -15,9 +15,6 @@ import 'common.dart';
 void showCareBlocked(BuildContext context, CareKind kind, String reason) {
   AppScope.feedbackOf(context).play(Sfx.blocked);
   final controller = AppScope.read(context);
-  final cooldown =
-      reason.startsWith('Podrás repetir') &&
-      controller.careWaitSeconds(kind) > 0;
   final vetPrice =
       kind == CareKind.vet &&
       controller.pet.coins < Rules.vetCost &&
@@ -34,12 +31,6 @@ void showCareBlocked(BuildContext context, CareKind kind, String reason) {
               ],
             )
           : LText(reason),
-      action: cooldown
-          ? SnackBarAction(
-              label: 'Versión completa',
-              onPressed: () => showAskAdult(context),
-            )
-          : null,
     ),
   );
 }
@@ -461,3 +452,21 @@ class Delay {
 
   void cancel() => _t?.cancel();
 }
+
+void showGameBlocked(BuildContext context, String reason) {
+  final c = AppScope.read(context);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: LText(reason),
+      action: !c.fullVersion && c.gameWaitSeconds > 0
+          ? SnackBarAction(
+              label: localize(context, 'Versión completa'),
+              onPressed: () => showAskAdult(context),
+            )
+          : null,
+    ),
+  );
+}
+
+String countdown(int seconds) =>
+    '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';

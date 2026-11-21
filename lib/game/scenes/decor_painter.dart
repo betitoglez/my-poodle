@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
+
 import '../../domain/balance.dart';
 
 /// Geometría de la sala para colocar la decoración: la ilustración ([art]),
@@ -28,10 +30,72 @@ class DecorScene {
   final bool illustrated;
 }
 
-/// Decoración vectorial del salón (provisional y compatible con arte final):
+/// Decoración ilustrada del salón, con respaldo vectorial:
 /// alfombra bajo el caniche, un elemento en la pared y una maceta en el suelo
 /// a la derecha. Los artículos «none» no dibujan nada.
 abstract final class DecorPainter {
+  static const artworkIds = [
+    'rug.round',
+    'rug.stripes',
+    'rug.bone',
+    'wall.frame',
+    'wall.garland',
+    'wall.stars',
+    'plant.fern',
+    'plant.flowers',
+    'plant.cactus',
+  ];
+  static final _artwork = <String, Image>{};
+  static final _stripSources = <String, Rect>{};
+  static const _wallStrips = {'wall.garland', 'wall.stars'};
+  static Future<void>? _loading;
+  static Future<void> loadAssets() {
+    if (_artwork.length == artworkIds.length) return Future.value();
+    return _loading ??= _loadAssets();
+  }
+
+  static Future<void> _loadAssets() async {
+    await Future.wait(
+      artworkIds.map((id) async {
+        final bytes = await rootBundle.load('assets/images/decor/$id.webp');
+        final codec = await instantiateImageCodec(
+          bytes.buffer.asUint8List(),
+          targetWidth: _wallStrips.contains(id) ? 1536 : 768,
+        );
+        final image = (await codec.getNextFrame()).image;
+        _artwork[id] = image;
+        if (_wallStrips.contains(id)) {
+          final pixels = await image.toByteData(
+            format: ImageByteFormat.rawRgba,
+          );
+          if (pixels != null) {
+            var left = image.width, top = image.height, right = 0, bottom = 0;
+            for (var y = 0; y < image.height; y++) {
+              for (var x = 0; x < image.width; x++) {
+                if (pixels.getUint8((y * image.width + x) * 4 + 3) <= 8) {
+                  continue;
+                }
+                left = math.min(left, x);
+                top = math.min(top, y);
+                right = math.max(right, x + 1);
+                bottom = math.max(bottom, y + 1);
+              }
+            }
+            if (right > left && bottom > top) {
+              _stripSources[id] = Rect.fromLTRB(
+                left.toDouble(),
+                top.toDouble(),
+                right.toDouble(),
+                bottom.toDouble(),
+              );
+            }
+          }
+        }
+        codec.dispose();
+      }),
+    );
+  }
+
   static Paint _p(int c) => Paint()..color = Color(c);
   static Paint _stroke(int c, double w) => Paint()
     ..color = Color(c)
@@ -105,11 +169,12 @@ abstract final class DecorPainter {
             );
             return Rect.fromCenter(center: Offset(cx, cy), width: w, height: h);
           case 'wall.garland':
+          case 'wall.stars':
             final h = math.min(band.height * 0.45, ps * 0.32);
             return Rect.fromLTWH(
-              v.left + v.width * 0.04,
+              v.left,
               v.top + math.max(4.0, band.height * 0.04),
-              v.width * 0.92,
+              v.width,
               h,
             );
           default:
@@ -130,7 +195,7 @@ abstract final class DecorPainter {
       'plant' => 0.62,
       _ => switch (id) {
         'wall.frame' => 1 / 1.18,
-        'wall.garland' => 3.0,
+        'wall.garland' || 'wall.stars' => 3.0,
         _ => 1.5,
       },
     };
@@ -160,6 +225,35 @@ abstract final class DecorPainter {
     double t = 0,
     bool reducedMotion = false,
   }) {
+    final image = _artwork[id];
+    if (image != null) {
+      final source =
+          _stripSources[id] ??
+          Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
+      if (_wallStrips.contains(id)) {
+        _paintWallStrip(c, id, image, source, box, t, reducedMotion);
+        return;
+      }
+      // Rugs follow the perspective of the floor; wall art and plants keep their aspect ratio.
+      final scale = math.min(
+        box.width / source.width,
+        box.height / source.height,
+      );
+      final target = id.startsWith('rug.')
+          ? box
+          : Rect.fromCenter(
+              center: box.center,
+              width: source.width * scale,
+              height: source.height * scale,
+            );
+      c.drawImageRect(
+        image,
+        source,
+        target,
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      return;
+    }
     switch (id) {
       case 'rug.round':
         _rugRound(c, box);
@@ -180,6 +274,40 @@ abstract final class DecorPainter {
       case 'plant.cactus':
         _cactus(c, box);
     }
+  }
+
+  /// Repite módulos nuevos a escala uniforme. El ancho añade adornos, sin
+  /// ensanchar banderines ni estrellas; el último continúa fuera del visor.
+  static void _paintWallStrip(
+    Canvas c,
+    String id,
+    Image image,
+    Rect source,
+    Rect box,
+    double t,
+    bool reducedMotion,
+  ) {
+    if (box.isEmpty || source.isEmpty) return;
+    final tileWidth = source.width * box.height / source.height;
+    c.save();
+    c.clipRect(
+      Rect.fromLTRB(box.left, box.top - 12, box.right, box.bottom + 12),
+    );
+    for (var x = box.left; x < box.right; x += tileWidth) {
+      final target = Rect.fromLTWH(x, box.top, tileWidth, box.height);
+      final opacity = id == 'wall.stars' && !reducedMotion
+          ? .96 + .04 * math.sin(t * 2.2)
+          : 1.0;
+      c.drawImageRect(
+        image,
+        source,
+        target,
+        Paint()
+          ..filterQuality = FilterQuality.medium
+          ..color = Color.fromRGBO(255, 255, 255, opacity),
+      );
+    }
+    c.restore();
   }
 
   // ---------------------------------------------------------------- Alfombras

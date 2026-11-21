@@ -64,29 +64,127 @@ void main() {
     expect(rules.finishCare(before, CareKind.feed, 'free', t0).after.coins, 9);
   });
 
-  test('comidas comparten plazo; 299 bloquea, 300 permite tras reiniciar', () {
-    final after = rules.finishCare(pet(), CareKind.feed, 'a', t0).after;
-    final loaded = SaveCodec(b).decode(SaveCodec(b).encode(after));
-    expect(
-      rules.careBlocked(loaded, CareKind.feed, t0 + 299, option: Food.premium),
-      isNotNull,
-    );
-    expect(
-      rules.careBlocked(loaded, CareKind.feed, t0 + 300, option: Food.premium),
-      isNull,
-    );
-    expect(rules.careBlocked(loaded, CareKind.bath, t0), isNull);
-  });
+  test(
+    'cada ración tiene 15 minutos propios, también en la versión completa',
+    () {
+      for (final full in [false, true]) {
+        final after = rules
+            .finishCare(pet(), CareKind.feed, 'a', t0, fullVersion: full)
+            .after;
+        final loaded = SaveCodec(b).decode(SaveCodec(b).encode(after));
+        expect(
+          rules.careWaitSeconds(
+            loaded,
+            CareKind.feed,
+            t0,
+            option: Food.basic,
+            fullVersion: full,
+          ),
+          900,
+        );
+        expect(
+          rules.careBlocked(
+            loaded,
+            CareKind.feed,
+            t0 + 899,
+            option: Food.basic,
+            fullVersion: full,
+          ),
+          isNotNull,
+        );
+        expect(
+          rules.careBlocked(
+            loaded,
+            CareKind.feed,
+            t0 + 900,
+            option: Food.basic,
+            fullVersion: full,
+          ),
+          isNull,
+        );
+        expect(
+          rules.careBlocked(
+            loaded,
+            CareKind.feed,
+            t0,
+            option: Food.premium,
+            fullVersion: full,
+          ),
+          isNull,
+        );
+        expect(
+          rules.careBlocked(loaded, CareKind.feed, t0, fullVersion: full),
+          isNull,
+        );
+        final premium = rules
+            .finishCare(
+              loaded,
+              CareKind.feed,
+              'b',
+              t0 + 10,
+              option: Food.premium,
+              fullVersion: full,
+            )
+            .after;
+        expect(
+          rules.careWaitSeconds(
+            premium,
+            CareKind.feed,
+            t0 + 10,
+            option: Food.basic,
+            fullVersion: full,
+          ),
+          890,
+        );
+        expect(
+          rules.careWaitSeconds(
+            premium,
+            CareKind.feed,
+            t0 + 10,
+            option: Food.premium,
+            fullVersion: full,
+          ),
+          900,
+        );
+      }
+    },
+  );
 
-  test('beber suma 60 puntos y la versión completa permite repetir', () {
-    final receipt = rules.finishCare(pet(), CareKind.drink, 'agua', t0);
-    expect(receipt.needChange(Need.hydration), 60);
-    expect(rules.careWaitSeconds(receipt.after, CareKind.drink, t0), 300);
-    expect(
-      rules.careBlocked(receipt.after, CareKind.drink, t0, fullVersion: true),
-      isNull,
-    );
-  });
+  test(
+    'beber: agua en plazo permite otra bebida; ninguna versión evita el plazo',
+    () {
+      final receipt = rules.finishCare(pet(), CareKind.drink, 'agua', t0);
+      expect(receipt.needChange(Need.hydration), 60);
+      expect(
+        rules.careWaitSeconds(
+          receipt.after,
+          CareKind.drink,
+          t0,
+          option: Drink.values.first,
+        ),
+        900,
+      );
+      expect(
+        rules.careBlocked(
+          receipt.after,
+          CareKind.drink,
+          t0,
+          option: Drink.values.first,
+          fullVersion: true,
+        ),
+        isNotNull,
+      );
+      expect(
+        rules.careBlocked(
+          receipt.after,
+          CareKind.drink,
+          t0,
+          option: Drink.values.last,
+        ),
+        isNull,
+      );
+    },
+  );
 
   test('todas las bebidas están disponibles pagando monedas', () {
     for (final drink in Drink.values) {
@@ -107,7 +205,7 @@ void main() {
     }
   });
 
-  test('el masaje requiere versión completa y los baños comparten plazo', () {
+  test('masaje requiere versión completa y cada baño tiene plazo propio', () {
     expect(
       rules.careBlocked(pet(), CareKind.bath, t0, option: BathPlan.massage),
       contains('versión completa'),
@@ -122,7 +220,12 @@ void main() {
     expect(premium.after.coins, 70);
     expect(premium.needChange(Need.hygiene), 60);
     expect(
-      rules.careBlocked(premium.after, CareKind.bath, t0 + 299),
+      rules.careBlocked(
+        premium.after,
+        CareKind.bath,
+        t0 + 899,
+        option: BathPlan.premium,
+      ),
       contains('Podrás repetir'),
     );
   });

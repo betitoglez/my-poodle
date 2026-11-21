@@ -28,21 +28,22 @@ class _RecordingPlayback implements EffectPlayback {
 void main() {
   setUp(rootBundle.clear);
 
-  testWidgets('los 37 efectos activos tienen un MP3 único en el paquete', (
-    _,
-  ) async {
-    final assets = {for (final effect in Sfx.values) effect.asset};
-    expect(assets, hasLength(37));
-    expect(assets, isNot(contains('audio/sfx/step_grass.mp3')));
-    expect(assets, isNot(contains('audio/sfx/step_indoor.mp3')));
-    for (final asset in assets) {
-      expect(
-        (await rootBundle.load('assets/$asset')).lengthInBytes,
-        greaterThan(1000),
-        reason: asset,
-      );
-    }
-  });
+  testWidgets(
+    'los 41 efectos activos tienen un recurso de audio único en el paquete',
+    (_) async {
+      final assets = {for (final effect in Sfx.values) effect.asset};
+      expect(assets, hasLength(41));
+      expect(assets, isNot(contains('audio/sfx/step_grass.mp3')));
+      expect(assets, isNot(contains('audio/sfx/step_indoor.mp3')));
+      for (final asset in assets) {
+        expect(
+          (await rootBundle.load('assets/$asset')).lengthInBytes,
+          greaterThan(1000),
+          reason: asset,
+        );
+      }
+    },
+  );
 
   testWidgets('el ajuste Efectos silencia y vuelve a activar el bocado', (
     t,

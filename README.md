@@ -2,7 +2,7 @@
 
 Adopta un caniche toy, dale un nombre y cuídalo día a día. En el huerto saltarás con él para recoger frutas. En el prado le lanzarás un frisbee. Con las monedas que ganéis podrás elegir el color de su pelo, vestirlo y probar cortes de peluquería.
 
-La descarga es gratuita y lo básico se juega para siempre sin pagar. Cada minijuego premium permite una partida gratis cada 24 horas sin la versión completa. Una compra única de 1,99 € (o 1,99 US$) desbloquea la versión completa: más minijuegos, más armario y las novedades futuras. Sin anuncios y sin vender monedas. Detalle en [Versión gratuita y versión completa](docs/FUNCIONAL.md#versión-gratuita-y-versión-completa).
+La descarga es gratuita y lo básico se juega para siempre sin pagar. Huerto permite una partida gratis cada 24 horas sin la versión completa. Memory de caniches requiere la versión completa. Una compra única de 1,99 € (o 1,99 US$) desbloquea la versión completa: más minijuegos, más armario y las novedades futuras. Sin anuncios y sin vender monedas. Detalle en [Versión gratuita y versión completa](docs/FUNCIONAL.md#versión-gratuita-y-versión-completa).
 
 **[Abrir el diseño del juego](docs/disenos.html)** desde el clon. Incluye el recorrido de adopción y un selector de pantallas y tamaños para revisión. [Ver las pantallas a tamaño fijo](docs/arte/pantallas.jpg).
 
@@ -25,7 +25,7 @@ La app utiliza Flutter + Flame para la interfaz y las escenas, con el caniche y 
 
 Adopción, cuidados, salud, Huerto saltarín, Frisbee en el prado y armario de 43 artículos. La primera beta incluye modo foto con poses/giro y álbum privado de hasta 24 fotos, prueba diaria por juego premium y 11 variantes de idioma: es, en, fr, de, pt-BR, it, ru, ko, ja, zh-Hans y zh-Hant. Inglés es el respaldo. La app se llama «Mi Caniche» en español y «My Poodle» en inglés; [nombres por idioma](docs/IDIOMAS.md).
 
-Parejas, Simón de perritos y laberinto están propuestos y pendientes de definición en [TODO](TODO.md). No se presentan como juegos implementados.
+Esta rama añade Juego de parejas gratuito (4/6/8 parejas, 60 segundos, 5 fallos; premios 5/15/25) y Memory de caniches exclusivo de versión completa (4 colores con foto/sonido, secuencias de 3 a 10, 10 segundos por turno; premio total de 5 a 40). Repartos aleatorios sin repetir en la instalación, pausas y récords persistidos. [Reglas y acceso](docs/JUEGOS.md) · [Arte y sonidos](docs/arte/minigames/FUENTES.md). Laberinto continúa pendiente en [TODO](TODO.md).
 
 ### Ejecutar
 

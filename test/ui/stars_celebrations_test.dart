@@ -108,21 +108,30 @@ void main() {
     final handle = t.ensureSemantics();
     await boot(
       t,
-      backendWith((s) => s.copyWith(bestStars: {'fruit': 1, 'frisbee': 2})),
+      backendWith(
+        (s) => s.copyWith(
+          bestStars: {'fruit': 1, 'frisbee': 2, 'pairs': 3, 'memory': 0},
+        ),
+      ),
       store: fullStore(),
     );
     await tapText(t, 'Juegos');
-    await t.ensureVisible(find.text('Frisbee en el prado'));
-    await idle(t);
-    expect(starRows(t), containsAll([1, 2]));
-    expect(
-      find.bySemanticsLabel(RegExp(r'Mejor marca: 2 de 3 estrellas\.$')),
-      findsOneWidget,
-    );
-    expect(
-      find.bySemanticsLabel(RegExp(r'Mejor marca: 1 de 3 estrellas\.$')),
-      findsOneWidget,
-    );
+    for (final (title, stars) in [
+      ('Huerto saltarín', 1),
+      ('Frisbee en el prado', 2),
+      ('Juego de parejas', 3),
+      ('Memory de caniches', 0),
+    ]) {
+      await scrollTo(t, find.text(title));
+      await idle(t);
+      expect(starRows(t), contains(stars));
+      expect(
+        find.bySemanticsLabel(
+          RegExp('Mejor marca: $stars de 3 estrellas\\.\$'),
+        ),
+        findsWidgets,
+      );
+    }
     handle.dispose();
   });
 
@@ -144,7 +153,11 @@ void main() {
     expect(find.text('Los objetivos cambian en cada partida.'), findsOneWidget);
     await tapText(t, 'Volver');
 
-    await t.ensureVisible(find.text('Huerto saltarín'));
+    await t.scrollUntilVisible(
+      find.text('Huerto saltarín'),
+      -200,
+      scrollable: find.byType(Scrollable).last,
+    );
     await idle(t);
     await tapText(t, 'Huerto saltarín');
     final fruit = [

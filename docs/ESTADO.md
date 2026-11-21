@@ -707,3 +707,62 @@ Las [cinco poses de revisión](reviews/vestuario-articulado/cinco-poses.png) mue
 | `./gradlew :app:validateSigningRelease` | Correcto con la clave de subida local; no se ha generado AAB |
 
 Implementado y probado de forma automatizada; no probado en dispositivo.
+
+
+## Parejas y Memory · 20-11-2026
+
+Inicio de implementación en `codex/minijuegos-parejas-memory`, desde main `0baabdd`. Flutter 3.50.0 / Dart 3.14.0; dependencias conservadas. Parejas gratuito con 4/6/8 parejas, 60 segundos, cinco fallos y premios 5/15/25. Memory exclusivo de versión completa, cuatro señales, secuencias de 3 a 10 y premios totales 5 a 40; diez segundos por turno. Repartos aleatorios reservados con el inicio y persistidos para no repetir partidas. Verificación final: `flutter analyze` limpio, validadores de contenido/localizaciones correctos (11 × 605), **249 pruebas** y build web Release con `POODLE_LIVE_3D=true` correctos. Ocho fotos y cuatro notas nuevas empaquetadas. [Evidencia y capturas](reviews/minigames/README.md). Aceptación física y nueva beta pendientes.
+
+
+## Sincronización de minijuegos con main · 20-11-2026
+
+Integración de main remoto `ed77192` (PR #14 exportación de fotos al carrete y PR #15 variedad, estrellas, decoración, guía y celebraciones) en `codex/minijuegos-parejas-memory`, conservando el commit original `f3b87c7`. Conflictos de traducciones y guardado combinados sin perder campos. `GameSession` conserva semilla por sesión y frutas doradas, y Parejas/Memory se integran en las estrellas y sus retos. Verificación de la combinación: análisis limpio, **310 pruebas correctas**, contenido válido (12 artículos de decoración y 73 imágenes), 11 × 671 traducciones validadas y build web Release con `POODLE_LIVE_3D=true`. Aceptación física pendiente.
+
+
+## Revisión de PR #16: controles accesibles · 20-11-2026
+
+Corregido P2 de Codex sobre `ff2073c`: las cartas de Parejas y los pulsadores de Memory carecían de acción para VoiceOver/TalkBack. Ahora `LSemantics` e `InkWell` comparten la misma acción con comprobación dinámica de pausa/finalización y estado habilitado. Dos regresiones reproducen el fallo original y completan interacciones mediante acciones semánticas. **312 pruebas correctas**, análisis limpio, validadores correctos y web Release con POODLE_LIVE_3D=true. Comprobación de revisión remota y head en PR #16; prueba física con los lectores de pantalla y nueva beta pendientes.
+
+La comprobación accesible parte de las tarjetas del catálogo, cuya acción semántica también se expone, y del botón Jugar. Se incorpora sin sobrescribir el commit remoto `76712ee` de retratos WebP de 512 px (228 KB). Se comprueba el conjunto antes de pedir revisión del head resultante.
+
+
+## Ampliación de cuidados, armario y decoración · 20-11-2026
+
+Inicio en `codex/cuidados-armario-decoracion`, base `3387647`. Alcance del propietario: cuidados por opción cada 15 min para todas las versiones; cupo de juegos solo gratuito con oferta y contadores; decoración realista y visor 3D; giro lateral por arrastre en foto; portadas explicativas; precios, cortes por zonas y packs, colores/patrones especiales, créditos y banderas. Push solo anotado en TODO (máximo 2/día y distancia 8 h). Implementado: cinco cortes comprables por cada una de cuatro zonas más natural, packs dinámicos y migración; seis pelajes especiales con incremento global del 20 %, ropa normal/especial y redondeos; cuidados de 15 min por opción en ambas versiones; completa sin cupo de juegos, gratuita con contador/oferta; visor 3D en decoración, nueve recortes realistas y dos portadas; foto con arrastre yaw y Álbum; saldo, crédito y banderas. Sin nuevas dependencias. **328 pruebas correctas**, análisis limpio, validadores 76 artículos/12 decoración y 11 × 739 mensajes. Un test adicional con puente iOS simulado verifica arrastre lateral y caniche 3D en decoración. Visor WebGL compila los shaders y captura 100 miniaturas sin errores. Web Release e iOS Profile sin firma compilados con POODLE_LIVE_3D=true; modelo y arte empaquetados comprobados. [Evidencia](reviews/catalog-refresh/README.md). Aceptación física de estos cambios y revisión lingüística humana pendientes; no se instala, distribuye ni cambia PR #16.
+
+
+## Correcciones de revisión PR #17 · 21-11-2026
+
+Inicio desde `7d468b7`, rama `codex/cuidados-armario-decoracion`. Codex señaló dos P2: corte moderno idéntico al natural en 2D y secuencia de Memory inaudible al lector con efectos apagados. Corregidos con malla 2D diferenciada por zonas sobre la textura común y región viva por señal con ordinal, conservada durante los intervalos apagados; demostración de 2,6 s por señal y 0,4 s de intervalo con lector activo, sin alterar los diez segundos de respuesta. **334 pruebas correctas**, análisis limpio, validadores correctos y 11 × 740 mensajes. Regresiones de compra/recarga/dibujo por zona y pack, animaciones, señales repetidas y respuesta por semántica sin leer el guardado; cuatro pruebas reproducen los fallos al ejecutar el código anterior. [Evidencia y comparativa](reviews/pr17-fixes/README.md). Compilaciones web Release e iOS Profile sin firma correctas con POODLE_LIVE_3D=true; modelo e idiomas empaquetados comprobados. Prueba física con lectores pendiente; no se instala ni distribuye.
+
+
+## Miniaturas, cola uniforme y precios por familia · 21-11-2026
+
+Inicio desde bed4bee. Solicitud: eliminar marca morada de todas las miniaturas; añadir corte de cola uniforme gratuito; perfiles laterales para lomo/cola; aumento del 20 % de especiales solo por compras de especiales de la misma familia/categoría (confirmado por el propietario). Causa de la marca: sprites «z» con visibilidad undefined al capturar catálogo. Implementado: 25 cortes por zona (estándar solo para cola), 101 miniaturas recapturadas, cola gratuita persistente en 3D/2D, previsualización lateral y precios independientes por familia. Verificación final conjunta con los ajustes de pared/ropa de la sección siguiente.
+
+
+## Guirnaldas, estrellas y ajuste de ropa · 21-11-2026
+
+Ampliación durante la validación de catálogo: guirnaldas de extremo a extremo, bordes luminosos de estrellas, tres líneas de premios de Parejas con moneda por nivel y evitar que pelo/peinados atraviesen gorro o ropa (foto del propietario). Se completa antes de instalar la build 37.
+
+
+Validación final del conjunto: análisis limpio, **342 pruebas completas correctas**, contenido válido (76 artículos base/packs, 12 de decoración, 84 imágenes de los catálogos principales), 11 × 747 mensajes y prueba Node de cámaras correcta. Visor real: 101 miniaturas y 74 combinaciones de ajuste de ropa/cabeza sin errores JS/GLSL. Web Release e iOS Profile firmada **0.5.0 (37)** compilados con `POODLE_LIVE_3D=true`; JS, GLB, 101 miniaturas y traducciones empaquetadas coinciden con las fuentes. Sin nuevas dependencias. [Evidencia y comparativas](reviews/catalog-tuning/README.md). Instalación preparada con copia privada; la aceptación física manual completa y revisión lingüística humana siguen pendientes.
+
+
+## Pared adaptable y aviso de prueba plegable · 21-11-2026
+
+Inicio desde `6925ca4`: el propietario rechaza la guirnalda anterior estirada y pide nuevos recursos realistas para guirnaldas y estrellas que cubran todo el ancho en distintos dispositivos. Se regeneran dos tiras con transparencia y continuidad lateral, conservando sus proporciones al repetirlas. Además, «Probando» se pliega al tocarlo y deja solo el ojo arriba a la derecha en Armario y Decoración. Flutter 3.50.0 / Dart 3.14.0; dependencias conservadas. Implementado y verificado con los resultados siguientes.
+
+
+Además, corregido el P2 de Codex sobre `6925ca4`: las variantes nuevas de jersey se veían rojas con materiales 2D integrados. La ruta del material original solo acepta rojo/azul/mostaza; los otros seis colores/estampados usan el dibujante que los representa. La regresión reproduce blanco idéntico a rojo antes del cambio y después distingue todas las variantes entre sí en tres vistas. [Arte, prompts y evidencia](reviews/wall-spans/README.md).
+
+
+Verificación final: análisis limpio, **345 pruebas correctas**, validadores de contenido e idiomas correctos (**11 × 749 mensajes**). Diez capturas del dibujante real: ambos artículos a 320, 390, 600, 844 y 1024 px; píxeles presentes en ambos bordes y primeros adornos iguales al ampliar el ancho, demostrando ausencia de estiramiento. Pruebas de plegado/restauración de «Probando» en ambos menús sin cambios de compra o aspecto. Regresión del jersey reproduce el fallo anterior y pasa corregida. Web Release e iOS Profile firmada **0.5.0 (38)** correctas con `POODLE_LIVE_3D=true`; nuevos adornos y traducciones empaquetados comprobados. Instalación preparada con copia privada; aceptación visual manual final pendiente.
+
+
+## Capturas de tablet y contraste de Probando · 21-11-2026
+
+Inicio desde `8e19c5f`: capturar Casa con guirnalda y estrellas, Decoración, Armario, Cuidados, Foto y los cuatro juegos en el mismo iPad Pro de 13 pulgadas, sin cambiar sus dimensiones entre capturas. Simulador iOS 26.5 con visor 3D nativo; partida de demostración solo en memoria. El propietario informa de que el aviso grande «Probando» se ve vacío: el tema global hereda texto crema sobre el nuevo fondo crema. Se fija primer plano ciruela explícito para texto/icono, conservando el estado plegable. Corregido el contraste y completadas las capturas nativas.
+
+
+Resultado: **15 capturas nativas** del simulador iPad Pro 13 (M5), iOS 26.5, **2064×2752 px / 1032×1376 puntos**, mismo tamaño en todas. Casa con guirnalda/estrellas, Decoración con aviso grande y estrellas colocadas; Armario con aviso grande/plegado, Cuidados, Comer, Foto, catálogo, instrucciones de Parejas y cuatro juegos activos. Visor WKWebView/WebGL cargado en todas las escenas que lo usan, sin respaldo por fallo; recorrido sin excepciones ni desbordes. [Galería y reproducción](reviews/tablet-13/README.md). PNG originales sin modificar y ZIP entregables en la carpeta externa de revisión. Análisis limpio y dos recorridos de prueba del aviso correctos con contraste mínimo 4,5:1. Build normal iOS Profile firmada **0.5.0 (39)**, `lib/main.dart` y 3D activo; preparada para actualizar el iPhone. Sin dependencias nuevas ni cambio de orientación admitida en producción.

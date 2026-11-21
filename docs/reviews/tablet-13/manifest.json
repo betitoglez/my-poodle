@@ -1,0 +1,139 @@
+{
+  "device": "iPad Pro 13-inch (M5)",
+  "simulator": "9495CF14-6CFE-4489-8D61-5A80673C803F",
+  "runtime": "iOS 26.5",
+  "capture": "simctl framebuffer, native WKWebView 3D enabled",
+  "files": [
+    "01-casa-guirnalda",
+    "02-casa-estrellas",
+    "03-decoracion-probando-visible",
+    "04-decoracion-estrellas-colocadas",
+    "05-armario-cola-probando",
+    "06-armario-cola-ojo",
+    "07-cuidados",
+    "08-comer",
+    "09-modo-foto",
+    "10-catalogo-juegos",
+    "11-instrucciones-parejas",
+    "12-juego-parejas-8",
+    "13-juego-memory",
+    "14-juego-huerto",
+    "15-juego-frisbee"
+  ],
+  "captures": [
+    {
+      "name": "01-casa-guirnalda",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "02-casa-estrellas",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "03-decoracion-probando-visible",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "04-decoracion-estrellas-colocadas",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "05-armario-cola-probando",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "06-armario-cola-ojo",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "07-cuidados",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 0
+    },
+    {
+      "name": "08-comer",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "09-modo-foto",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "10-catalogo-juegos",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 0
+    },
+    {
+      "name": "11-instrucciones-parejas",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 0
+    },
+    {
+      "name": "12-juego-parejas-8",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 0
+    },
+    {
+      "name": "13-juego-memory",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 0
+    },
+    {
+      "name": "14-juego-huerto",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    },
+    {
+      "name": "15-juego-frisbee",
+      "widthPx": 2064.0,
+      "heightPx": 2752.0,
+      "devicePixelRatio": 2.0,
+      "native3DViews": 1
+    }
+  ],
+  "logicalSize": [
+    1032,
+    1376
+  ],
+  "orientation": "portrait",
+  "sourceBase": "8e19c5fb7eb0f2dccd3c0511b810f3790963afa5",
+  "workingChange": "Explicit plum foreground on PreviewBadge; captured expanded and collapsed.",
+  "originals": "Unmodified PNG framebuffer captures; repository WebP copies for review.",
+  "data": "Demo pet and purchases in memory only; no user save or Apple purchase."
+}

@@ -277,10 +277,11 @@ export function makeSleepGlyphs(head, parent) {
     return sprite;
   });
   return (visible, time, reduced) => {
-    if (visible) parent.worldToLocal(head.getWorldPosition(point));
+    const show = Boolean(visible);
+    if (show) parent.worldToLocal(head.getWorldPosition(point));
     for (const [index, glyph] of glyphs.entries()) {
-      glyph.visible = visible;
-      if (!visible) continue;
+      glyph.visible = show;
+      if (!show) continue;
       const t = ((reduced ? .15 : time * .00045) + index / 3) % 1;
       glyph.position.copy(point).add(new THREE.Vector3(.07 + t * .15, .18 + t * .24, .12));
       glyph.scale.setScalar(.095 + t * .066);

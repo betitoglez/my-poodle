@@ -15,3 +15,8 @@ Un único reproductor `audioplayers` 6.8.1 cambia de fuente según la página vi
 Se conserva la posición al silenciar desde Ajustes o pasar a segundo plano mientras no cambie la pista. Se pausa también en los diálogos de pausa y abandono de actividades. La preferencia existente `music` se guarda con la partida. En web comienza tras el primer toque y se reintenta con otro gesto si el navegador bloquea la reproducción. Los fallos de audio no impiden jugar.
 
 Procedencia: archivos facilitados por el propietario; no se ha aportado documentación de autoría o licencia. Se conservan los efectos sonoros de ElevenLabs y la respuesta háptica; véase [EFECTOS](audio/EFECTOS.md). Música y efectos respetan ajustes independientes y comparten una sesión de audio compatible.
+
+
+## Memory · 20-11-2026
+
+Cuatro notas originales sintetizadas localmente y empaquetadas como WAV PCM de 0,42 s. Se añaden a los 37 efectos existentes (41 recursos activos). Rojo/Do, azul/Mi, verde/Sol y amarillo/Do agudo. Respetan Efectos y la pausa/segundo plano; la muestra y la respuesta usan la misma nota. [Generador, frecuencias y procedencia](arte/minigames/FUENTES.md). La música de juegos también se aplica a los dos tableros nuevos.

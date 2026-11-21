@@ -104,20 +104,21 @@ class AppController extends ChangeNotifier {
   /// Derecho confirmado (o el de la demostración).
   bool get fullVersion => purchases.full;
   bool canAccess(Tier tier) => purchases.canAccess(tier);
-  bool isGameTrial(GameId game) =>
-      !fullVersion && rules.gameTier(game) == Tier.full;
+  bool isGameTrial(GameId game) => !fullVersion && rules.offersGameTrial(game);
   int trialRemaining(GameId game) => _confirmed == null
       ? 0
       : rules.premiumTrialRemaining(pet, game, clock.nowUtcSeconds());
   bool canPlay(GameId game) =>
       canAccess(rules.gameTier(game)) ||
-      (_confirmed != null && trialRemaining(game) == 0);
+      (_confirmed != null &&
+          rules.offersGameTrial(game) &&
+          trialRemaining(game) == 0);
   String? trialLabel(GameId game) {
     if (!isGameTrial(game)) return null;
     final seconds = trialRemaining(game);
     if (seconds == 0) return '1 partida gratis cada 24 h';
-    final minutes = (seconds / 60).ceil();
-    return 'Prueba disponible en ${minutes ~/ 60} h ${minutes % 60} min';
+    String pad(int n) => n.toString().padLeft(2, '0');
+    return 'Prueba disponible en ${pad(seconds ~/ 3600)}:${pad(seconds ~/ 60 % 60)}:${pad(seconds % 60)}';
   }
 
   /// Artículos de [target] que piden la versión completa.
@@ -125,8 +126,8 @@ class AppController extends ChangeNotifier {
       rules.lockedItems(pet, target, fullVersion: fullVersion);
 
   bool isLocked(String itemId) =>
-      !(pet.owned.contains(itemId)) &&
-      !canAccess(balance.item(itemId)?.tier ?? Tier.free);
+      !rules.ownsStyle(pet, itemId) && !canAccess(rules.styleTier(itemId));
+  int itemCost(String id) => rules.styleCost(pet, id);
 
   Future<void> boot() async {
     status = BootStatus.loading;
@@ -156,7 +157,7 @@ class AppController extends ChangeNotifier {
 
   void _startTicker() {
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_confirmed != null) notifyListeners();
     });
   }
@@ -276,14 +277,23 @@ class AppController extends ChangeNotifier {
     option: option,
     fullVersion: fullVersion,
   );
-  String? get gameBlocked => rules.gameBlocked(pet, clock.nowUtcSeconds());
+  String? get gameBlocked =>
+      rules.gameBlocked(pet, clock.nowUtcSeconds(), fullVersion: fullVersion);
 
-  int careWaitSeconds(CareKind kind) => rules.careWaitSeconds(
+  int get gameWaitSeconds => rules.gameWaitSeconds(
     pet,
-    kind,
     clock.nowUtcSeconds(),
     fullVersion: fullVersion,
   );
+
+  int careWaitSeconds(CareKind kind, {CareOption? option}) =>
+      rules.careWaitSeconds(
+        pet,
+        kind,
+        clock.nowUtcSeconds(),
+        fullVersion: fullVersion,
+        option: option,
+      );
 
   Future<ActionResult<PetState>> setHomeResting(bool resting) =>
       _serial(() async {
@@ -316,7 +326,7 @@ class AppController extends ChangeNotifier {
 
   /// Guarda el inicio y el cupo premium en una sola escritura antes de jugar.
   /// Un fallo no consume la prueba; abandonar una sesión iniciada sí.
-  Future<String?> beginGame(GameId game) => _serial(() async {
+  Future<String?> beginGame(GameId game, {int pairs = 4}) => _serial(() async {
     if (!canPlay(game) || gameBlocked != null || hasPending || saving) {
       return null;
     }
@@ -327,6 +337,7 @@ class AppController extends ChangeNotifier {
       clock.nowUtcSeconds(),
       game: game,
       fullVersion: fullVersion,
+      pairs: pairs,
     );
     saving = true;
     notifyListeners();

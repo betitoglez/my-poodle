@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-20",
+  "branch": "codex/minijuegos-parejas-memory",
+  "base": "ed77192a11550d9f3f705a444a2556424d7b4685",
+  "flutter": "3.50.0",
+  "dart": "3.14.0",
+  "checks": {
+    "flutter_analyze": "No issues found",
+    "flutter_test": {
+      "passed": 312,
+      "failed": 0,
+      "new_puzzle_tests": 26
+    },
+    "validate_content": {
+      "images": 73,
+      "poodle_portraits": 8,
+      "memory_tones": 4,
+      "status": "passed"
+    },
+    "validate_localizations": {
+      "languages": 11,
+      "messages_per_language": 671,
+      "status": "passed"
+    },
+    "web_release": {
+      "status": "built",
+      "entrypoint": "lib/main.dart",
+      "POODLE_LIVE_3D": true
+    },
+    "git_diff_check": "passed"
+  },
+  "screenshots": [
+    "pairs-6.png",
+    "pairs-8-320.png",
+    "pairs-8-844.png",
+    "memory.png"
+  ],
+  "physical_device_tested": false,
+  "testflight_distributed": false,
+  "notes": [
+    "Five attempts means five mismatches; matching pairs cost no attempts.",
+    "Memory pays a single total prize for the last completed round, 5..40 coins.",
+    "Full ten-step memory sequences never repeat; shorter prefixes can coincide.",
+    "Puzzle deals are stored atomically on successful start, even if abandoned.",
+    "Memory allows ten active seconds for the entire response turn; correct taps do not reset the timer.",
+    "Main star progress is independent for all four games; puzzle history and decor survive the same save round-trip."
+  ],
+  "original_base": "0baabdddd9eada7db59340f0bdd4217ce44ce53c",
+  "integration": {
+    "method": "merge",
+    "original_feature_commit": "f3b87c7",
+    "main": "ed77192a11550d9f3f705a444a2556424d7b4685",
+    "preserves": [
+      "photo gallery export",
+      "decor",
+      "tutorial",
+      "session variety and golden fruit",
+      "stars and celebrations",
+      "pairs and memory rules"
+    ],
+    "preserved_remote_asset_commit": "76712ee0572b34215bbbd6173ea115955639405b"
+  },
+  "accessibility_review_fix": {
+    "original_reviewed_commit": "ff2073caa5b3988de223599a83396b5aea2412ed",
+    "comment": "https://github.com/betitoglez/my-poodle/pull/16#discussion_r4647460416",
+    "finding": "P2: puzzle buttons lacked semantic tap actions",
+    "fix": "Share guarded onTap between InkWell and LSemantics, with enabled state",
+    "regressions": [
+      "Accessible catalog card and Jugar button lead into both games",
+      "Pairs completed through screen-reader semantic actions",
+      "Memory input, replay-disabled controls and stale actions during pause"
+    ],
+    "reproduced_before_fix": true
+  }
+}

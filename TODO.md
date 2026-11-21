@@ -27,14 +27,15 @@ Actualizado el 20-11-2026. Este documento recoge el alcance confirmado; [FASES](
 - [x] Guardado local, adopción, necesidades/salud y puerta adulta. El guardado de la compra se conserva separado de la partida.
 - [x] Compra y aceptación Android documentadas en el clon original: compra, cancelación, pendientes aprobada/rechazada, restauración con derecho existente, reembolso y reinicio offline. Correcciones integradas en main por PR #5 y PR #12; repetir aceptación de la candidata actual sigue pendiente.
 
-## Minijuegos nuevos: definición pendiente
+## Minijuegos nuevos · 20-11-2026
 
-Son candidatos del MVP ampliado, no juegos ya implementados. Antes de construirlos fijar cuáles entran en la beta/MVP, reglas, duración, premios, acceso gratuito/completo y arte.
+Parejas y Memory implementados en esta rama por petición del propietario; aceptación en dispositivo y distribución en una nueva beta pendientes.
 
-- [ ] Memory de parejas: descubrir cartas y encontrar parejas; tamaño de tablero y dificultad por definir.
-- [ ] Memory de perritos tipo Simón: repetir una secuencia de perritos/colores/sonidos; acceso sin sonido y dificultad por definir.
+- [x] Juego de parejas gratuito: 4/6/8 parejas de caniches, 60 segundos y 5 errores; premios 5/15/25 monedas. Ocho retratos generados y empaquetados.
+- [x] Memory de caniches tipo Simón: cuatro fotos/colores/notas, de 3 a 10 pasos, 10 segundos por turno, premio total 5..40. Solo versión completa; funciona también sin sonido.
 - [ ] Laberinto: conducir al caniche a la meta; controles, niveles y obstáculos por definir.
-- [ ] Cada juego premium futuro debe usar el mismo cupo gratuito de una partida cada 24 h, con IDs estables y guardado compatible.
+- [x] Excepción explícita de acceso: Memory exige la compra sin prueba diaria; Huerto conserva la prueba existente. Historial de repartos y récords compatibles con guardados v1.
+- [ ] Aceptación física de Parejas/Memory: audio de notas, interrupciones, accesibilidad y partidas completas en iPhone/Android.
 
 ## Aceptación y preparación de publicación
 
@@ -68,7 +69,8 @@ Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en disp
 - [x] Primera partida guiada: comer, jugar y estrenar algo, con opción de saltarla.
 - [x] Pequeñas celebraciones: monedas que cuentan, confeti y transiciones suaves que respetan el movimiento reducido.
 - [x] Accesibilidad de escenas y juegos: etiquetas de estado, regiones vivas y texto grande sin desbordes.
-- [ ] Arte final de la decoración (los dibujos actuales son provisionales) y decoración visible en el visor 3D/foto en dispositivo.
+- [x] Nueve artículos de decoración regenerados con apariencia realista y transparencia; caniche 3D en la pantalla de decorar.
+- [ ] Aceptación física de la decoración renovada en iPhone.
 - [ ] Comprobar en iPhone con 3D: decoración bajo el caniche, corazones, guía, transiciones y lector de pantalla (VoiceOver/TalkBack).
 - [ ] Revisión lingüística de los 55 textos nuevos en los 11 idiomas.
 
@@ -77,3 +79,8 @@ Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en disp
 - [ ] Exportación/importación de partida detrás de la puerta adulta, sin servidor.
 - [ ] Logros/álbum de pegatinas y nuevas actividades.
 - [ ] Recordatorios locales opcionales desde la zona adulta.
+
+
+## Notificaciones pendientes
+
+- [ ] Notificaciones push cuando el estado del perro sea malo: máximo 2 al día y separadas por al menos 8 horas. Solicitar permiso, persistir el cupo y comprobar reinicios, cambios de día y reloj. Esta tarea queda planificada, sin activar notificaciones todavía.

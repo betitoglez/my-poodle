@@ -236,7 +236,10 @@ void main() {
         painted++;
       }
     }
-    expect(painted, 5 * 5);
+    expect(
+      painted,
+      balance.itemsFor(Slot.coat).length * balance.itemsFor(Slot.hair).length,
+    );
     expect(
       painter.sprites!.stateLayer('messy', 'hair.pom', 'front'),
       isNotNull,

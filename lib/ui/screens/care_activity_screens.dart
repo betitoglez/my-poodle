@@ -178,6 +178,7 @@ abstract class CareActivityState<W extends StatefulWidget, G extends StageGame>
     hasPendingProgress: hasPending,
     onExit: onExit,
     hint: hintWidget,
+    status: CoinBalance(coins: AppScope.of(context).pet.coins),
   );
 }
 
@@ -371,6 +372,11 @@ class _CareOptions<T extends CareOption> extends StatelessWidget {
               choice: choice,
               artwork: artwork(choice),
               icon: icon,
+              waitSeconds: c.careWaitSeconds(switch (choice) {
+                Food() => CareKind.feed,
+                BathPlan() => CareKind.bath,
+                _ => CareKind.drink,
+              }, option: choice),
               selected: selected == choice,
               locked: !c.canAccess(choice.tier),
               onTap: onSelected == null
@@ -378,6 +384,16 @@ class _CareOptions<T extends CareOption> extends StatelessWidget {
                   : () {
                       if (!c.canAccess(choice.tier)) {
                         showAskAdult(context);
+                        return;
+                      }
+                      final kind = switch (choice) {
+                        Food() => CareKind.feed,
+                        BathPlan() => CareKind.bath,
+                        _ => CareKind.drink,
+                      };
+                      final blocked = c.careBlocked(kind, option: choice);
+                      if (c.careWaitSeconds(kind, option: choice) > 0) {
+                        showCareBlocked(context, kind, blocked!);
                         return;
                       }
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -393,6 +409,7 @@ class _CareOptions<T extends CareOption> extends StatelessWidget {
 class _CareOptionTile extends StatelessWidget {
   const _CareOptionTile({
     required this.choice,
+    this.waitSeconds = 0,
     required this.artwork,
     required this.icon,
     required this.selected,
@@ -401,6 +418,7 @@ class _CareOptionTile extends StatelessWidget {
   });
 
   final CareOption choice;
+  final int waitSeconds;
   final String artwork;
   final IconData icon;
   final bool selected;
@@ -451,6 +469,11 @@ class _CareOptionTile extends StatelessWidget {
                               : choice.label,
                           style: AppText.subtitle,
                         ),
+                        if (waitSeconds > 0)
+                          LText(
+                            'Disponible en ${countdown(waitSeconds)}',
+                            style: AppText.small,
+                          ),
                         const SizedBox(height: 4),
                         Wrap(
                           spacing: 10,
@@ -766,9 +789,12 @@ class _BathScreenState extends CareActivityState<BathScreen, BathGame> {
   Widget build(BuildContext context) {
     final c = AppScope.of(context);
     final equipped = c.pet.appearance;
-    final appearance = c.balance.initialAppearance
-        .withSlot(Slot.coat, equipped.coat)
-        .withSlot(Slot.hair, equipped.hair);
+    final appearance = Appearance({
+      for (final slot in Slot.values)
+        slot: slot == Slot.coat || slot == Slot.hair
+            ? equipped.of(slot)
+            : c.balance.baseFor(slot).id,
+    }, cuts: equipped.cuts);
     final showModel =
         LivePoodleView.enabled &&
         !_live.failed &&
@@ -1140,12 +1166,9 @@ class GroomScreen extends StatefulWidget {
 class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
   final _activity = GroomActivity();
   final _live = LivePoodleController();
-  String? _targetHair;
   List<num>? _lastGroomFrame;
   @override
   CareKind get kind => CareKind.groom;
-  @override
-  String? get groomingHair => _live.ready ? _targetHair : null;
   @override
   StepActivity get activity => _activity;
   @override
@@ -1164,7 +1187,7 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
       return;
     }
     final current = AppScope.read(context).pet.appearance.hair;
-    final target = _targetHair ?? current;
+    final target = current;
     final state = [
       if (target == 'hair.pom') 1 else 0,
       if (target == 'hair.puppy') 1 else 0,
@@ -1197,41 +1220,17 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
       ..resumeEngine();
   }
 
-  Future<void> _chooseCut() async {
-    final c = AppScope.read(context);
-    final selected = _targetHair ?? c.pet.appearance.hair;
-    final choice = await showDialog<String>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const LText('Elegir corte'),
-        children: [
-          for (final item in c.balance.itemsFor(Slot.hair))
-            ListTile(
-              title: LText(c.looks.labels[item.id]!),
-              subtitle: LText(
-                c.pet.owned.contains(item.id)
-                    ? 'Se puede guardar'
-                    : 'Vista previa · Disponible en el armario',
-              ),
-              trailing: item.id == selected ? const Icon(Icons.check) : null,
-              onTap: () => Navigator.pop(context, item.id),
-            ),
-        ],
-      ),
-    );
-    if (!mounted || choice == null) return;
-    setState(() => _targetHair = choice);
-    _syncGroom();
-  }
-
   @override
   Widget build(BuildContext context) {
     final done = _activity.completed;
     final c = AppScope.of(context);
     final equipped = c.pet.appearance;
-    final appearance = c.balance.initialAppearance
-        .withSlot(Slot.coat, equipped.coat)
-        .withSlot(Slot.hair, equipped.hair);
+    final appearance = Appearance({
+      for (final slot in Slot.values)
+        slot: slot == Slot.coat || slot == Slot.hair
+            ? equipped.of(slot)
+            : c.balance.baseFor(slot).id,
+    }, cuts: equipped.cuts);
     final showModel =
         LivePoodleView.enabled &&
         !_live.failed &&
@@ -1240,8 +1239,7 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
     final g = game!
       ..useLiveModel = live
       ..pet.showSprite = !showModel;
-    final target = _targetHair ?? equipped.hair;
-    final preview = live && !c.pet.owned.contains(target);
+    final target = equipped.uniformHair ? equipped.hair : 'hair.custom';
     return frame(
       title: 'Entre rizos',
       scene: SceneView(
@@ -1291,11 +1289,7 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
         children: [
           _instruction(
             done
-                ? !live
-                      ? 'Rizos listos. Termina el cepillado.'
-                      : preview
-                      ? 'Vista previa lista. Se conservará el corte que llevaba.'
-                      : 'Rizos listos. Termina para guardar el corte.'
+                ? 'Rizos listos. Termina el cepillado.'
                 : switch (_activity.tool) {
                     GroomTool.comb => 'Peine: frota los tres mechones.',
                     GroomTool.scissors => 'Tijeras: repasa los tres mechones.',
@@ -1309,10 +1303,7 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
           ),
           if (live) ...[
             const SizedBox(height: 4),
-            LText(
-              '${c.looks.labels[target]}${preview ? ' · Vista previa' : ''}',
-              style: AppText.small,
-            ),
+            LText(c.looks.label(target), style: AppText.small),
           ],
           const SizedBox(height: AppSpace.s),
           Row(
@@ -1335,13 +1326,11 @@ class _GroomScreenState extends CareActivityState<GroomScreen, GroomGame> {
             children: [
               Expanded(
                 child: AppButton(
-                  label: live ? 'Elegir corte' : 'Probar cortes',
+                  label: 'Armario',
                   icon: Icons.content_cut_rounded,
                   secondary: true,
                   expand: true,
-                  onPressed: live
-                      ? (_activity.tool == GroomTool.comb ? _chooseCut : null)
-                      : _tryCuts,
+                  onPressed: _tryCuts,
                 ),
               ),
               const SizedBox(width: AppSpace.s),
@@ -1411,9 +1400,12 @@ class _SleepScreenState extends CareActivityState<SleepScreen, SleepGame> {
     final c = AppScope.of(context);
     final name = c.pet.name;
     final equipped = c.pet.appearance;
-    final appearance = c.balance.initialAppearance
-        .withSlot(Slot.coat, equipped.coat)
-        .withSlot(Slot.hair, equipped.hair);
+    final appearance = Appearance({
+      for (final slot in Slot.values)
+        slot: slot == Slot.coat || slot == Slot.hair
+            ? equipped.of(slot)
+            : c.balance.baseFor(slot).id,
+    }, cuts: equipped.cuts);
     final showModel =
         LivePoodleView.enabled &&
         !_live.failed &&
@@ -1572,9 +1564,12 @@ class _VetScreenState extends CareActivityState<VetScreen, VetGame> {
     final c = AppScope.of(context);
     final name = c.pet.name;
     final equipped = c.pet.appearance;
-    final appearance = c.balance.initialAppearance
-        .withSlot(Slot.coat, equipped.coat)
-        .withSlot(Slot.hair, equipped.hair);
+    final appearance = Appearance({
+      for (final slot in Slot.values)
+        slot: slot == Slot.coat || slot == Slot.hair
+            ? equipped.of(slot)
+            : c.balance.baseFor(slot).id,
+    }, cuts: equipped.cuts);
     final showModel =
         LivePoodleView.enabled &&
         !_live.failed &&

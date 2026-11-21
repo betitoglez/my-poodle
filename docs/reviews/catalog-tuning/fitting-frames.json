@@ -1,0 +1,1157 @@
+{
+  "sleepGlyphRegression": "passed",
+  "captures": [
+    {
+      "id": "natural-outfit.teal-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.teal-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.sweater_red-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.sweater_red-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.raincoat_blue-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.raincoat_blue-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.raincoat_blue-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.dress_pink-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.dress_pink-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "natural-outfit.dress_pink-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.teal-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.teal-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.sweater_red-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.sweater_red-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.raincoat_blue-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.raincoat_blue-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.raincoat_blue-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.dress_pink-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.dress_pink-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "teddy-outfit.dress_pink-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.teal-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.teal-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.sweater_red-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.sweater_red-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.raincoat_blue-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.raincoat_blue-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.raincoat_blue-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.dress_pink-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.dress_pink-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "pom-outfit.dress_pink-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.teal-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.teal-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.sweater_red-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.sweater_red-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.raincoat_blue-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.raincoat_blue-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.raincoat_blue-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.dress_pink-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.dress_pink-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "puppy-outfit.dress_pink-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.teal-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.teal-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.sweater_red-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.sweater_red-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.raincoat_blue-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.raincoat_blue-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.raincoat_blue-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.dress_pink-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.dress_pink-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "show-outfit.dress_pink-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.teal-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.teal-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.sweater_red-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.sweater_red-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.raincoat_blue-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.raincoat_blue-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.raincoat_blue-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.raincoat_blue",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.dress_pink-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.dress_pink-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.dress_pink-back",
+      "slot": "hair",
+      "yaw": 3.141592653589793,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.beanie",
+        "outfit.dress_pink",
+        "paws.rain"
+      ]
+    }
+  ]
+}

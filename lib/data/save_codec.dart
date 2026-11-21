@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/appearance.dart';
+import '../domain/haircuts.dart';
 import '../domain/balance.dart';
 import '../domain/pet_name.dart';
 import '../domain/pet_state.dart';
@@ -43,6 +44,9 @@ class SaveCodec {
     'appearance': s.appearance.toJson(),
     'bestFruit': s.bestFruit,
     'bestFrisbee': s.bestFrisbee,
+    'bestPairs': s.bestPairs,
+    'bestMemory': s.bestMemory,
+    'puzzleDeals': s.puzzleDeals,
     'bestStars': s.bestStars,
     'decor': {for (final e in s.decor.entries) e.key.name: e.value},
     'muted': s.prefs.muted,
@@ -107,9 +111,24 @@ class SaveCodec {
       return balance.item(v) == null ? balance.baseFor(slot).id : v;
     }
 
-    final appearance = Appearance({
-      for (final slot in Slot.values) slot: slotId(slot),
-    });
+    final legacyHair = slotId(Slot.hair);
+    final appearance = Appearance(
+      {for (final slot in Slot.values) slot: slotId(slot)},
+      cuts: {
+        for (final z in HairZone.values)
+          z:
+              ap['cut_${z.name}'] is String &&
+                  Haircuts.supports(z, ap['cut_${z.name}'] as String)
+              ? ap['cut_${z.name}'] as String
+              : Haircuts.styleOf(legacyHair),
+      },
+    );
+    // Los packs antiguos se conservan como sus cuatro cortes ya adquiridos.
+    for (final pack in owned.where((id) => id.startsWith('hair.')).toList()) {
+      for (final zone in HairZone.values) {
+        owned.add(Haircuts.id(zone, Haircuts.styleOf(pack)));
+      }
+    }
     // Los artículos base siempre están en propiedad.
     owned.addAll(balance.initialAppearance.ids);
 
@@ -130,6 +149,11 @@ class SaveCodec {
     if (trialTimes is! Map<String, dynamic> ||
         trialTimes.values.any((v) => v is! int || v < 0)) {
       throw SaveFormatException('Pruebas premium inválidas');
+    }
+    final deals = j['puzzleDeals'] ?? <String, dynamic>{};
+    if (deals is! Map<String, dynamic> ||
+        deals.values.any((v) => v is! List || v.any((e) => e is! String))) {
+      throw SaveFormatException('Repartos inválidos');
     }
     final starsRaw = j['bestStars'] ?? <String, dynamic>{};
     if (starsRaw is! Map<String, dynamic> ||
@@ -187,6 +211,12 @@ class SaveCodec {
       appearance: appearance,
       bestFruit: (j['bestFruit'] as int?) ?? 0,
       bestFrisbee: (j['bestFrisbee'] as int?) ?? 0,
+      bestPairs: (j['bestPairs'] as int?) ?? 0,
+      bestMemory: (j['bestMemory'] as int?) ?? 0,
+      puzzleDeals: Map.unmodifiable({
+        for (final e in deals.entries)
+          e.key: List<String>.unmodifiable((e.value as List).cast<String>()),
+      }),
       bestStars: Map.unmodifiable(starsRaw.cast<String, int>()),
       decor: Map.unmodifiable(decor),
       prefs: Preferences(
