@@ -120,6 +120,23 @@ class _PairsScreenState extends State<PairsScreen>
                   final visible = sim.visible(index);
                   final matched = sim.matched.contains(index);
                   final dog = PuzzleDeals.poodles[sim.cards[index]];
+                  final VoidCallback? activate =
+                      game.paused ||
+                          finishing ||
+                          sim.finished ||
+                          visible ||
+                          sim.second != null
+                      ? null
+                      : () {
+                          if (!mounted ||
+                              game.paused ||
+                              finishing ||
+                              !sim.flip(index)) {
+                            return;
+                          }
+                          AppScope.feedbackOf(context).play(Sfx.tap);
+                          setState(() {});
+                        };
                   return LSemantics(
                     label: visible
                         ? matched
@@ -127,6 +144,8 @@ class _PairsScreenState extends State<PairsScreen>
                               : 'Carta ${index + 1}: ${_poodleNames[sim.cards[index]]}'
                         : 'Carta ${index + 1}, boca abajo',
                     button: true,
+                    enabled: activate != null,
+                    onTap: activate,
                     excludeSemantics: true,
                     child: Material(
                       color: matched ? AppColors.leafSoft : AppColors.plum,
@@ -134,17 +153,7 @@ class _PairsScreenState extends State<PairsScreen>
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
                         key: ValueKey('pair-card-$index'),
-                        onTap:
-                            game.paused ||
-                                sim.finished ||
-                                visible ||
-                                sim.second != null
-                            ? null
-                            : () {
-                                if (!sim.flip(index)) return;
-                                AppScope.feedbackOf(context).play(Sfx.tap);
-                                setState(() {});
-                              },
+                        onTap: activate,
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -366,9 +375,25 @@ class _MemoryScreenState extends State<MemoryScreen>
                     : 2,
                 builder: (index) {
                   final lit = sim.lit == index;
+                  final VoidCallback? activate =
+                      !responding || game.paused || finishing
+                      ? null
+                      : () {
+                          if (!mounted ||
+                              game.paused ||
+                              finishing ||
+                              !sim.press(index)) {
+                            return;
+                          }
+                          AppScope.feedbackOf(context)
+                              .play(_memorySounds[index]);
+                          setState(() {});
+                        };
                   return LSemantics(
                     label: '${_memoryNames[index]}, ${_memoryNotes[index]}',
                     button: true,
+                    enabled: activate != null,
+                    onTap: activate,
                     excludeSemantics: true,
                     child: AnimatedContainer(
                       duration: Duration(
@@ -401,14 +426,7 @@ class _MemoryScreenState extends State<MemoryScreen>
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
                           key: ValueKey('memory-pad-$index'),
-                          onTap: !responding || game.paused || finishing
-                              ? null
-                              : () {
-                                  if (!sim.press(index)) return;
-                                  AppScope.feedbackOf(context)
-                                      .play(_memorySounds[index]);
-                                  setState(() {});
-                                },
+                          onTap: activate,
                           child: Column(
                             children: [
                               Expanded(

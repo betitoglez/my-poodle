@@ -116,6 +116,7 @@ class _GameCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
+      onTap: onOpen,
       excludeSemantics: true,
       child: Material(
         color: Colors.white,

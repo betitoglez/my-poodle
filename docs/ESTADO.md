@@ -718,6 +718,13 @@ Inicio de implementación en `codex/minijuegos-parejas-memory`, desde main `0baa
 
 Integración de main remoto `ed77192` (PR #14 exportación de fotos al carrete y PR #15 variedad, estrellas, decoración, guía y celebraciones) en `codex/minijuegos-parejas-memory`, conservando el commit original `f3b87c7`. Conflictos de traducciones y guardado combinados sin perder campos. `GameSession` conserva semilla por sesión y frutas doradas, y Parejas/Memory se integran en las estrellas y sus retos. Verificación de la combinación: análisis limpio, **310 pruebas correctas**, contenido válido (12 artículos de decoración y 73 imágenes), 11 × 671 traducciones validadas y build web Release con `POODLE_LIVE_3D=true`. Aceptación física pendiente.
 
+
+## Revisión de PR #16: controles accesibles · 20-11-2026
+
+Corregido P2 de Codex sobre `ff2073c`: las cartas de Parejas y los pulsadores de Memory carecían de acción para VoiceOver/TalkBack. Ahora `LSemantics` e `InkWell` comparten la misma acción con comprobación dinámica de pausa/finalización y estado habilitado. Dos regresiones reproducen el fallo original y completan interacciones mediante acciones semánticas. **312 pruebas correctas**, análisis limpio, validadores correctos y web Release con POODLE_LIVE_3D=true. Comprobación de revisión remota y head en PR #16; prueba física con los lectores de pantalla y nueva beta pendientes.
+
+La comprobación accesible parte de las tarjetas del catálogo, cuya acción semántica también se expone, y del botón Jugar. Se incorpora sin sobrescribir el commit remoto `76712ee` de retratos WebP de 512 px (228 KB). Se comprueba el conjunto antes de pedir revisión del head resultante.
+
 ## Álbum, logros y economía · 21-11-2026
 
 Rama `feature/album-logros-economia`, desde `codex/minijuegos-parejas-memory` (`76712ee`, imágenes de Parejas/Memory reducidas a WebP 512 px). Flutter 3.50.0 / Dart 3.14.0; sin dependencias nuevas. Tres incrementos combinados:
