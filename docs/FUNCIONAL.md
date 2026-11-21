@@ -43,7 +43,7 @@ La mascota puede ponerse **malita**. Se comprueba por bloque de 15 minutos (en s
 | Dormir | Llevarlo a su cama (se acurruca), arroparlo con la manta y apagar la luz. Duerme unos segundos y despierta | Energía +60, ánimo +10. La luz solo se apaga con la manta puesta. Salir a medias no aplica nada |
 | Veterinario | Escuchar el corazón, revisar las patas y, si está malito, darle la pastilla. Cada paso exige el instrumento y la zona indicados | Cuesta 30 monedas al completar. Seleccionar fonendo y mantenerlo en pecho 3 s; lupa sobre patas 3 s; si está enfermo, arrastrar pastilla a la boca. Sano: +5 de ánimo; malito: también cura |
 
-Cada cuidado se puede completar una vez cada 300 segundos, con plazo independiente por cuidado. Todas las raciones comparten el plazo de Comer. El plazo empieza al confirmar el cuidado y se conserva al reiniciar. Los juegos admiten tres inicios en una ventana móvil de 300 segundos, compartida entre ambos juegos; abandonar consume un inicio, sin premio.
+Cada opción concreta de cuidado se puede completar una vez cada **15 minutos (900 s)** en ambas versiones. Cada ración, bebida o plan de baño tiene su propio plazo: pienso diario en espera no impide comida premium. Los cuidados sin opciones tienen un plazo por actividad. Se inicia al confirmar y se conserva al reiniciar. Los selectores muestran cuenta atrás al agotarse los usos disponibles. Los juegos gratuitos admiten tres inicios globales en una ventana móvil de 300 s; abandonar consume un inicio sin premio. La versión completa no tiene este cupo. Al alcanzarlo, la gratuita muestra el contador y ofrece comprar la completa mediante la puerta adulta.
 
 Los cuidados no otorgan monedas. Antes de confirmar se puede salir sin modificar atributos. Si el proceso se cierra después de confirmar, la próxima sesión muestra el efecto ya aplicado. Un indicador al máximo no impide disfrutar de la animación.
 
@@ -72,23 +72,23 @@ Decisión del propietario del 17 de noviembre de 2026. Descarga gratuita con lo 
 |---|---|
 | Adopción, Casa, los cuatro ángulos del caniche y los seis cuidados (comer, bañar, pasear, peluquería, dormir y veterinario) | Todo lo gratuito |
 | Salud, iconos de estado y sugerencias | **Huerto saltarín** (`fruit`) y los minijuegos que se añadan |
-| **Frisbee en el prado** (`frisbee`) y sus monedas | 24 artículos más del armario (lista abajo) |
-| 18 artículos del armario: los 8 iniciales y 10 que se compran con monedas | Novedades de catálogo, escenarios y actividades futuras, sin volver a pagar |
+| **Frisbee en el prado** (`frisbee`) y sus monedas | Más colores, cortes por zonas, ropa y accesorios (catálogo empaquetado) |
+| 23 artículos base o de catálogo gratuito, más los cortes por zonas correspondientes | Novedades de catálogo, escenarios y actividades futuras, sin volver a pagar |
 
-**Artículos por versión** (los ID y los precios en monedas no cambian; la versión solo decide si se pueden comprar):
+**Artículos por versión** (IDs anteriores conservados; precios redondeados hacia arriba a múltiplos de 10):
 
 | Ranura | Gratis | Versión completa |
 |---|---|---|
-| Color | coat.apricot, coat.silver | coat.lightgray, coat.white, coat.black |
-| Peinado | hair.natural, hair.pom | hair.teddy, hair.puppy |
-| Ropa | outfit.none y el peto en sus tres colores (outfit.teal, outfit.overalls_red, outfit.overalls_yellow) | Jersey, impermeable y vestido en todos sus colores |
+| Color | coat.apricot, coat.silver, coat.zebra | coat.lightgray, coat.white, coat.black y los otros cinco colores especiales |
+| Peinado | Natural, pompón y concurso por zona o pack | Osito, cachorro y moderno por zona o pack |
+| Ropa | outfit.none y el peto en colores normales, incluidos azul, blanco y negro | Jersey, impermeable y vestido; los cuatro estampados especiales en todas las prendas |
 | Cabeza | head.none, head.bow | head.beanie, head.crown |
 | Ojos | eyes.none, eyes.round | eyes.sun, eyes.heart |
 | Collares | collar.none, collar.tag | collar.bell, collar.pearls |
 | Cuello | neck.none, neck.coral | neck.bowtie, neck.knit |
 | Patucos | paws.none, paws.booties | paws.sneakers, paws.rain |
 
-Con la versión gratuita hay 190 monedas de artículos por conseguir, con algo comprable en cada pestaña del armario.
+Los costes vigentes y derechos se validan contra `assets/data/balance-v1.json`; los cortes individuales se definen en `Haircuts`. Las compras anteriores siguen en propiedad, incluso al perder el derecho de versión completa.
 
 **Reglas**
 
@@ -155,6 +155,20 @@ Totales: 620 monedas en la versión gratuita y 2135 en la completa (ampliado el 
 ## Estrellas por partida · 20-11-2026
 
 Cada partida terminada da de 0 a 3 estrellas además de las monedas, que no cambian. La tarjeta de cada juego muestra la mejor marca guardada (`bestStars`), y el resultado anuncia «¡Nueva mejor marca de estrellas!» cuando la supera. Umbrales en [Minijuegos](JUEGOS.md). Las estrellas solo son reto: no desbloquean nada ni cambian la economía.
+
+
+## Ampliación de armario y presentación · 20-11-2026
+
+- Peinados: submenús **Cabeza, Patas, Lomo, Cola y Packs**. Cada zona conserva su corte independiente. Cinco estilos comprables por zona (osito, pompón, cachorro, concurso y moderno), además del natural inicial. Cola incluye también **Corte estándar** uniforme sin pompón, gratuito en ambas versiones. Lomo y Cola se previsualizan de perfil. Cada pieza cuesta **50**, excepto concurso **100**. El pack cuesta la suma de sus cuatro piezas todavía no poseídas: 200/400 de base. Los packs antiguos conceden sus cuatro piezas al migrar.
+- Colores de pelaje normales: coste redondeado hacia arriba a múltiplo de 10. Especiales **Cebra, Azul, Verde, Rojiblanco, Dálmata, Tigre**: primer especial 1000; cada especial adquirido aumenta un 20 % el precio del siguiente, redondeado hacia arriba a 10 (1000, 1200, 1440, 1730, 2080, 2490). Cebra se compra en gratuita; los otros cinco requieren completa. Reequipar algo adquirido es gratuito.
+- Misma ropa por familias; colores normales azul, blanco y negro. Especiales **Cebra, Rojiblanco, Verdiblanco y Círculos de colores** (rojo, amarillo, verde y azul), exclusivos completos a **8 × coste normal de la familia** como precio base. Comprar un especial aumenta un 20 % los especiales restantes de esa misma familia y categoría, redondeados hacia arriba al múltiplo de 10: vestido, jersey, impermeable, peto y pelaje se cuentan por separado. Las compras normales no cuentan; las ya adquiridas se usan gratis. Accesorios redondeados hacia arriba a múltiplos de 10.
+- El aviso «Probando» del Armario y Decoración se pliega al tocarlo: queda solo el ojo arriba a la derecha. Tocar el ojo recupera el texto sin cambiar la prueba pendiente.
+- La peluquería cuida el peinado equipado y abre Armario para cambiarlo; desaparece Elegir corte. Los cuidados sin ropa conservan las cuatro zonas de pelo.
+- Decoración: nueve ilustraciones realistas 2D con transparencia. El caniche de la pantalla de decoración usa el mismo visor 3D nativo que Casa. La guirnalda y las estrellas abarcan de extremo a extremo el ancho visible mediante nuevos tramos repetibles que mantienen su proporción: un ancho mayor añade adornos, sin estirarlos. Las estrellas tienen contorno LED luminoso en el recurso, también con movimiento reducido.
+- Foto: arrastre horizontal del visor para girar sobre el eje vertical; el arrastre vertical no inclina. Se conservan las flechas. Acción **Álbum** con texto e icono arriba a la derecha.
+- Parejas y Memory tienen portadas explicativas de sus mecánicas. Las descripciones y premios usan el icono de moneda; Parejas presenta una línea por nivel (4, 6 y 8 parejas) con icono en cada premio; la lectura accesible conserva la unidad escrita. Los submenús de cuidado muestran saldo arriba a la derecha.
+- Ayuda y créditos comienza con «Juego desarrollado por Alberto González Cuenca». Idiomas muestran la bandera correspondiente.
+- **Pendiente, solo TODO**: push con mal estado del perro, máximo dos al día y al menos ocho horas entre envíos.
 
 ## Logros y álbum de pegatinas · 21-11-2026
 
@@ -291,26 +305,26 @@ Tarea: fotos premium (Decorar foto con packs de monedas). Rama `feature/ale-foto
 
 ## Catálogo ampliado: variedad y metas de lujo · 21-11-2026
 
-Ningún ID, precio ni versión anterior cambia; las partidas antiguas se abren igual (prueba `test/domain/catalog_luxury_test.dart`). Lujo = precio ≥ 250 (`luxuryCost` en `lib/domain/balance.dart`): ficha con borde e insignia dorada «Lujo», y «Te faltan N monedas» cuando el saldo no llega.
+Ningún ID ni versión anterior cambia y los precios son los fijados por familia en PR #17; las partidas antiguas se abren igual (prueba `test/domain/catalog_luxury_test.dart`). Lujo = precio ≥ 250 (`luxuryCost` en `lib/domain/balance.dart`): ficha con borde e insignia dorada «Lujo», y «Te faltan N monedas» cuando el saldo no llega.
 
 ### Artículos nuevos
 
 | ID | Nombre | Precio | Versión | Lujo |
 |---|---|---:|---|---|
 | coat.cream | Crema | 60 | gratis | no |
-| coat.chocolate | Chocolate | 75 | completa | no |
+| coat.chocolate | Chocolate | 80 | completa | no |
 | coat.cinnamon | Rojo canela | 90 | completa | no |
 | coat.latte | Café con leche | 110 | completa | no |
 | coat.slate | Azul pizarra | 130 | completa | no |
-| coat.golden | Pelaje dorado | 500 | completa | sí |
-| outfit.overalls_denim | Peto vaquero | 18 | gratis | no |
-| outfit.overalls_pink | Peto rosa | 18 | gratis | no |
-| outfit.sweater_green | Jersey verde | 32 | completa | no |
-| outfit.sweater_purple | Jersey morado | 32 | completa | no |
-| outfit.raincoat_red | Impermeable rojo | 46 | completa | no |
-| outfit.raincoat_green | Impermeable verde | 46 | completa | no |
-| outfit.dress_yellow | Vestido amarillo | 64 | completa | no |
-| outfit.dress_coral | Vestido coral | 64 | completa | no |
+| coat.golden | Pelaje dorado | 1500 | completa | sí |
+| outfit.overalls_denim | Peto vaquero | 20 | gratis | no |
+| outfit.overalls_pink | Peto rosa | 20 | gratis | no |
+| outfit.sweater_green | Jersey verde | 40 | completa | no |
+| outfit.sweater_purple | Jersey morado | 40 | completa | no |
+| outfit.raincoat_red | Impermeable rojo | 50 | completa | no |
+| outfit.raincoat_green | Impermeable verde | 50 | completa | no |
+| outfit.dress_yellow | Vestido amarillo | 70 | completa | no |
+| outfit.dress_coral | Vestido coral | 70 | completa | no |
 | head.crown_jewels | Corona real con joyas | 350 | completa | sí |
 | collar.pearls_gold | Collar de perlas doradas | 280 | gratis | sí |
 | rug.checks | Alfombra de cuadros | 115 | completa | no |
@@ -323,17 +337,11 @@ Ningún ID, precio ni versión anterior cambia; las partidas antiguas se abren i
 | plant.bonsai | Bonsái | 145 | completa | no |
 | plant.lights | Árbol con luces | 520 | completa | sí |
 
-Cada prenda (peto, jersey, impermeable, vestido) pasa de 3 a 5 colores al mismo precio de la familia. Metas de lujo del modo gratuito: collar de perlas doradas (armario) y alfombra persa (salón).
+Cada prenda (peto, jersey, impermeable, vestido) suma dos colores lisos a los diez colores y estampados de PR #17, al mismo precio de la familia (20/40/50/70). El pelaje dorado (1500) queda por encima de los pelajes especiales de PR #17 (1000), que con los cortes de exhibición (400) también llevan la insignia «Lujo». Metas de lujo del modo gratuito: collar de perlas doradas (armario) y alfombra persa (salón).
 
 ### Totales (suma de precios)
 
-| | Antes gratis | Antes todo | Después gratis | Después todo |
-|---|---:|---:|---:|---:|
-| Armario | 190 (19 art.) | 1228 (43) | 566 (23) | 3143 (59) |
-| Salón | 125 | 635 (12) | 620 | 2755 (21) |
-| **Total** | **315** | **1863** | **1186** | **5898** |
-
-Partidas estimadas a ~25 monedas por partida: todo lo gratuito pasa de ~13 a ~48 partidas; todo el catálogo, de ~75 a ~236 partidas. La meta de lujo más cara (árbol con luces, 520) son ~21 partidas.
+Tras combinar con PR #17: armario 27 artículos gratis y 65 completos; todo lo gratuito suma 2850 monedas (2230 armario + 620 salón) y todo el catálogo 20365 (17610 + 2755), sin contar los incrementos del 20 % por familia especial ni los cortes por zona. La meta de lujo más cara es el pelaje dorado (1500, ~60 partidas a ~25 monedas).
 
 ### Arte
 
@@ -348,6 +356,4 @@ Partidas estimadas a ~25 monedas por partida: todo lo gratuito pasa de ~13 a ~48
 
 ### Pendiente
 
-- Integrar las traducciones de `l10n-catalogo.json` en `assets/l10n/*.json` (30 claves; hasta entonces se ven en español).
-- Los textos «24 artículos más del armario» (`lib/ui/full_version_view.dart:118`, `lib/ui/screens/settings_screens.dart:253`, `docs/FUNCIONAL.md:75`) y la descripción de tienda (`docs/ENTREGA.md:59`, `docs/ESTADO.md:524`) se han quedado cortos: ahora son 36 del armario. Hay que cambiarlos junto con sus traducciones y con la ficha de la tienda.
 - Hay que probar en un dispositivo el brillo del pelaje dorado y las joyas en el visor 3D. Solo se ha comprobado en Chrome headless con la herramienta de miniaturas.

@@ -9,10 +9,13 @@ import { makePetShadow, makeWalk, makeWalkPose, walkWidth } from './walking.js';
 import { makeOrchard, makeOrchardPose } from './orchard.js';
 import { makeFrisbee } from './frisbee.js';
 import { bindTail, patchCoat, fitCollar, makeIdle } from './appearance.js';
+import { catalogVariants } from './catalog_variants.js';
+import { patchFabric, patternCodes } from './patterns.js';
 import { makePetHitTest, makeRoomMotion } from './room_motion.js';
 
 // Colourways share one fitted mesh and its baked fabric maps.
 const colourways = {
+  ...catalogVariants,
   'outfit.overalls_red': ['outfit.teal', '#a73836', '#68292c'],
   'outfit.overalls_yellow': ['outfit.teal', '#c7982d', '#866023'],
   'outfit.sweater_blue': ['outfit.sweater_red', '#365d99', '#294471'],
@@ -138,6 +141,15 @@ for (const item of items.filter(item => item.userData.wear !== 'base')) {
     }
   });
 }
+const fabricPatterns = new Map();
+for (const item of items.filter(item => item.userData.wear.startsWith('outfit.'))) {
+  item.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    for (const material of [mesh.material].flat()) {
+      if (material.userData.dyeRole === 'fabric' && !fabricPatterns.has(material)) fabricPatterns.set(material, patchFabric(material));
+    }
+  });
+}
 const tailRest = tail?.quaternion.clone();
 const tailOrientation = new THREE.Quaternion(), bodyOrientation = new THREE.Quaternion();
 const tailAxis = new THREE.Vector3(), acrossBody = new THREE.Vector3();
@@ -200,7 +212,7 @@ function wagTail(angle) {
   tail.rotateOnAxis(tailAxis, angle);
 }
 
-const shade = { silver: '#9693a1', lightgray: '#b6b3bf', white: '#e4ded4', black: '#586078',
+const shade = { silver: '#9693a1', lightgray: '#b6b3bf', white: '#e4ded4', black: '#586078', zebra: '#efece6', blue: '#2578d7', green: '#40a85e', redwhite: '#efece6', dalmatian: '#efece6', tiger: '#e47b26',
   cream: '#eedbb0', chocolate: '#8a5a40', cinnamon: '#c0643c', latte: '#c49e7c',
   slate: '#7888a2', golden: '#f2bd3e' };
 // Coats with a metallic glitter on top of the dye.
@@ -212,7 +224,10 @@ const wetness = { value: new THREE.Vector4() };
 const extraCurl = { value: 0 };
 const coatDirt = { value: 0 };
 let dailyDirt = 0;
+const zones = { value: new THREE.Vector4(-1,-1,-1,-1) };
+const coatPattern = { value: 0 };
 const cuts = { value: new THREE.Vector2() };
+const cover = { value: new THREE.Vector3() };
 const collars = [];
 for (const root of items) {
   const wear = root.userData.wear;
@@ -226,8 +241,8 @@ for (const root of items) {
     bindTail(object, bones.get('tronco'), tail);
     for (const material of [object.material].flat()) {
       patchCoat(material, {poodleFur: furColor, poodleRecolor: recolor, poodleSheen: sheen,
-        poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts, poodleExtraCurl: extraCurl,
-        poodleMouthOpen: idle.mouthOpen});
+        poodleZones: zones, poodlePatternCode: coatPattern, poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts, poodleExtraCurl: extraCurl,
+        poodleMouthOpen: idle.mouthOpen, poodleCover: cover});
     }
   });
 }
@@ -358,7 +373,7 @@ function tick(now) {
   const [walkX, walkPan, traveling, sniff] = walkState;
   const sniffing = configuration.walking && sniff >= 0;
   const activePose = configuration.feeding || sniffing ? eatAction : shoeClearance ? rainAction : action;
-  const passive = configuration.passiveBed && (phase > 0 || target > 0);
+  const passive = Boolean(configuration.passiveBed) && (phase > 0 || target > 0);
   const [arrival, blanket, dark] = passive ? [phase, 0, 0] : sleepState;
   const restingInBed = configuration.sleeping || passive;
   const poseProgress = configuration.sleeping ? THREE.MathUtils.smoothstep(arrival, .38, 1) :
@@ -571,22 +586,30 @@ window.poodle = {
     turntable.visible = configuration.visible !== false;
     const selected = configuration.wear || [];
     const variants = new Map(selected.filter(id => colourways[id]).map(id => {
-      const [model, fabric, binding] = colourways[id];
-      return [model, { fabric, binding }];
+      const [model, fabric, binding, pattern] = colourways[id];
+      return [model, { fabric, binding, pattern }];
     }));
     wear = new Set(selected.map(id => colourways[id]?.[0] ?? accessoryLooks[id]?.[0] ?? id));
     const restyled = new Map(selected.filter(id => accessoryLooks[id])
       .map(id => accessoryLooks[id]));
+    cover.value.set(wear.has('head.beanie') ? 1 : wear.has('head.crown') ? 2 : 0,
+      wear.has('outfit.teal') ? 1 : wear.has('outfit.sweater_red') ? 2 :
+      wear.has('outfit.raincoat_blue') ? 3 : wear.has('outfit.dress_pink') ? 4 : 0,
+      wear.has('paws.rain') ? .209 : wear.has('paws.booties') ? .142 : wear.has('paws.sneakers') ? .117 : 0);
     const neckwear = selected.some(id => id.startsWith('neck.'));
     const layeredBoots = wear.has('outfit.teal') && wear.has('paws.rain');
     shoeClearance = !layeredBoots && selected.some(id => id.startsWith('outfit.')) &&
       selected.some(id => id.startsWith('paws.'));
     const coat = shade[configuration.coat];
-    setCuts(Number(Boolean(configuration.teddy)), Number(Boolean(configuration.showCut)));
+    const granular = Array.isArray(configuration.cuts) && configuration.cuts.length === 4;
+    zones.value.fromArray(granular ? configuration.cuts : [-1,-1,-1,-1]);
+    coatPattern.value = patternCodes[configuration.coat] || 0;
+    setCuts(granular ? 0 : Number(Boolean(configuration.teddy)), granular ? Number(configuration.cuts[0] === 4) : Number(Boolean(configuration.showCut)));
+    if (granular) cuts.value.set(0,0);
     const hygiene = configuration.hygiene ?? 100;
     dailyDirt = hygiene >= 65 ? 0 : Math.min(6, Math.ceil((65 - hygiene) * 6 / 65));
     coatDirt.value = dailyDirt;
-    groom.setSource(configuration.pom, configuration.puppy, configuration.grooming);
+    groom.setSource(granular ? false : configuration.pom, granular ? false : configuration.puppy, configuration.grooming);
     furColor.value.set(coat || '#ffffff');
     recolor.value = coat ? 1 : 0;
     sheen.value = sheenCoats[configuration.coat] ?? 0;
@@ -615,6 +638,8 @@ window.poodle = {
               material.roughness = base.roughness;
             }
           }
+          const fabricPattern = fabricPatterns.get(material);
+          if (fabricPattern) fabricPattern.value = patternCodes[palette?.pattern] || 0;
           const tint = dyes.get(material);
           if (!tint) continue;
           const { catalogDye, dyeRole, creamPattern } = material.userData;
@@ -634,9 +659,9 @@ window.poodle = {
         if (salonBody) groom.prepare(mesh);
         const pomp = keys['Corte pompón'];
         if (pomp !== undefined) mesh.morphTargetInfluences[pomp] =
-          !salonBody && configuration.pom ? (wear.has('head.beanie') || wear.has('head.crown') ? 0.1 : 1) : 0;
+          !salonBody && !granular && configuration.pom ? (wear.has('head.beanie') || wear.has('head.crown') ? 0.1 : 1) : 0;
         const puppy = keys['Corte cachorro'];
-        if (puppy !== undefined) mesh.morphTargetInfluences[puppy] = !salonBody && configuration.puppy ? 1 : 0;
+        if (puppy !== undefined) mesh.morphTargetInfluences[puppy] = !salonBody && !granular && configuration.puppy ? 1 : 0;
       });
     }
     schedule();
@@ -689,8 +714,8 @@ window.poodle = {
     schedule();
   },
   groom(state) {
-    groom.update(state);
-    if (state.length >= 13) {
+    groom.update(Array.isArray(configuration.cuts) ? [0,0,...state.slice(2)] : state);
+    if (state.length >= 13 && !Array.isArray(configuration.cuts)) {
       const cut = (state[5]+state[6]+state[7])/3;
       setCuts(THREE.MathUtils.lerp(Number(Boolean(configuration.teddy)),state[11],cut),
         THREE.MathUtils.lerp(Number(Boolean(configuration.showCut)),state[12],cut));

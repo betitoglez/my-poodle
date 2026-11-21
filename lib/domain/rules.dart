@@ -5,6 +5,8 @@ import 'care_options.dart';
 import 'entitlements.dart';
 import 'food.dart';
 import 'games/puzzle_deals.dart';
+import 'haircuts.dart';
+import 'style_catalog.dart';
 import 'needs_clock.dart';
 import 'pet_state.dart';
 
@@ -114,15 +116,74 @@ class Rules {
     };
   }
 
+  static const careWindow = 15 * 60;
+
+  List<CareOption> careOptions(CareKind kind) => switch (kind) {
+    CareKind.feed => Food.values,
+    CareKind.bath => BathPlan.values,
+    CareKind.drink => Drink.values,
+    _ => const [],
+  };
+
+  String careKey(CareKind kind, CareOption? option) {
+    final choice = _careOption(kind, option);
+    final name = switch (choice) {
+      Food() => choice.name,
+      BathPlan() => choice.name,
+      Drink() => choice.name,
+      _ => null,
+    };
+    return name == null ? kind.name : '${kind.name}.$name';
+  }
+
+  int _optionWait(PetState s, CareKind kind, CareOption? option, int nowUtc) {
+    final key = careKey(kind, option);
+    final hasOptions = s.careCompletedUtc.keys.any(
+      (k) => k.startsWith('${kind.name}.'),
+    );
+    final last =
+        s.careCompletedUtc[key] ??
+        (!hasOptions && key == careKey(kind, null)
+            ? s.careCompletedUtc[kind.name]
+            : null);
+    if (last == null) return 0;
+    return (careWindow - (nowUtc - last)).clamp(0, careWindow);
+  }
+
   int careWaitSeconds(
     PetState s,
     CareKind kind,
     int nowUtc, {
     bool fullVersion = false,
+    CareOption? option,
   }) {
-    final last = s.careCompletedUtc[kind.name];
-    if (fullVersion || last == null) return 0;
-    return (activityWindow - (nowUtc - last)).clamp(0, activityWindow);
+    final choices = careOptions(kind)
+        .where((o) => fullVersion || o.tier == Tier.free)
+        .toList();
+    if (option != null || choices.isEmpty) {
+      return _optionWait(s, kind, option, nowUtc);
+    }
+    return choices
+        .map((o) => _optionWait(s, kind, o, nowUtc))
+        .reduce((a, b) => a < b ? a : b);
+  }
+
+  Map<String, int> _careTimes(
+    PetState s,
+    CareKind kind,
+    CareOption? option,
+    int nowUtc,
+  ) {
+    final times = Map<String, int>.of(s.careCompletedUtc);
+    final choices = careOptions(kind);
+    if (choices.isNotEmpty &&
+        !times.keys.any((k) => k.startsWith('${kind.name}.')) &&
+        times[kind.name] != null) {
+      times[careKey(kind, null)] = times[kind.name]!;
+    }
+    times[kind.name] = nowUtc; // Resumen para la guía y compatibilidad.
+    times[careKey(kind, option)] = nowUtc;
+    return times;
   }
 
   PetState? rewardGreeting(PetState s, String opId, int nowUtc) {
@@ -152,10 +213,6 @@ class Rules {
     if (s.need100(Need.energy) == 0 && kind != CareKind.sleep) {
       return 'Necesita dormir: su energía está a cero.';
     }
-    final wait = careWaitSeconds(s, kind, nowUtc, fullVersion: fullVersion);
-    if (wait > 0) {
-      return 'Podrás repetir este cuidado en ${wait ~/ 60} min ${wait % 60} s.';
-    }
     final selected = _careOption(kind, option);
     if (option != null && selected == null) {
       return 'Opción de cuidado inválida.';
@@ -165,22 +222,40 @@ class Rules {
           ? 'Esta comida necesita la versión completa.'
           : '${selected.label} necesita la versión completa.';
     }
+    final wait = careWaitSeconds(
+      s,
+      kind,
+      nowUtc,
+      fullVersion: fullVersion,
+      option: option,
+    );
+    if (wait > 0) {
+      return 'Podrás repetir este cuidado en ${wait ~/ 60} min ${wait % 60} s.';
+    }
     final cost = kind == CareKind.vet ? vetCost : selected?.cost ?? 0;
     if (s.coins < cost) return 'Necesitas $cost monedas (tienes ${s.coins}).';
     return null;
   }
 
-  String? gameBlocked(PetState s, int nowUtc) {
+  int gameWaitSeconds(PetState s, int nowUtc, {bool fullVersion = false}) {
+    if (fullVersion) return 0;
+    final recent =
+        s.gameStartedUtc.where((t) => nowUtc - t < activityWindow).toList()
+          ..sort();
+    if (recent.length < 3) return 0;
+    return (activityWindow - (nowUtc - recent[recent.length - 3])).clamp(
+      0,
+      activityWindow,
+    );
+  }
+
+  String? gameBlocked(PetState s, int nowUtc, {bool fullVersion = false}) {
     if (s.need100(Need.energy) == 0) {
       return 'Necesita dormir: su energía está a cero.';
     }
-    final recent = s.gameStartedUtc
-        .where((t) => nowUtc - t < activityWindow)
-        .toList();
-    if (recent.length >= 3) {
-      recent.sort();
-      final wait = activityWindow - (nowUtc - recent.first);
-      return 'Ya has jugado 3 veces. Vuelve en ${wait ~/ 60} min ${wait % 60} s.';
+    final wait = gameWaitSeconds(s, nowUtc, fullVersion: fullVersion);
+    if (wait > 0) {
+      return 'Ya has jugado 3 veces. Vuelve en ${wait ~/ 60} min ${wait % 60} s. La versión completa permite jugar sin este cupo.';
     }
     return null;
   }
@@ -204,7 +279,7 @@ class Rules {
     int pairs = 4,
   }) {
     final before = clock.advance(s, nowUtc);
-    final blocked = gameBlocked(before, nowUtc);
+    final blocked = gameBlocked(before, nowUtc, fullVersion: fullVersion);
     if (blocked != null) throw RuleException(blocked);
     if (game == GameId.memory && !fullVersion) {
       throw RuleException('Memory necesita la versión completa.');
@@ -255,15 +330,15 @@ class Rules {
     final rule = balance.care[kind.name];
     if (rule == null) throw RuleException('Cuidado desconocido: ${kind.name}');
     final before = clock.advance(s, nowUtc);
+    final selected = _careOption(kind, option);
     final blocked = careBlocked(
       before,
       kind,
       nowUtc,
-      option: option,
+      option: option ?? selected,
       fullVersion: fullVersion,
     );
     if (blocked != null) throw RuleException(blocked);
-    final selected = _careOption(kind, option);
     final cost = kind == CareKind.vet ? vetCost : selected?.cost ?? 0;
     final appearance =
         kind == CareKind.groom &&
@@ -281,7 +356,7 @@ class Rules {
         before.copyWith(
           appearance: appearance,
           coins: before.coins - cost,
-          careCompletedUtc: {...before.careCompletedUtc, kind.name: nowUtc},
+          careCompletedUtc: _careTimes(before, kind, option, nowUtc),
           needs100: _applyDelta(before, selected?.delta ?? rule.delta),
           cured: rule.cures,
           wake: true,
@@ -431,8 +506,48 @@ class Rules {
     GameId.memory => Tier.full,
   };
 
-  /// Artículos de [target] que no se poseen y exigen la versión completa.
-  /// Lo ya poseído se puede usar siempre, aunque sea de la versión completa.
+  bool ownsStyle(PetState s, String id) {
+    if (s.owned.contains(id)) return true;
+    if (Haircuts.valid(id)) {
+      final style = id.split('.').last;
+      return const {'natural', 'standard'}.contains(style) ||
+          s.owned.contains('hair.$style');
+    }
+    if (id.startsWith('hair.')) {
+      return HairZone.values.every(
+        (z) => ownsStyle(s, Haircuts.id(z, Haircuts.styleOf(id))),
+      );
+    }
+    return false;
+  }
+
+  Tier styleTier(String id) => Haircuts.valid(id)
+      ? Haircuts.tier(id.split('.').last)
+      : balance.item(id)?.tier ?? Tier.free;
+
+  int styleCost(PetState s, String id) {
+    if (ownsStyle(s, id)) return 0;
+    if (Haircuts.valid(id)) return Haircuts.cost(id.split('.').last);
+    if (id.startsWith('hair.')) {
+      return HairZone.values
+          .map((z) => styleCost(s, Haircuts.id(z, Haircuts.styleOf(id))))
+          .fold(0, (a, b) => a + b);
+    }
+    final family = StyleCatalog.specialFamily(id);
+    if (family != null) {
+      final bought = s.owned
+          .where((owned) => StyleCatalog.specialFamily(owned) == family)
+          .length;
+      var numerator = balance.item(id)!.cost, denominator = 1;
+      for (var i = 0; i < bought; i++) {
+        numerator *= 6;
+        denominator *= 5;
+      }
+      return ((numerator + denominator * 10 - 1) ~/ (denominator * 10)) * 10;
+    }
+    return balance.item(id)?.cost ?? 0;
+  }
+
   List<String> lockedItems(
     PetState s,
     Appearance target, {
@@ -440,23 +555,27 @@ class Rules {
   }) {
     if (fullVersion) return const [];
     return [
-      for (final slot in Slot.values)
-        if (!s.owned.contains(target.of(slot)) &&
-            balance.item(target.of(slot))?.tier == Tier.full)
-          target.of(slot),
+      for (final id in target.ids)
+        if (!id.startsWith('hair.') &&
+            !ownsStyle(s, id) &&
+            styleTier(id) == Tier.full)
+          id,
     ];
   }
 
-  /// Coste de llevar el aspecto [target]: suma de artículos no poseídos.
   int lookCost(PetState s, Appearance target) {
     var total = 0;
     for (final slot in Slot.values) {
       final id = target.of(slot);
-      final item = balance.item(id);
-      if (item == null || item.slot != slot) {
+      if (balance.item(id)?.slot != slot) {
         throw RuleException('Artículo inválido para ${slot.name}: $id');
       }
-      if (!s.owned.contains(id)) total += item.cost;
+      if (slot != Slot.hair) total += styleCost(s, id);
+    }
+    for (final zone in HairZone.values) {
+      final id = target.cutId(zone);
+      if (!Haircuts.valid(id)) throw RuleException('Corte inválido: $id');
+      total += styleCost(s, id);
     }
     return total;
   }

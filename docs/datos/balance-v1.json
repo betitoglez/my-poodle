@@ -26,8 +26,15 @@
   },
   "care": {
     "drink": {
-      "steps": ["fill", "sip", "sip", "sip"],
-      "delta": { "hydration": 60 }
+      "steps": [
+        "fill",
+        "sip",
+        "sip",
+        "sip"
+      ],
+      "delta": {
+        "hydration": 60
+      }
     },
     "feed": {
       "steps": [
@@ -110,7 +117,10 @@
       "baseCoins": 2,
       "coinsPerPoint": 2,
       "tier": "full",
-      "stars": [8, 16],
+      "stars": [
+        8,
+        16
+      ],
       "starsGolden": 3
     },
     "frisbee": {
@@ -144,10 +154,52 @@
       ],
       "tier": "free",
       "targetPool": [
-        [-2, 4.5], [2, 6.5], [-1.5, 6], [1.5, 4], [0, 7],
-        [-2.5, 5.5], [2.5, 5], [0, 3.5], [-1, 7], [1, 5.5]
+        [
+          -2,
+          4.5
+        ],
+        [
+          2,
+          6.5
+        ],
+        [
+          -1.5,
+          6
+        ],
+        [
+          1.5,
+          4
+        ],
+        [
+          0,
+          7
+        ],
+        [
+          -2.5,
+          5.5
+        ],
+        [
+          2.5,
+          5
+        ],
+        [
+          0,
+          3.5
+        ],
+        [
+          -1,
+          7
+        ],
+        [
+          1,
+          5.5
+        ]
       ],
-      "stars": [2, 4, 5]
+      "stars": [
+        2,
+        4,
+        5
+      ]
     }
   },
   "gameCompleteDelta": {
@@ -166,7 +218,7 @@
     {
       "id": "coat.silver",
       "slot": "coat",
-      "cost": 24,
+      "cost": 30,
       "initial": false,
       "tier": "free"
     },
@@ -180,14 +232,511 @@
     {
       "id": "coat.white",
       "slot": "coat",
-      "cost": 38,
+      "cost": 40,
       "initial": false,
       "tier": "full"
     },
     {
       "id": "coat.black",
       "slot": "coat",
-      "cost": 46,
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "hair.natural",
+      "slot": "hair",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "hair.show",
+      "slot": "hair",
+      "cost": 400,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "hair.pom",
+      "slot": "hair",
+      "cost": 200,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "hair.teddy",
+      "slot": "hair",
+      "cost": 200,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "hair.puppy",
+      "slot": "hair",
+      "cost": 200,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.none",
+      "slot": "outfit",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.teal",
+      "slot": "outfit",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.overalls_red",
+      "slot": "outfit",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.overalls_yellow",
+      "slot": "outfit",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.sweater_red",
+      "slot": "outfit",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_blue",
+      "slot": "outfit",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_mustard",
+      "slot": "outfit",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_yellow",
+      "slot": "outfit",
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_blue",
+      "slot": "outfit",
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_pink",
+      "slot": "outfit",
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_pink",
+      "slot": "outfit",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_lilac",
+      "slot": "outfit",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_turquoise",
+      "slot": "outfit",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "head.none",
+      "slot": "head",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "head.bow",
+      "slot": "head",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "head.beanie",
+      "slot": "head",
+      "cost": 30,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "head.crown",
+      "slot": "head",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "eyes.none",
+      "slot": "eyes",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "eyes.round",
+      "slot": "eyes",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "eyes.sun",
+      "slot": "eyes",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "eyes.heart",
+      "slot": "eyes",
+      "cost": 60,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "collar.none",
+      "slot": "collar",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "collar.tag",
+      "slot": "collar",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "collar.bell",
+      "slot": "collar",
+      "cost": 30,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "collar.pearls",
+      "slot": "collar",
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "neck.none",
+      "slot": "neck",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "neck.coral",
+      "slot": "neck",
+      "cost": 10,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "neck.bowtie",
+      "slot": "neck",
+      "cost": 30,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "neck.knit",
+      "slot": "neck",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "paws.none",
+      "slot": "paws",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "paws.booties",
+      "slot": "paws",
+      "cost": 30,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "paws.sneakers",
+      "slot": "paws",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "paws.rain",
+      "slot": "paws",
+      "cost": 60,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "hair.modern",
+      "slot": "hair",
+      "cost": 200,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "coat.zebra",
+      "slot": "coat",
+      "cost": 1000,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "coat.blue",
+      "slot": "coat",
+      "cost": 1000,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "coat.green",
+      "slot": "coat",
+      "cost": 1000,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "coat.redwhite",
+      "slot": "coat",
+      "cost": 1000,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "coat.dalmatian",
+      "slot": "coat",
+      "cost": 1000,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "coat.tiger",
+      "slot": "coat",
+      "cost": 1000,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.overalls_blue",
+      "slot": "outfit",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.overalls_white",
+      "slot": "outfit",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.overalls_black",
+      "slot": "outfit",
+      "cost": 20,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "outfit.overalls_zebra",
+      "slot": "outfit",
+      "cost": 160,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.overalls_redwhite",
+      "slot": "outfit",
+      "cost": 160,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.overalls_greenwhite",
+      "slot": "outfit",
+      "cost": 160,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.overalls_dots",
+      "slot": "outfit",
+      "cost": 160,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_white",
+      "slot": "outfit",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_black",
+      "slot": "outfit",
+      "cost": 40,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_zebra",
+      "slot": "outfit",
+      "cost": 320,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_redwhite",
+      "slot": "outfit",
+      "cost": 320,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_greenwhite",
+      "slot": "outfit",
+      "cost": 320,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.sweater_dots",
+      "slot": "outfit",
+      "cost": 320,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_white",
+      "slot": "outfit",
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_black",
+      "slot": "outfit",
+      "cost": 50,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_zebra",
+      "slot": "outfit",
+      "cost": 400,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_redwhite",
+      "slot": "outfit",
+      "cost": 400,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_greenwhite",
+      "slot": "outfit",
+      "cost": 400,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.raincoat_dots",
+      "slot": "outfit",
+      "cost": 400,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_blue",
+      "slot": "outfit",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_white",
+      "slot": "outfit",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_black",
+      "slot": "outfit",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_zebra",
+      "slot": "outfit",
+      "cost": 560,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_redwhite",
+      "slot": "outfit",
+      "cost": 560,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_greenwhite",
+      "slot": "outfit",
+      "cost": 560,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "outfit.dress_dots",
+      "slot": "outfit",
+      "cost": 560,
       "initial": false,
       "tier": "full"
     },
@@ -201,7 +750,7 @@
     {
       "id": "coat.chocolate",
       "slot": "coat",
-      "cost": 75,
+      "cost": 80,
       "initial": false,
       "tier": "full"
     },
@@ -229,217 +778,63 @@
     {
       "id": "coat.golden",
       "slot": "coat",
-      "cost": 500,
+      "cost": 1500,
       "initial": false,
       "tier": "full"
-    },
-    {
-      "id": "hair.natural",
-      "slot": "hair",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "hair.show",
-      "slot": "hair",
-      "cost": 0,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "hair.pom",
-      "slot": "hair",
-      "cost": 30,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "hair.teddy",
-      "slot": "hair",
-      "cost": 40,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "hair.puppy",
-      "slot": "hair",
-      "cost": 52,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.none",
-      "slot": "outfit",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "outfit.teal",
-      "slot": "outfit",
-      "cost": 18,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "outfit.overalls_red",
-      "slot": "outfit",
-      "cost": 18,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "outfit.overalls_yellow",
-      "slot": "outfit",
-      "cost": 18,
-      "initial": false,
-      "tier": "free"
     },
     {
       "id": "outfit.overalls_denim",
       "slot": "outfit",
-      "cost": 18,
+      "cost": 20,
       "initial": false,
       "tier": "free"
     },
     {
       "id": "outfit.overalls_pink",
       "slot": "outfit",
-      "cost": 18,
+      "cost": 20,
       "initial": false,
       "tier": "free"
     },
     {
-      "id": "outfit.sweater_red",
-      "slot": "outfit",
-      "cost": 32,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.sweater_blue",
-      "slot": "outfit",
-      "cost": 32,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.sweater_mustard",
-      "slot": "outfit",
-      "cost": 32,
-      "initial": false,
-      "tier": "full"
-    },
-    {
       "id": "outfit.sweater_green",
       "slot": "outfit",
-      "cost": 32,
+      "cost": 40,
       "initial": false,
       "tier": "full"
     },
     {
       "id": "outfit.sweater_purple",
       "slot": "outfit",
-      "cost": 32,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.raincoat_yellow",
-      "slot": "outfit",
-      "cost": 46,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.raincoat_blue",
-      "slot": "outfit",
-      "cost": 46,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.raincoat_pink",
-      "slot": "outfit",
-      "cost": 46,
+      "cost": 40,
       "initial": false,
       "tier": "full"
     },
     {
       "id": "outfit.raincoat_red",
       "slot": "outfit",
-      "cost": 46,
+      "cost": 50,
       "initial": false,
       "tier": "full"
     },
     {
       "id": "outfit.raincoat_green",
       "slot": "outfit",
-      "cost": 46,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.dress_pink",
-      "slot": "outfit",
-      "cost": 64,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.dress_lilac",
-      "slot": "outfit",
-      "cost": 64,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "outfit.dress_turquoise",
-      "slot": "outfit",
-      "cost": 64,
+      "cost": 50,
       "initial": false,
       "tier": "full"
     },
     {
       "id": "outfit.dress_yellow",
       "slot": "outfit",
-      "cost": 64,
+      "cost": 70,
       "initial": false,
       "tier": "full"
     },
     {
       "id": "outfit.dress_coral",
       "slot": "outfit",
-      "cost": 64,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "head.none",
-      "slot": "head",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "head.bow",
-      "slot": "head",
-      "cost": 14,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "head.beanie",
-      "slot": "head",
-      "cost": 30,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "head.crown",
-      "slot": "head",
-      "cost": 64,
+      "cost": 70,
       "initial": false,
       "tier": "full"
     },
@@ -451,123 +846,11 @@
       "tier": "full"
     },
     {
-      "id": "eyes.none",
-      "slot": "eyes",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "eyes.round",
-      "slot": "eyes",
-      "cost": 20,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "eyes.sun",
-      "slot": "eyes",
-      "cost": 36,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "eyes.heart",
-      "slot": "eyes",
-      "cost": 52,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "collar.none",
-      "slot": "collar",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "collar.tag",
-      "slot": "collar",
-      "cost": 12,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "collar.bell",
-      "slot": "collar",
-      "cost": 24,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "collar.pearls",
-      "slot": "collar",
-      "cost": 48,
-      "initial": false,
-      "tier": "full"
-    },
-    {
       "id": "collar.pearls_gold",
       "slot": "collar",
       "cost": 280,
       "initial": false,
       "tier": "free"
-    },
-    {
-      "id": "neck.none",
-      "slot": "neck",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "neck.coral",
-      "slot": "neck",
-      "cost": 10,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "neck.bowtie",
-      "slot": "neck",
-      "cost": 22,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "neck.knit",
-      "slot": "neck",
-      "cost": 34,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "paws.none",
-      "slot": "paws",
-      "cost": 0,
-      "initial": true,
-      "tier": "free"
-    },
-    {
-      "id": "paws.booties",
-      "slot": "paws",
-      "cost": 26,
-      "initial": false,
-      "tier": "free"
-    },
-    {
-      "id": "paws.sneakers",
-      "slot": "paws",
-      "cost": 40,
-      "initial": false,
-      "tier": "full"
-    },
-    {
-      "id": "paws.rain",
-      "slot": "paws",
-      "cost": 56,
-      "initial": false,
-      "tier": "full"
     }
   ],
   "health": {
@@ -587,40 +870,265 @@
     "tiredBelow": 25
   },
   "album": {
-    "pageBonus": { "care": 40, "games": 50, "wardrobe": 60, "photos": 30, "special": 80 }
+    "pageBonus": {
+      "care": 40,
+      "games": 50,
+      "wardrobe": 60,
+      "photos": 30,
+      "special": 80
+    }
   },
   "decor": [
-    { "id": "rug.none", "slot": "rug", "cost": 0, "initial": true, "tier": "free" },
-    { "id": "rug.round", "slot": "rug", "cost": 40, "initial": false, "tier": "free" },
-    { "id": "rug.stripes", "slot": "rug", "cost": 60, "initial": false, "tier": "full" },
-    { "id": "rug.bone", "slot": "rug", "cost": 90, "initial": false, "tier": "full" },
-    { "id": "rug.checks", "slot": "rug", "cost": 115, "initial": false, "tier": "full" },
-    { "id": "rug.cloud", "slot": "rug", "cost": 135, "initial": false, "tier": "full" },
-    { "id": "rug.persian", "slot": "rug", "cost": 380, "initial": false, "tier": "free" },
-    { "id": "wall.none", "slot": "wall", "cost": 0, "initial": true, "tier": "free" },
-    { "id": "wall.frame", "slot": "wall", "cost": 50, "initial": false, "tier": "free" },
-    { "id": "wall.garland", "slot": "wall", "cost": 70, "initial": false, "tier": "full" },
-    { "id": "wall.stars", "slot": "wall", "cost": 110, "initial": false, "tier": "full" },
-    { "id": "wall.rainbow", "slot": "wall", "cost": 120, "initial": false, "tier": "full" },
-    { "id": "wall.clock", "slot": "wall", "cost": 140, "initial": false, "tier": "full" },
-    { "id": "wall.goldframe", "slot": "wall", "cost": 450, "initial": false, "tier": "full" },
-    { "id": "plant.none", "slot": "plant", "cost": 0, "initial": true, "tier": "free" },
-    { "id": "plant.fern", "slot": "plant", "cost": 35, "initial": false, "tier": "free" },
-    { "id": "plant.flowers", "slot": "plant", "cost": 80, "initial": false, "tier": "full" },
-    { "id": "plant.cactus", "slot": "plant", "cost": 100, "initial": false, "tier": "full" },
-    { "id": "plant.sunflower", "slot": "plant", "cost": 115, "initial": false, "tier": "free" },
-    { "id": "plant.bonsai", "slot": "plant", "cost": 145, "initial": false, "tier": "full" },
-    { "id": "plant.lights", "slot": "plant", "cost": 520, "initial": false, "tier": "full" }
+    {
+      "id": "rug.none",
+      "slot": "rug",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "rug.round",
+      "slot": "rug",
+      "cost": 40,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "rug.stripes",
+      "slot": "rug",
+      "cost": 60,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "rug.bone",
+      "slot": "rug",
+      "cost": 90,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "rug.checks",
+      "slot": "rug",
+      "cost": 115,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "rug.cloud",
+      "slot": "rug",
+      "cost": 135,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "rug.persian",
+      "slot": "rug",
+      "cost": 380,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "wall.none",
+      "slot": "wall",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "wall.frame",
+      "slot": "wall",
+      "cost": 50,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "wall.garland",
+      "slot": "wall",
+      "cost": 70,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "wall.stars",
+      "slot": "wall",
+      "cost": 110,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "wall.rainbow",
+      "slot": "wall",
+      "cost": 120,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "wall.clock",
+      "slot": "wall",
+      "cost": 140,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "wall.goldframe",
+      "slot": "wall",
+      "cost": 450,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "plant.none",
+      "slot": "plant",
+      "cost": 0,
+      "initial": true,
+      "tier": "free"
+    },
+    {
+      "id": "plant.fern",
+      "slot": "plant",
+      "cost": 35,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "plant.flowers",
+      "slot": "plant",
+      "cost": 80,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "plant.cactus",
+      "slot": "plant",
+      "cost": 100,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "plant.sunflower",
+      "slot": "plant",
+      "cost": 115,
+      "initial": false,
+      "tier": "free"
+    },
+    {
+      "id": "plant.bonsai",
+      "slot": "plant",
+      "cost": 145,
+      "initial": false,
+      "tier": "full"
+    },
+    {
+      "id": "plant.lights",
+      "slot": "plant",
+      "cost": 520,
+      "initial": false,
+      "tier": "full"
+    }
   ],
   "photoPacks": [
-    { "id": "photo.basic", "kind": "sticker", "cost": 0, "tier": "free", "pieces": ["sticker.heart", "sticker.star", "sticker.bone", "sticker.paw", "sticker.smile"] },
-    { "id": "photo.party", "kind": "sticker", "cost": 60, "tier": "free", "pieces": ["sticker.balloon", "sticker.cake", "sticker.party_hat", "sticker.confetti", "sticker.gift"] },
-    { "id": "photo.nature", "kind": "sticker", "cost": 60, "tier": "full", "pieces": ["sticker.flower", "sticker.leaf", "sticker.sun", "sticker.rainbow", "sticker.cloud"] },
-    { "id": "photo.bubbles", "kind": "sticker", "cost": 80, "tier": "full", "pieces": ["sticker.bubble_woof", "sticker.bubble_hello", "sticker.bubble_love", "sticker.bubble_yum"] },
-    { "id": "photo.frames_basic", "kind": "frame", "cost": 0, "tier": "free", "pieces": ["frame.white"] },
-    { "id": "photo.frames_color", "kind": "frame", "cost": 50, "tier": "free", "pieces": ["frame.pink", "frame.sky", "frame.mint", "frame.dots"] },
-    { "id": "photo.frames_luxury", "kind": "frame", "cost": 250, "tier": "full", "pieces": ["frame.gold", "frame.polaroid", "frame.stamp"] },
-    { "id": "photo.text_basic", "kind": "text", "cost": 0, "tier": "free", "pieces": ["text.plain"] },
-    { "id": "photo.text_styles", "kind": "text", "cost": 40, "tier": "free", "pieces": ["text.outline", "text.ribbon"] }
+    {
+      "id": "photo.basic",
+      "kind": "sticker",
+      "cost": 0,
+      "tier": "free",
+      "pieces": [
+        "sticker.heart",
+        "sticker.star",
+        "sticker.bone",
+        "sticker.paw",
+        "sticker.smile"
+      ]
+    },
+    {
+      "id": "photo.party",
+      "kind": "sticker",
+      "cost": 60,
+      "tier": "free",
+      "pieces": [
+        "sticker.balloon",
+        "sticker.cake",
+        "sticker.party_hat",
+        "sticker.confetti",
+        "sticker.gift"
+      ]
+    },
+    {
+      "id": "photo.nature",
+      "kind": "sticker",
+      "cost": 60,
+      "tier": "full",
+      "pieces": [
+        "sticker.flower",
+        "sticker.leaf",
+        "sticker.sun",
+        "sticker.rainbow",
+        "sticker.cloud"
+      ]
+    },
+    {
+      "id": "photo.bubbles",
+      "kind": "sticker",
+      "cost": 80,
+      "tier": "full",
+      "pieces": [
+        "sticker.bubble_woof",
+        "sticker.bubble_hello",
+        "sticker.bubble_love",
+        "sticker.bubble_yum"
+      ]
+    },
+    {
+      "id": "photo.frames_basic",
+      "kind": "frame",
+      "cost": 0,
+      "tier": "free",
+      "pieces": [
+        "frame.white"
+      ]
+    },
+    {
+      "id": "photo.frames_color",
+      "kind": "frame",
+      "cost": 50,
+      "tier": "free",
+      "pieces": [
+        "frame.pink",
+        "frame.sky",
+        "frame.mint",
+        "frame.dots"
+      ]
+    },
+    {
+      "id": "photo.frames_luxury",
+      "kind": "frame",
+      "cost": 250,
+      "tier": "full",
+      "pieces": [
+        "frame.gold",
+        "frame.polaroid",
+        "frame.stamp"
+      ]
+    },
+    {
+      "id": "photo.text_basic",
+      "kind": "text",
+      "cost": 0,
+      "tier": "free",
+      "pieces": [
+        "text.plain"
+      ]
+    },
+    {
+      "id": "photo.text_styles",
+      "kind": "text",
+      "cost": 40,
+      "tier": "free",
+      "pieces": [
+        "text.outline",
+        "text.ribbon"
+      ]
+    }
   ]
 }

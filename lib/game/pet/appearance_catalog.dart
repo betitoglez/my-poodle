@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import '../../domain/appearance.dart';
+import '../../domain/haircuts.dart';
 
 enum PetPose { front, side, back }
 
@@ -102,7 +103,7 @@ class AppearanceCatalog {
   }
 
   factory AppearanceCatalog.fromJson(Map<String, dynamic> j) {
-    final labels = <String, String>{};
+    final labels = <String, String>{'hair.custom': 'Peinado personalizado'};
     final coats = <String, CoatPalette>{};
     (j['coats'] as Map<String, dynamic>).forEach((k, v) {
       final m = v as Map<String, dynamic>;
@@ -178,6 +179,12 @@ class AppearanceCatalog {
         if (m['colorLabel'] != null) colorLabel[k] = m['colorLabel'] as String;
         if (m['swatch'] != null) swatch[k] = _c(m['swatch']);
       });
+    }
+    for (final zone in HairZone.values) {
+      for (final style in Haircuts.stylesFor(zone)) {
+        final id = Haircuts.id(zone, style);
+        labels[id] = Haircuts.label(id);
+      }
     }
     final varieties = {
       for (final e

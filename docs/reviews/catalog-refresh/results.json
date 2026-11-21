@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-20",
+  "branch": "codex/cuidados-armario-decoracion",
+  "base": "338764750558b2ea9103b307190efaf459893ae4",
+  "flutter": "3.50.0",
+  "dart": "3.14.0",
+  "tests": 328,
+  "native_bridge_tests": 1,
+  "analyzer": "clean",
+  "languages": 11,
+  "messages": 739,
+  "catalog_styles": 76,
+  "granular_cuts": 24,
+  "new_decor_art": 9,
+  "new_covers": 2,
+  "webgl_thumbnails": 100,
+  "webgl_console_errors": 0,
+  "web_release": "passed",
+  "ios_profile_3d_no_codesign": "passed",
+  "device_acceptance": "pending",
+  "push": "TODO only"
+}

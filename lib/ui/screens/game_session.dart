@@ -4,7 +4,6 @@ import '../../app/app_scope.dart';
 import '../../app/feedback.dart';
 import '../../domain/rules.dart';
 import '../../domain/games/variety.dart';
-import '../../l10n/localized_widgets.dart';
 import '../ask_adult_view.dart';
 import '../navigation.dart';
 import '../widgets/dialogs.dart';
@@ -39,12 +38,9 @@ mixin GameSession<W extends StatefulWidget> on State<W> {
           showAskAdult(nav.context);
         } else {
           AppScope.feedbackOf(nav.context).play(Sfx.blocked);
-          ScaffoldMessenger.of(nav.context).showSnackBar(
-            SnackBar(
-              content: LText(
-                c.gameBlocked ?? 'No se pudo guardar el inicio de la partida.',
-              ),
-            ),
+          showGameBlocked(
+            nav.context,
+            c.gameBlocked ?? 'No se pudo guardar el inicio de la partida.',
           );
         }
       });

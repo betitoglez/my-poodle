@@ -63,7 +63,7 @@ void main() {
 
     test('idempotente: repetir el cuidado no repite el logro ni la fecha', () {
       final r1 = rules.finishCare(adopt(), CareKind.feed, 'c1', t0 + 10);
-      final r2 = rules.finishCare(r1.after, CareKind.feed, 'c2', t0 + 400);
+      final r2 = rules.finishCare(r1.after, CareKind.feed, 'c2', t0 + 1000);
       expect(r2.newAchievements, isEmpty);
       expect(r2.after.achievements['ach.care.feed'], t0 + 10);
       expect(ach.newlyUnlocked(r2.after, r2.after), isEmpty);

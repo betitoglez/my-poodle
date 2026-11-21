@@ -236,8 +236,10 @@ void main() {
         painted++;
       }
     }
-    // 11 pelajes (5 originales y 6 de la ampliación del catálogo) × 5 peinados.
-    expect(painted, 11 * 5);
+    expect(
+      painted,
+      balance.itemsFor(Slot.coat).length * balance.itemsFor(Slot.hair).length,
+    );
     expect(
       painter.sprites!.stateLayer('messy', 'hair.pom', 'front'),
       isNotNull,

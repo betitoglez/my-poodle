@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../domain/appearance.dart';
+import '../../domain/haircuts.dart';
+import '../../domain/style_catalog.dart';
 import '../../domain/games/orchard_sim.dart';
 
 enum LivePetTap { missed, touched, greeted }
@@ -193,8 +195,13 @@ class LivePoodleView extends StatefulWidget {
         'hair.pom',
         'hair.puppy',
         'hair.show',
+        'hair.modern',
       }.contains(appearance.hair) &&
-      _clothes(appearance).every(supportedItems.contains);
+      _clothes(appearance).every(
+        (id) =>
+            supportedItems.contains(id) ||
+            StyleCatalog.clothingModels.containsKey(id),
+      );
 
   static Iterable<String> _clothes(Appearance appearance) => [
     appearance.outfit,
@@ -340,6 +347,10 @@ class _LivePoodleState extends State<LivePoodleView> {
       'puppy': appearance.hair == 'hair.puppy',
       'teddy': appearance.hair == 'hair.teddy',
       'showCut': appearance.hair == 'hair.show',
+      'cuts': [
+        for (final z in HairZone.values)
+          Haircuts.renderIndex(appearance.cuts[z]!),
+      ],
       'coat': appearance.coat.split('.').last,
       'wear': LivePoodleView._clothes(appearance).toList(),
     });

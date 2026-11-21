@@ -37,6 +37,48 @@
       "light": "#737C91",
       "skin": "#6B5A58"
     },
+    "coat.zebra": {
+      "label": "Cebra",
+      "base": "#F2EDE3",
+      "shade": "#98949A",
+      "light": "#FFFFFF",
+      "skin": "#EDC39A"
+    },
+    "coat.blue": {
+      "label": "Azul",
+      "base": "#4598DC",
+      "shade": "#214A89",
+      "light": "#AEDFFF",
+      "skin": "#EDC39A"
+    },
+    "coat.green": {
+      "label": "Verde",
+      "base": "#57AF78",
+      "shade": "#285D47",
+      "light": "#B3EDC4",
+      "skin": "#EDC39A"
+    },
+    "coat.redwhite": {
+      "label": "Rojiblanco",
+      "base": "#EADFD4",
+      "shade": "#A53C46",
+      "light": "#FFF9F1",
+      "skin": "#EDC39A"
+    },
+    "coat.dalmatian": {
+      "label": "Dálmata",
+      "base": "#F3EEE4",
+      "shade": "#99939B",
+      "light": "#FFFFFF",
+      "skin": "#EDC39A"
+    },
+    "coat.tiger": {
+      "label": "Tigre",
+      "base": "#E4A257",
+      "shade": "#6A442B",
+      "light": "#FFD59E",
+      "skin": "#EDC39A"
+    },
     "coat.cream": {
       "label": "Crema",
       "base": "#F1DDB4",
@@ -100,6 +142,10 @@
     "hair.show": {
       "label": "Corte de concurso",
       "style": "pom"
+    },
+    "hair.modern": {
+      "label": "Corte moderno",
+      "style": "natural"
     }
   },
   "outfits": {
@@ -137,26 +183,6 @@
       "colorLabel": "Amarillo",
       "swatch": "#E2B93B"
     },
-    "outfit.overalls_denim": {
-      "label": "Peto vaquero",
-      "style": "overalls",
-      "color": "#4A6FA5",
-      "shade": "#334F7A",
-      "trim": "#F3E7CC",
-      "variety": "overalls",
-      "colorLabel": "Vaquero",
-      "swatch": "#4A6FA5"
-    },
-    "outfit.overalls_pink": {
-      "label": "Peto rosa",
-      "style": "overalls",
-      "color": "#D97FA3",
-      "shade": "#A85A7A",
-      "trim": "#F3E7CC",
-      "variety": "overalls",
-      "colorLabel": "Rosa",
-      "swatch": "#D97FA3"
-    },
     "outfit.sweater_red": {
       "label": "Jersey rojo",
       "style": "overalls",
@@ -186,26 +212,6 @@
       "variety": "sweater",
       "colorLabel": "Mostaza",
       "swatch": "#C9A02F"
-    },
-    "outfit.sweater_green": {
-      "label": "Jersey verde",
-      "style": "overalls",
-      "color": "#3F8A55",
-      "shade": "#2B613B",
-      "trim": "#F3E7CC",
-      "variety": "sweater",
-      "colorLabel": "Verde",
-      "swatch": "#3F8A55"
-    },
-    "outfit.sweater_purple": {
-      "label": "Jersey morado",
-      "style": "overalls",
-      "color": "#8A68B8",
-      "shade": "#634A88",
-      "trim": "#F3E7CC",
-      "variety": "sweater",
-      "colorLabel": "Morado",
-      "swatch": "#8A68B8"
     },
     "outfit.raincoat_yellow": {
       "label": "Impermeable amarillo",
@@ -237,26 +243,6 @@
       "colorLabel": "Rosa",
       "swatch": "#E36FA2"
     },
-    "outfit.raincoat_red": {
-      "label": "Impermeable rojo",
-      "style": "overalls",
-      "color": "#C8423A",
-      "shade": "#952C27",
-      "trim": "#F3E7CC",
-      "variety": "raincoat",
-      "colorLabel": "Rojo",
-      "swatch": "#C8423A"
-    },
-    "outfit.raincoat_green": {
-      "label": "Impermeable verde",
-      "style": "overalls",
-      "color": "#5BAA55",
-      "shade": "#3F7D3B",
-      "trim": "#F3E7CC",
-      "variety": "raincoat",
-      "colorLabel": "Verde",
-      "swatch": "#5BAA55"
-    },
     "outfit.dress_pink": {
       "label": "Vestido rosa",
       "style": "overalls",
@@ -286,6 +272,326 @@
       "variety": "dress",
       "colorLabel": "Turquesa",
       "swatch": "#5CC6C0"
+    },
+    "outfit.overalls_blue": {
+      "label": "Peto azul",
+      "style": "overalls",
+      "color": "#326FC0",
+      "shade": "#1D426F",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Azul",
+      "swatch": "#326FC0"
+    },
+    "outfit.overalls_white": {
+      "label": "Peto blanco",
+      "style": "overalls",
+      "color": "#F0EDE6",
+      "shade": "#BDB9B1",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Blanco",
+      "swatch": "#F0EDE6"
+    },
+    "outfit.overalls_black": {
+      "label": "Peto negro",
+      "style": "overalls",
+      "color": "#343940",
+      "shade": "#191D23",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Negro",
+      "swatch": "#343940"
+    },
+    "outfit.overalls_zebra": {
+      "label": "Peto cebra",
+      "style": "overalls",
+      "color": "#EEEDE5",
+      "shade": "#31333B",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Cebra",
+      "swatch": "#EEEDE5"
+    },
+    "outfit.overalls_redwhite": {
+      "label": "Peto rojiblanco",
+      "style": "overalls",
+      "color": "#F7EDE6",
+      "shade": "#B53A46",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Rojiblanco",
+      "swatch": "#F7EDE6"
+    },
+    "outfit.overalls_greenwhite": {
+      "label": "Peto verdiblanco",
+      "style": "overalls",
+      "color": "#F0EFE5",
+      "shade": "#328457",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Verdiblanco",
+      "swatch": "#F0EFE5"
+    },
+    "outfit.overalls_dots": {
+      "label": "Peto círculos de colores",
+      "style": "overalls",
+      "color": "#F4EDE0",
+      "shade": "#AA966E",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Círculos de colores",
+      "swatch": "#F4EDE0"
+    },
+    "outfit.sweater_white": {
+      "label": "Jersey blanco",
+      "style": "overalls",
+      "color": "#F0EDE6",
+      "shade": "#BDB9B1",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Blanco",
+      "swatch": "#F0EDE6"
+    },
+    "outfit.sweater_black": {
+      "label": "Jersey negro",
+      "style": "overalls",
+      "color": "#343940",
+      "shade": "#191D23",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Negro",
+      "swatch": "#343940"
+    },
+    "outfit.sweater_zebra": {
+      "label": "Jersey cebra",
+      "style": "overalls",
+      "color": "#EEEDE5",
+      "shade": "#31333B",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Cebra",
+      "swatch": "#EEEDE5"
+    },
+    "outfit.sweater_redwhite": {
+      "label": "Jersey rojiblanco",
+      "style": "overalls",
+      "color": "#F7EDE6",
+      "shade": "#B53A46",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Rojiblanco",
+      "swatch": "#F7EDE6"
+    },
+    "outfit.sweater_greenwhite": {
+      "label": "Jersey verdiblanco",
+      "style": "overalls",
+      "color": "#F0EFE5",
+      "shade": "#328457",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Verdiblanco",
+      "swatch": "#F0EFE5"
+    },
+    "outfit.sweater_dots": {
+      "label": "Jersey círculos de colores",
+      "style": "overalls",
+      "color": "#F4EDE0",
+      "shade": "#AA966E",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Círculos de colores",
+      "swatch": "#F4EDE0"
+    },
+    "outfit.raincoat_white": {
+      "label": "Impermeable blanco",
+      "style": "overalls",
+      "color": "#F0EDE6",
+      "shade": "#BDB9B1",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Blanco",
+      "swatch": "#F0EDE6"
+    },
+    "outfit.raincoat_black": {
+      "label": "Impermeable negro",
+      "style": "overalls",
+      "color": "#343940",
+      "shade": "#191D23",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Negro",
+      "swatch": "#343940"
+    },
+    "outfit.raincoat_zebra": {
+      "label": "Impermeable cebra",
+      "style": "overalls",
+      "color": "#EEEDE5",
+      "shade": "#31333B",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Cebra",
+      "swatch": "#EEEDE5"
+    },
+    "outfit.raincoat_redwhite": {
+      "label": "Impermeable rojiblanco",
+      "style": "overalls",
+      "color": "#F7EDE6",
+      "shade": "#B53A46",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Rojiblanco",
+      "swatch": "#F7EDE6"
+    },
+    "outfit.raincoat_greenwhite": {
+      "label": "Impermeable verdiblanco",
+      "style": "overalls",
+      "color": "#F0EFE5",
+      "shade": "#328457",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Verdiblanco",
+      "swatch": "#F0EFE5"
+    },
+    "outfit.raincoat_dots": {
+      "label": "Impermeable círculos de colores",
+      "style": "overalls",
+      "color": "#F4EDE0",
+      "shade": "#AA966E",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Círculos de colores",
+      "swatch": "#F4EDE0"
+    },
+    "outfit.dress_blue": {
+      "label": "Vestido azul",
+      "style": "overalls",
+      "color": "#326FC0",
+      "shade": "#1D426F",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Azul",
+      "swatch": "#326FC0"
+    },
+    "outfit.dress_white": {
+      "label": "Vestido blanco",
+      "style": "overalls",
+      "color": "#F0EDE6",
+      "shade": "#BDB9B1",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Blanco",
+      "swatch": "#F0EDE6"
+    },
+    "outfit.dress_black": {
+      "label": "Vestido negro",
+      "style": "overalls",
+      "color": "#343940",
+      "shade": "#191D23",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Negro",
+      "swatch": "#343940"
+    },
+    "outfit.dress_zebra": {
+      "label": "Vestido cebra",
+      "style": "overalls",
+      "color": "#EEEDE5",
+      "shade": "#31333B",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Cebra",
+      "swatch": "#EEEDE5"
+    },
+    "outfit.dress_redwhite": {
+      "label": "Vestido rojiblanco",
+      "style": "overalls",
+      "color": "#F7EDE6",
+      "shade": "#B53A46",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Rojiblanco",
+      "swatch": "#F7EDE6"
+    },
+    "outfit.dress_greenwhite": {
+      "label": "Vestido verdiblanco",
+      "style": "overalls",
+      "color": "#F0EFE5",
+      "shade": "#328457",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Verdiblanco",
+      "swatch": "#F0EFE5"
+    },
+    "outfit.dress_dots": {
+      "label": "Vestido círculos de colores",
+      "style": "overalls",
+      "color": "#F4EDE0",
+      "shade": "#AA966E",
+      "trim": "#F3E7CC",
+      "variety": "dress",
+      "colorLabel": "Círculos de colores",
+      "swatch": "#F4EDE0"
+    },
+    "outfit.overalls_denim": {
+      "label": "Peto vaquero",
+      "style": "overalls",
+      "color": "#4A6FA5",
+      "shade": "#334F7A",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Vaquero",
+      "swatch": "#4A6FA5"
+    },
+    "outfit.overalls_pink": {
+      "label": "Peto rosa",
+      "style": "overalls",
+      "color": "#D97FA3",
+      "shade": "#A85A7A",
+      "trim": "#F3E7CC",
+      "variety": "overalls",
+      "colorLabel": "Rosa",
+      "swatch": "#D97FA3"
+    },
+    "outfit.sweater_green": {
+      "label": "Jersey verde",
+      "style": "overalls",
+      "color": "#3F8A55",
+      "shade": "#2B613B",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Verde",
+      "swatch": "#3F8A55"
+    },
+    "outfit.sweater_purple": {
+      "label": "Jersey morado",
+      "style": "overalls",
+      "color": "#8A68B8",
+      "shade": "#634A88",
+      "trim": "#F3E7CC",
+      "variety": "sweater",
+      "colorLabel": "Morado",
+      "swatch": "#8A68B8"
+    },
+    "outfit.raincoat_red": {
+      "label": "Impermeable rojo",
+      "style": "overalls",
+      "color": "#C8423A",
+      "shade": "#952C27",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Rojo",
+      "swatch": "#C8423A"
+    },
+    "outfit.raincoat_green": {
+      "label": "Impermeable verde",
+      "style": "overalls",
+      "color": "#5BAA55",
+      "shade": "#3F7D3B",
+      "trim": "#F3E7CC",
+      "variety": "raincoat",
+      "colorLabel": "Verde",
+      "swatch": "#5BAA55"
     },
     "outfit.dress_yellow": {
       "label": "Vestido amarillo",

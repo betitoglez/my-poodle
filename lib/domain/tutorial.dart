@@ -17,7 +17,11 @@ abstract final class Tutorial {
 
   static TutorialStep? next(PetState s, Balance balance) {
     if (s.prefs.seenHints.contains(skipHint)) return null;
-    if (!s.careCompletedUtc.containsKey('feed')) return TutorialStep.feed;
+    if (!s.careCompletedUtc.keys.any(
+      (k) => k == 'feed' || k.startsWith('feed.'),
+    )) {
+      return TutorialStep.feed;
+    }
     if (s.bestStars.isEmpty && s.bestFruit == 0 && s.bestFrisbee == 0) {
       return TutorialStep.play;
     }

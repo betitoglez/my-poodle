@@ -1,0 +1,5 @@
+{
+  "method": "RGBA alpha>40, R>G+20, B>G+10; natural thumbnail at bed4bee versus corrected render",
+  "purplePixelsBefore": 659,
+  "purplePixelsAfter": 0
+}

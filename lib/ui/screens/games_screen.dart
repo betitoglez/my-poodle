@@ -13,6 +13,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
+import '../widgets/dialogs.dart';
 import 'album_screen.dart';
 import 'main_shell.dart';
 import 'minigame_screens.dart';
@@ -39,7 +40,7 @@ class GamesScreen extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: l.gutter),
-            child: const LText(
+            child: const CoinText(
               'Elige dónde ganar monedas con tu caniche.',
               style: AppText.body,
             ),
@@ -58,17 +59,22 @@ class GamesScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: AppSpace.m),
                     child: _GameCard(
                       def: def,
+                      waitSeconds: c.gameWaitSeconds,
                       best: c.rules.gameBest(c.pet, def.id),
                       bestStars: c.pet.bestStars[def.id.name] ?? 0,
                       locked: !c.canPlay(def.id),
                       trial: c.isGameTrial(def.id),
                       trialLabel: c.trialLabel(def.id),
-                      onOpen: () => c.canPlay(def.id)
-                          ? pushScreen(
-                              context,
-                              InstructionsScreen(game: def.id),
-                            )
-                          : showAskAdult(context),
+                      onOpen: () {
+                        final blocked = c.gameBlocked;
+                        if (c.gameWaitSeconds > 0 && blocked != null) {
+                          showGameBlocked(context, blocked);
+                        } else if (c.canPlay(def.id)) {
+                          pushScreen(context, InstructionsScreen(game: def.id));
+                        } else {
+                          showAskAdult(context);
+                        }
+                      },
                     ),
                   ),
               ],
@@ -85,6 +91,7 @@ class _GameCard extends StatelessWidget {
     required this.def,
     required this.best,
     required this.onOpen,
+    this.waitSeconds = 0,
     this.bestStars = 0,
     this.locked = false,
     this.trial = false,
@@ -92,6 +99,7 @@ class _GameCard extends StatelessWidget {
   });
   final GameDefinition def;
   final int best;
+  final int waitSeconds;
   final VoidCallback onOpen;
 
   /// Mejor marca de estrellas guardada (0..3).
@@ -167,7 +175,9 @@ class _GameCard extends StatelessWidget {
                     const SizedBox(height: AppSpace.s),
                     AppButton(
                       expand: true,
-                      label: locked
+                      label: waitSeconds > 0
+                          ? countdown(waitSeconds)
+                          : locked
                           ? 'Ver'
                           : trial
                           ? 'Probar gratis'
@@ -258,11 +268,21 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                   icon: Icons.timer_rounded,
                   text: 'Duración: ${def.limitLabel}.',
                 ),
-                _Line(
-                  icon: Icons.savings_rounded,
-                  text:
-                      'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
-                ),
+                if (game == GameId.pairs) ...[
+                  const SizedBox(height: AppSpace.s),
+                  const LText('Premios', style: AppText.subtitle),
+                  for (final line in def.rewardLabel.split('\n'))
+                    _Line(icon: Icons.savings_rounded, text: line),
+                  const LText(
+                    'Si sales antes de terminar, no hay premio.',
+                    style: AppText.body,
+                  ),
+                ] else
+                  _Line(
+                    icon: Icons.savings_rounded,
+                    text:
+                        'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
+                  ),
                 if (game == GameId.pairs) ...[
                   const SizedBox(height: AppSpace.m),
                   const LText('Elige un nivel', style: AppText.subtitle),
@@ -407,7 +427,7 @@ class _Line extends StatelessWidget {
       children: [
         Icon(icon, color: iconColor ?? AppColors.leaf),
         const SizedBox(width: AppSpace.m),
-        Expanded(child: LText(text, style: AppText.body)),
+        Expanded(child: CoinText(text, style: AppText.body)),
       ],
     ),
   );

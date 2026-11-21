@@ -52,6 +52,10 @@ void main() {
     expect(s.owned, {
       'coat.apricot',
       'hair.natural',
+      'cut.head.natural',
+      'cut.legs.natural',
+      'cut.back.natural',
+      'cut.tail.natural',
       'outfit.none',
       'head.none',
       'eyes.none',
@@ -216,7 +220,7 @@ void main() {
                 a.neck != base.neck,
           ),
         ),
-        24 + 30 + 18 + 10,
+        30 + 200 + 20 + 10,
       );
     });
   });

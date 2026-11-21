@@ -9,6 +9,7 @@ import '../../app/app_root.dart';
 import '../../app/app_scope.dart';
 import '../../app/feedback.dart';
 import '../../domain/appearance.dart';
+import '../../domain/haircuts.dart';
 import '../../domain/balance.dart';
 import '../../domain/rules.dart';
 import '../../game/pet/appearance_catalog.dart';
@@ -20,6 +21,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
+import '../widgets/preview_badge.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/live_poodle_view.dart';
 import '../widgets/luxury_badge.dart';
@@ -103,6 +105,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   late Slot _slot = widget.initialSlot == Slot.collar
       ? Slot.neck
       : widget.initialSlot;
+  HairZone? _hairZone;
   PetView _view = PetView.front;
   bool _busy = false;
   ShellController? _shell;
@@ -156,6 +159,22 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     _game!.pet.setView(v);
   }
 
+  bool get _sideHair =>
+      _category == _Category.hair &&
+      (_hairZone == HairZone.back || _hairZone == HairZone.tail);
+
+  void _selectHairZone(HairZone? zone) {
+    setState(() => _hairZone = zone);
+    _turn(_sideHair ? PetView.right : PetView.front);
+    _orientHairPreview();
+  }
+
+  void _orientHairPreview() {
+    if (!_live.ready || _category != _Category.hair) return;
+    _live.front();
+    if (_sideHair) _live.rotate(-math.pi / (2 * .013));
+  }
+
   /// Salir con una prueba pendiente: aplicar (con compra) o descartar.
   Future<bool> _confirmLeave() async {
     if (!_dirty) return true;
@@ -205,8 +224,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     }
     if (cost > 0) {
       final items = [
-        for (final s in Slot.values)
-          if (!c.pet.owned.contains(look.of(s))) c.looks.label(look.of(s)),
+        for (final id in look.ids)
+          if (!id.startsWith('hair.') &&
+              !c.rules.ownsStyle(c.pet, id) &&
+              c.itemCost(id) > 0)
+            c.looks.label(id),
       ];
       final ok = await showPurchaseDialog(
         context,
@@ -244,9 +266,22 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     return false;
   }
 
-  /// Artículos de la ranura agrupados por variedad (los colores de una
-  /// variedad cuestan lo mismo); los sueltos forman una sola sección.
+  /// Artículos agrupados por variedad; cada ficha muestra su precio vigente.
   List<_Section> _sections(AppController c, Slot slot) {
+    if (slot == Slot.hair && _hairZone != null) {
+      return [
+        _Section(null, [
+          for (final style in Haircuts.stylesFor(_hairZone!))
+            StyleItem(
+              id: Haircuts.id(_hairZone!, style),
+              slot: Slot.hair,
+              cost: Haircuts.cost(style),
+              initial: Haircuts.cost(style) == 0,
+              tier: Haircuts.tier(style),
+            ),
+        ]),
+      ];
+    }
     final out = <_Section>[];
     final byVariety = <String, _Section>{};
     final items = [
@@ -274,14 +309,24 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
   }
 
   String _selected(Appearance appearance) =>
-      _slot == Slot.neck &&
-          appearance.neck == 'neck.none' &&
-          appearance.collar != 'collar.none'
+      _slot == Slot.hair && _hairZone != null
+      ? appearance.cutId(_hairZone!)
+      : _slot == Slot.hair && !appearance.uniformHair
+      ? 'hair.custom'
+      : _slot == Slot.neck &&
+            appearance.neck == 'neck.none' &&
+            appearance.collar != 'collar.none'
       ? appearance.collar
       : appearance.of(_slot);
 
   Appearance _selectItem(AppController c, StyleItem item) {
     var appearance = _preview;
+    if (Haircuts.valid(item.id)) {
+      return appearance.withCut(
+        HairZone.values.byName(item.id.split('.')[1]),
+        item.id.split('.').last,
+      );
+    }
     if (_slot == Slot.neck) {
       appearance = appearance
           .withSlot(Slot.neck, c.balance.baseFor(Slot.neck).id)
@@ -296,8 +341,17 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     final pet = c.pet;
     final l = Layout.of(context);
     final selectedId = _selected(_preview);
-    final item = c.balance.item(selectedId)!;
-    final owned = pet.owned.contains(selectedId);
+    final item =
+        c.balance.item(selectedId) ??
+        StyleItem(
+          id: selectedId,
+          slot: Slot.hair,
+          cost: 0,
+          initial:
+              selectedId.endsWith('.natural') ||
+              selectedId == 'cut.tail.standard',
+        );
+    final owned = c.rules.ownsStyle(pet, selectedId);
     final equipped = _selected(pet.appearance) == selectedId;
     final dirty = _preview != pet.appearance;
     final cost = c.lookCost(_preview);
@@ -321,7 +375,11 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
               expand: true,
               onPressed: _busy || c.saving
                   ? null
-                  : () => _apply(_selectItem(c, c.balance.baseFor(_slot))),
+                  : () => _apply(
+                      _slot == Slot.hair && _hairZone != null
+                          ? _preview.withCut(_hairZone!, 'natural')
+                          : _selectItem(c, c.balance.baseFor(_slot)),
+                    ),
             )
           : const AppButton(
               label: 'Equipado',
@@ -402,18 +460,19 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                       mood: pet.needPoints(Need.mood),
                       energy: pet.needPoints(Need.energy),
                       sick: pet.isSick,
-                      onStatusChanged: () => setState(() {}),
+                      onStatusChanged: () {
+                        if (mounted) {
+                          setState(() {});
+                          _orientHairPreview();
+                        }
+                      },
                     ),
                   ),
                 if (dirty)
                   const Positioned(
                     right: AppSpace.s,
                     top: AppSpace.s,
-                    child: Chip(
-                      avatar: Icon(Icons.visibility_rounded, size: 18),
-                      label: LText('Probando'),
-                      backgroundColor: AppColors.cream,
-                    ),
+                    child: PreviewBadge(),
                   ),
                 Positioned(
                   right: AppSpace.s,
@@ -473,6 +532,28 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                       ),
                   ],
                 ),
+                if (_category == _Category.hair) ...[
+                  const SizedBox(height: AppSpace.s),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final zone in <HairZone?>[
+                          null,
+                          ...HairZone.values,
+                        ])
+                          Padding(
+                            padding: const EdgeInsets.only(right: AppSpace.s),
+                            child: ChoiceChip(
+                              label: LText(zone?.label ?? 'Packs'),
+                              selected: zone == _hairZone,
+                              onSelected: (_) => _selectHairZone(zone),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (_category == _Category.accessories) ...[
                   const SizedBox(height: AppSpace.s),
                   SingleChildScrollView(
@@ -532,16 +613,6 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                                         c.looks.varietyLabel(sec.variety!),
                                         style: AppText.subtitle,
                                       ),
-                                      const SizedBox(width: AppSpace.s),
-                                      const CoinIcon(size: 16),
-                                      const SizedBox(width: 4),
-                                      Flexible(
-                                        child: LText(
-                                          '${sec.items.first.cost} · todos los colores',
-                                          style: AppText.small,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -561,17 +632,26 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                                 final it = sec.items[i];
                                 final preview = _selectItem(c, it);
                                 return _ItemTile(
-                                  item: it,
+                                  item: StyleItem(
+                                    id: it.id,
+                                    slot: it.slot,
+                                    cost: c.itemCost(it.id),
+                                    initial: it.initial,
+                                    tier: it.tier,
+                                  ),
                                   label: sec.variety != null
                                       ? (c.looks.colorLabel(it.id) ??
                                             c.looks.label(it.id))
                                       : c.looks.label(it.id),
                                   swatch: c.looks.swatch(it.id),
                                   zoom: zoom,
+                                  pose: _sideHair
+                                      ? PetPose.side
+                                      : PetPose.front,
                                   useModelArtwork: showModel,
                                   look: c.looks.resolve(preview),
                                   selected: it.id == selectedId,
-                                  owned: pet.owned.contains(it.id),
+                                  owned: c.rules.ownsStyle(pet, it.id),
                                   locked: c.isLocked(it.id),
                                   coins: pet.coins,
                                   equipped: _selected(pet.appearance) == it.id,
@@ -672,6 +752,7 @@ class _CategoryTab extends StatelessWidget {
       button: true,
       selected: selected,
       label: label,
+      onTap: onTap,
       excludeSemantics: true,
       child: Material(
         color: selected ? AppColors.plum : Colors.white,
@@ -716,6 +797,7 @@ class _ItemTile extends StatelessWidget {
     required this.look,
     required this.zoom,
     required this.useModelArtwork,
+    this.pose = PetPose.front,
     required this.selected,
     required this.owned,
     required this.equipped,
@@ -731,6 +813,7 @@ class _ItemTile extends StatelessWidget {
   final Color? swatch;
   final ThumbZoom zoom;
   final bool useModelArtwork;
+  final PetPose pose;
   final PetLook look;
   final bool selected;
   final bool owned;
@@ -741,7 +824,7 @@ class _ItemTile extends StatelessWidget {
   final bool locked;
 
   Widget _thumbnail() {
-    final fallback = PetThumb(look: look, zoom: zoom);
+    final fallback = PetThumb(look: look, zoom: zoom, pose: pose);
     if (!useModelArtwork) return fallback;
     return Image.asset(
       'assets/images/wardrobe_thumbs/${item.id}.webp',
@@ -774,8 +857,8 @@ class _ItemTile extends StatelessWidget {
         luxury: luxury,
         missing: missing,
       ),
-      excludeSemantics: true,
       onTap: onTap,
+      excludeSemantics: true,
       child: Material(
         color: selected
             ? AppColors.plumSoft

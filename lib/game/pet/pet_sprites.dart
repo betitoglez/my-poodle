@@ -133,6 +133,8 @@ class PetSprites {
         final pixels = await compute(recolorFur, <String, Object>{
           'pixels': bytes.buffer.asUint8List(),
           'palette': palette,
+          'width': layer.image.width,
+          'pattern': coat.split('.').last,
         });
         final done = Completer<ui.Image>();
         ui.decodeImageFromPixels(
@@ -166,8 +168,10 @@ class PetSprites {
   Iterable<String> get itemIds => [..._items.keys, ..._variants.keys];
 
   String _layerId(String id) => _variants[id]?.of ?? id;
-  // The continental silhouette has a dedicated mesh in the 3D viewer.
-  String _hairLayerId(String id) => _hairAliases[id] ?? id;
+  // Aliases share the base texture only: ModernHairMesh supplies the modern
+  // silhouette in the 2D painter, including mixed cuts and animated poses.
+  String _hairLayerId(String id) =>
+      id == 'hair.standard' ? 'hair.natural' : _hairAliases[id] ?? id;
 
   /// ¿Se conoce el artículo en el atlas (directo o como variante)?
   bool knowsItem(String id) => _items.containsKey(_layerId(id));

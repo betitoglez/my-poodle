@@ -10,52 +10,52 @@ import 'package:my_poodle/domain/rules.dart';
 
 import '../support.dart';
 
-/// Catálogo publicado antes de la ampliación: ID → (precio, versión).
-/// Nada de esto puede cambiar entre versiones.
+/// Catálogo anterior a la ampliación, con los precios por familia de PR #17:
+/// ID → (precio, versión). Nada de esto puede cambiar entre versiones.
 const _oldStyles = {
   'coat.apricot': (0, Tier.free),
-  'coat.silver': (24, Tier.free),
+  'coat.silver': (30, Tier.free),
   'coat.lightgray': (30, Tier.full),
-  'coat.white': (38, Tier.full),
-  'coat.black': (46, Tier.full),
+  'coat.white': (40, Tier.full),
+  'coat.black': (50, Tier.full),
   'hair.natural': (0, Tier.free),
-  'hair.show': (0, Tier.free),
-  'hair.pom': (30, Tier.free),
-  'hair.teddy': (40, Tier.full),
-  'hair.puppy': (52, Tier.full),
+  'hair.show': (400, Tier.free),
+  'hair.pom': (200, Tier.free),
+  'hair.teddy': (200, Tier.full),
+  'hair.puppy': (200, Tier.full),
   'outfit.none': (0, Tier.free),
-  'outfit.teal': (18, Tier.free),
-  'outfit.overalls_red': (18, Tier.free),
-  'outfit.overalls_yellow': (18, Tier.free),
-  'outfit.sweater_red': (32, Tier.full),
-  'outfit.sweater_blue': (32, Tier.full),
-  'outfit.sweater_mustard': (32, Tier.full),
-  'outfit.raincoat_yellow': (46, Tier.full),
-  'outfit.raincoat_blue': (46, Tier.full),
-  'outfit.raincoat_pink': (46, Tier.full),
-  'outfit.dress_pink': (64, Tier.full),
-  'outfit.dress_lilac': (64, Tier.full),
-  'outfit.dress_turquoise': (64, Tier.full),
+  'outfit.teal': (20, Tier.free),
+  'outfit.overalls_red': (20, Tier.free),
+  'outfit.overalls_yellow': (20, Tier.free),
+  'outfit.sweater_red': (40, Tier.full),
+  'outfit.sweater_blue': (40, Tier.full),
+  'outfit.sweater_mustard': (40, Tier.full),
+  'outfit.raincoat_yellow': (50, Tier.full),
+  'outfit.raincoat_blue': (50, Tier.full),
+  'outfit.raincoat_pink': (50, Tier.full),
+  'outfit.dress_pink': (70, Tier.full),
+  'outfit.dress_lilac': (70, Tier.full),
+  'outfit.dress_turquoise': (70, Tier.full),
   'head.none': (0, Tier.free),
-  'head.bow': (14, Tier.free),
+  'head.bow': (20, Tier.free),
   'head.beanie': (30, Tier.full),
-  'head.crown': (64, Tier.full),
+  'head.crown': (70, Tier.full),
   'eyes.none': (0, Tier.free),
   'eyes.round': (20, Tier.free),
-  'eyes.sun': (36, Tier.full),
-  'eyes.heart': (52, Tier.full),
+  'eyes.sun': (40, Tier.full),
+  'eyes.heart': (60, Tier.full),
   'collar.none': (0, Tier.free),
-  'collar.tag': (12, Tier.free),
-  'collar.bell': (24, Tier.full),
-  'collar.pearls': (48, Tier.full),
+  'collar.tag': (20, Tier.free),
+  'collar.bell': (30, Tier.full),
+  'collar.pearls': (50, Tier.full),
   'neck.none': (0, Tier.free),
   'neck.coral': (10, Tier.free),
-  'neck.bowtie': (22, Tier.full),
-  'neck.knit': (34, Tier.full),
+  'neck.bowtie': (30, Tier.full),
+  'neck.knit': (40, Tier.full),
   'paws.none': (0, Tier.free),
-  'paws.booties': (26, Tier.free),
+  'paws.booties': (30, Tier.free),
   'paws.sneakers': (40, Tier.full),
-  'paws.rain': (56, Tier.full),
+  'paws.rain': (60, Tier.full),
 };
 const _oldDecor = {
   'rug.none': (0, Tier.free),
@@ -177,11 +177,11 @@ void main() {
       expect(luxuryCost, 250);
       final styleLux = balance.styles.where((s) => s.luxury).toList();
       final decorLux = balance.decor.where((d) => d.luxury).toList();
-      expect(styleLux.map((s) => s.id), [
-        'coat.golden',
-        'head.crown_jewels',
-        'collar.pearls_gold',
-      ]);
+      // PR #17 ya sitúa cortes y pelajes especiales por encima de 250.
+      expect(
+        styleLux.map((s) => s.id),
+        containsAll(['coat.golden', 'head.crown_jewels', 'collar.pearls_gold']),
+      );
       expect(decorLux.map((d) => d.id), [
         'rug.persian',
         'wall.goldframe',
@@ -191,12 +191,11 @@ void main() {
         ...styleLux.map((s) => s.cost),
         ...decorLux.map((d) => d.cost),
       ]) {
-        expect(i, inInclusiveRange(250, 800));
+        expect(i, inInclusiveRange(250, 1500));
       }
       expect(styleLux.where((s) => s.tier == Tier.free), isNotEmpty);
       expect(decorLux.where((d) => d.tier == Tier.free), isNotEmpty);
-      // Ningún artículo anterior pasa a ser de lujo.
-      expect(styleLux.any((s) => _oldStyles.containsKey(s.id)), isFalse);
+      // Ninguna decoración anterior pasa a ser de lujo.
       expect(decorLux.any((d) => _oldDecor.containsKey(d.id)), isFalse);
     });
 
@@ -213,7 +212,12 @@ void main() {
         for (final id in newCoats) {
           expect(balance.item(id)!.cost, inInclusiveRange(60, 150), reason: id);
         }
-        expect(balance.item('coat.golden')!.cost, inInclusiveRange(400, 600));
+        // El dorado es el pelaje más caro, por encima de los especiales.
+        final golden = balance.item('coat.golden')!.cost;
+        expect(
+          balance.itemsFor(Slot.coat).every((c) => c.cost <= golden),
+          isTrue,
+        );
         expect(balance.item('coat.golden')!.tier, Tier.full);
         for (final ids in _families.values) {
           final costs = ids.map((id) => balance.item(id)!.cost).toSet();

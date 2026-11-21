@@ -125,8 +125,8 @@ class _PhotoScreenState extends State<PhotoScreen> {
       appBar: AppBar(
         title: const LText('Modo foto'),
         actions: [
-          IconButton(
-            tooltip: localizeNullable(context, 'Álbum de fotos'),
+          TextButton.icon(
+            label: const LText('Álbum'),
             icon: const Icon(Icons.photo_library_rounded),
             onPressed: () =>
                 pushScreen(context, PhotoAlbumScreen(album: _album)),
@@ -157,6 +157,9 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       child: SceneView(
                         game: _game!,
                         semanticsLabel: 'Escena para la foto de tu caniche',
+                        onDragUpdate: _showModel
+                            ? (_, _, delta) => _live.rotate(delta.dx)
+                            : null,
                       ),
                     ),
                     if (_showModel)

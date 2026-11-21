@@ -69,7 +69,8 @@ Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en disp
 - [x] Primera partida guiada: comer, jugar y estrenar algo, con opción de saltarla.
 - [x] Pequeñas celebraciones: monedas que cuentan, confeti y transiciones suaves que respetan el movimiento reducido.
 - [x] Accesibilidad de escenas y juegos: etiquetas de estado, regiones vivas y texto grande sin desbordes.
-- [ ] Arte final de la decoración (los dibujos actuales son provisionales) y decoración visible en el visor 3D/foto en dispositivo.
+- [x] Nueve artículos de decoración regenerados con apariencia realista y transparencia; caniche 3D en la pantalla de decorar.
+- [ ] Aceptación física de la decoración renovada en iPhone.
 - [ ] Comprobar en iPhone con 3D: decoración bajo el caniche, corazones, guía, transiciones y lector de pantalla (VoiceOver/TalkBack).
 - [ ] Revisión lingüística de los 55 textos nuevos en los 11 idiomas.
 
@@ -78,5 +79,9 @@ Implementadas en la rama `feature/mejoras-juego`, sin fusionar ni probar en disp
 - [ ] Exportación/importación de partida detrás de la puerta adulta, sin servidor.
 - [x] Logros/álbum de pegatinas (21-11-2026, pendiente de probar en dispositivo).
 - [ ] Nuevas actividades.
-- [ ] Actualizar el texto de venta «24 artículos más» a 36 (app y ficha de tienda).
 - [ ] Recordatorios locales opcionales desde la zona adulta.
+
+
+## Notificaciones pendientes
+
+- [ ] Notificaciones push cuando el estado del perro sea malo: máximo 2 al día y separadas por al menos 8 horas. Solicitar permiso, persistir el cupo y comprobar reinicios, cambios de día y reloj. Esta tarea queda planificada, sin activar notificaciones todavía.

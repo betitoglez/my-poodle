@@ -1,0 +1,37 @@
+{
+  "sleepGlyphRegression": "passed",
+  "captures": [
+    {
+      "id": "show-outfit.sweater_red-front",
+      "slot": "hair",
+      "yaw": 0.15,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": [
+        "head.crown",
+        "outfit.sweater_red",
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "modern-outfit.teal-side",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": [
+        "head.crown",
+        "outfit.teal",
+        "paws.rain"
+      ]
+    }
+  ]
+}

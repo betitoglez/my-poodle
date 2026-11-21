@@ -408,7 +408,7 @@ void main() {
       // Vista previa de plata (24) sin saldo: descartar conserva el aspecto.
       await tapText(t, 'Colores');
       await tapText(t, 'Gris plata');
-      expect(find.text('Faltan 16 · Jugar'), findsOneWidget);
+      expect(find.text('Faltan 22 · Jugar'), findsOneWidget);
       await tapText(t, 'Casa');
       expect(find.text('¿Te quedas con este aspecto?'), findsOneWidget);
       await tapText(t, 'Descartar');
@@ -463,7 +463,12 @@ void main() {
     await idle(t);
     expect(find.textContaining('hasta 24 frutas'), findsOneWidget);
     expect(find.textContaining('60 segundos'), findsOneWidget);
-    expect(find.textContaining('2 monedas + 2 por fruta'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is CoinText && w.source.contains('2 monedas + 2 por fruta'),
+      ),
+      findsOneWidget,
+    );
     await tapText(t, 'Jugar');
     await frames(t, seconds: 61);
     await idle(t);

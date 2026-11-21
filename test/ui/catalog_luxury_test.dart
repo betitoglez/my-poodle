@@ -101,7 +101,10 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.descendant(of: tile, matching: find.text('Te faltan 380 monedas')),
+        find.descendant(
+          of: tile,
+          matching: find.text('Te faltan 1380 monedas'),
+        ),
         findsOneWidget,
       );
       // Un pelaje asequible (110) no lleva ni insignia ni aviso.
@@ -126,8 +129,8 @@ void main() {
       );
       final text = '${node.label} ${node.value}';
       expect(text, contains('Lujo'));
-      expect(text, contains('500 monedas'));
-      expect(text, contains('Te faltan 380 monedas'));
+      expect(text, contains('1500 monedas'));
+      expect(text, contains('Te faltan 1380 monedas'));
       expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
       semantics.dispose();
     });

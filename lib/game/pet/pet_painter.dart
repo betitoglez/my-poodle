@@ -4,7 +4,9 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import '../../domain/appearance.dart';
+import '../../domain/haircuts.dart';
 import 'appearance_catalog.dart';
+import 'modern_hair_mesh.dart';
 import 'articulated_wardrobe.dart';
 import 'pet_sprites.dart';
 import 'pet_accessories.dart';
@@ -109,6 +111,7 @@ class PetPainter extends ChangeNotifier {
   final bool articulatedPilot;
   final AppearanceCatalog catalog;
   final IntegratedAccessories integratedAccessories = IntegratedAccessories();
+  final _modernHair = ModernHairMesh();
 
   late final _articulatedWardrobe = ArticulatedWardrobe(integratedAccessories);
 
@@ -199,6 +202,16 @@ class PetPainter extends ChangeNotifier {
         case 'neck':
           _neck(s, meta.anchors['neck']!);
       }
+    }
+    if (s.look.ids?.cuts[HairZone.back] == 'modern') {
+      _curly(
+        s,
+        Offset(s.pose == PetPose.front ? 0 : -.09, -.61),
+        .13,
+        .065,
+        look.coat.base,
+        seed: 65,
+      );
     }
     _fx(s);
     _dirt(s, _vectorLandmarks[vectorPose] ?? const {});
@@ -361,10 +374,18 @@ class PetPainter extends ChangeNotifier {
         }
       }
     }
-    await sp.preload(hair: ids.hair, poseNames: names);
+    final hairs = {
+      ids.hair,
+      if (!ids.uniformHair) 'hair.natural',
+      if (!ids.uniformHair)
+        for (final style in ids.cuts.values) 'hair.$style',
+    };
+    for (final hair in hairs) {
+      await sp.preload(hair: hair, poseNames: names);
+    }
     for (final p in names) {
       for (final layer in [
-        sp.hairLayer(ids.hair, p),
+        for (final hair in hairs) sp.hairLayer(hair, p),
         sp.stateLayer('messy', ids.hair, p),
         sp.expressionLayer('blink', p),
         sp.expressionLayer('happy', p),
@@ -427,7 +448,9 @@ class PetPainter extends ChangeNotifier {
       s.t,
       reducedMotion: s.m < 0.5,
     );
-    if (articulatedPilot && _paintArticulated(s, sp, ids, requested, desired)) {
+    if (ids.uniformHair &&
+        articulatedPilot &&
+        _paintArticulated(s, sp, ids, requested, desired)) {
       return true;
     }
     final r = resolve(desired, ids);
@@ -440,7 +463,7 @@ class PetPainter extends ChangeNotifier {
       coat.light.toARGB32(),
     ];
     final base = sp.coatedLayer(
-      sp.hairLayer(ids.hair, poseName),
+      sp.hairLayer(ids.uniformHair ? ids.hair : 'hair.natural', poseName),
       ids.coat,
       palette,
     );
@@ -501,7 +524,29 @@ class PetPainter extends ChangeNotifier {
     if (s.fx.sick) matrix = PetSprites.chain(matrix, _sickMatrix);
     if (s.fx.wet) matrix = PetSprites.chain(matrix, _darken(0.82));
     if (matrix != null) coatPaint.colorFilter = ColorFilter.matrix(matrix);
+    void furLayer(
+      SpriteLayer layer,
+      String hair, {
+      SpritePose? spritePose,
+      Rect? destination,
+    }) {
+      final dst = destination ?? rectOf(layer.box);
+      if (hair == 'hair.modern') {
+        _modernHair.paint(
+          c,
+          layer.image,
+          dst,
+          spritePose ?? meta,
+          spritePose == null ? poseName : 'front',
+          coatPaint,
+        );
+      } else {
+        c.drawImageRect(layer.image, fullSrc(layer.image), dst, coatPaint);
+      }
+    }
+
     final articulate =
+        ids.uniformHair &&
         poseName == 'side' &&
         (s.anim == PetAnim.run || s.anim == PetAnim.trot) &&
         s.m > 0.5;
@@ -510,7 +555,7 @@ class PetPainter extends ChangeNotifier {
       // El torso se conserva; las patas giran desde sus caderas/hombros.
       c.save();
       c.clipRect(Rect.fromLTRB(dst.left, dst.top, dst.right, -0.29));
-      c.drawImageRect(base.image, fullSrc(base.image), dst, coatPaint);
+      furLayer(base, ids.hair, destination: dst);
       c.restore();
       for (var leg = 0; leg < 2; leg++) {
         final left = leg == 0 ? dst.left : 0.04;
@@ -522,16 +567,90 @@ class PetPainter extends ChangeNotifier {
         c.rotate(angle);
         c.translate(-pivot.dx, -pivot.dy);
         c.clipRect(Rect.fromLTRB(left, -0.33, right, dst.bottom));
+        furLayer(base, ids.hair, destination: dst);
+        c.restore();
+      }
+    } else if (!ids.uniformHair) {
+      final dst = rectOf(base.box);
+      final standardTail = ids.cuts[HairZone.tail] == 'standard';
+      final modernZones = {
+        for (final zone in HairZone.values)
+          if (ids.cuts[zone] == 'modern') zone,
+      };
+      final head = Path()
+        ..addRect(ModernHairMesh.headBounds(dst, meta, poseName));
+      final tail = Path()
+        ..addRect(ModernHairMesh.tailBounds(dst, meta, poseName));
+      final legs = Path()
+        ..addRect(
+          Rect.fromLTRB(dst.left - .1, -.28, dst.right + .1, dst.bottom + .02),
+        );
+      final body = Path()..addRect(dst.inflate(.16));
+      final back = Path.combine(
+        PathOperation.difference,
+        Path.combine(
+          PathOperation.difference,
+          Path.combine(PathOperation.difference, body, head),
+          legs,
+        ),
+        tail,
+      );
+      final zones = <HairZone, Path>{
+        HairZone.head: head,
+        HairZone.legs: legs,
+        HairZone.back: back,
+        HairZone.tail: tail,
+      };
+      var baseMask = Path()..addRect(dst.inflate(.16));
+      for (final entry in zones.entries) {
+        if (ids.cuts[entry.key] != 'natural' &&
+            ids.cuts[entry.key] != 'modern' &&
+            ids.cuts[entry.key] != 'standard') {
+          baseMask = Path.combine(
+            PathOperation.difference,
+            baseMask,
+            entry.value,
+          );
+        }
+      }
+      c.save();
+      c.clipPath(baseMask);
+      // Warp the shared base once, so neighbouring natural zones cannot crop
+      // away the crest/plume or leave rectangular seams in the silhouette.
+      if (modernZones.isNotEmpty || standardTail) {
+        _modernHair.paint(
+          c,
+          base.image,
+          dst,
+          meta,
+          poseName,
+          coatPaint,
+          zones: modernZones,
+          standardTail: standardTail,
+        );
+      } else {
         c.drawImageRect(base.image, fullSrc(base.image), dst, coatPaint);
+      }
+      c.restore();
+      for (final entry in zones.entries) {
+        if (ids.cuts[entry.key] == 'natural' ||
+            ids.cuts[entry.key] == 'modern' ||
+            ids.cuts[entry.key] == 'standard') {
+          continue;
+        }
+        final layer = sp.coatedLayer(
+          sp.hairLayer('hair.${ids.cuts[entry.key]}', poseName),
+          ids.coat,
+          palette,
+        );
+        if (layer == null) continue;
+        c.save();
+        c.clipPath(entry.value);
+        furLayer(layer, 'hair.${ids.cuts[entry.key]}');
         c.restore();
       }
     } else {
-      c.drawImageRect(
-        base.image,
-        fullSrc(base.image),
-        rectOf(base.box),
-        coatPaint,
-      );
+      furLayer(base, ids.hair);
     }
 
     // Los cortes sin pose de comida reutilizan el cuerpo inclinado y
@@ -553,7 +672,7 @@ class PetPainter extends ChangeNotifier {
         c.save();
         c.translate(0, 0.5);
         c.clipRect(Rect.fromLTRB(dst.left, dst.top, dst.right, -0.53));
-        c.drawImageRect(head.image, fullSrc(head.image), dst, coatPaint);
+        furLayer(head, ids.hair, spritePose: front, destination: dst);
         c.restore();
       }
     }
@@ -907,14 +1026,32 @@ class PetPainter extends ChangeNotifier {
   }
 
   void _tail(_Ctx s) {
+    final modern = s.look.ids?.cuts[HairZone.tail] == 'modern';
+    if (s.look.ids?.cuts[HairZone.tail] == 'standard') {
+      final root = s.pose == PetPose.front
+          ? const Offset(.19, -.52)
+          : const Offset(-.25, -.5);
+      final tip = s.pose == PetPose.front
+          ? const Offset(.21, -.74)
+          : const Offset(-.36, -.71);
+      s.c.drawLine(
+        root,
+        tip,
+        Paint()
+          ..color = s.look.coat.base
+          ..strokeWidth = .035
+          ..strokeCap = StrokeCap.round,
+      );
+      return;
+    }
     final wag =
         math.sin(s.t * (s.excited ? 14 : 4)) * (s.excited ? 0.05 : 0.02) * s.m;
     if (s.pose == PetPose.front) {
       _curly(
         s,
         Offset(0.19 + wag, -0.67),
-        0.07,
-        0.075,
+        modern ? .10 : .07,
+        modern ? .13 : .075,
         s.look.coat.base,
         seed: 11,
       );
@@ -928,7 +1065,14 @@ class PetPainter extends ChangeNotifier {
         ..style = PaintingStyle.stroke;
       final tip = Offset(-0.36 + wag, -0.66 - wag.abs());
       s.c.drawLine(const Offset(-0.25, -0.5), tip, stem);
-      _curly(s, tip, 0.075, 0.08, s.look.coat.base, seed: 12);
+      _curly(
+        s,
+        tip,
+        modern ? .12 : .075,
+        modern ? .14 : .08,
+        s.look.coat.base,
+        seed: 12,
+      );
     }
   }
 
@@ -1003,6 +1147,16 @@ class PetPainter extends ChangeNotifier {
           Color.lerp(color, coat.shade, 0.45)!,
         );
       }
+    }
+    if (s.look.ids?.cuts[HairZone.legs] == 'modern') {
+      _curly(
+        s,
+        foot + const Offset(0, -.09),
+        width * .85,
+        .11,
+        color,
+        seed: seed + 100,
+      );
     }
     // Pata: almohadilla clara, color fijo de uñas.
     s.c.drawOval(
@@ -1235,6 +1389,13 @@ class PetPainter extends ChangeNotifier {
   void _hair(_Ctx s) {
     final coat = s.look.coat;
     final pom = s.look.hair == HairStyle.pom;
+    if (s.look.ids?.cuts[HairZone.head] == 'modern') {
+      final center = s.pose == PetPose.front
+          ? const Offset(0, -1.01)
+          : const Offset(.28, -.94);
+      _curly(s, center, .10, .18, coat.base, seed: 64);
+      return;
+    }
     if (s.pose == PetPose.front) {
       if (pom) {
         _curly(s, const Offset(0, -0.99), 0.165, 0.125, coat.base, seed: 60);

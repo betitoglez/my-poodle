@@ -13,6 +13,7 @@ import 'package:my_poodle/domain/rules.dart';
 import 'package:my_poodle/store/simulated_store.dart';
 import 'package:my_poodle/ui/screens/puzzle_screens.dart';
 import 'package:my_poodle/ui/widgets/activity_frame.dart';
+import 'package:my_poodle/ui/widgets/common.dart';
 import 'package:my_poodle/ui/widgets/status_bubbles.dart';
 
 import 'app_flow_test.dart'
@@ -96,6 +97,7 @@ void main() {
       final backend = backendWith((s) => s);
       await boot(t, backend);
       await openPuzzle(t, 'Juego de parejas');
+      await scrollTo(t, find.text('6 parejas'));
       await tapText(t, '6 parejas');
       await scrollTo(t, find.text('Jugar'));
       await tapText(t, 'Jugar');
@@ -233,7 +235,12 @@ void main() {
         await t.tap(find.byKey(ValueKey('memory-pad-$signal')));
         await t.pump(const Duration(milliseconds: 40));
       }
-      expect(find.text('Premio alcanzado: 5 monedas'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is CoinText && w.source == 'Premio alcanzado: 5 monedas',
+        ),
+        findsOneWidget,
+      );
       expect(saved(backend).coins, 0);
       for (
         var i = 0;

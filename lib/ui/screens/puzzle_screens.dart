@@ -13,6 +13,7 @@ import '../../game/puzzle_game.dart';
 import '../../l10n/localized_widgets.dart';
 import '../theme.dart';
 import '../widgets/activity_frame.dart';
+import '../widgets/common.dart';
 import '../widgets/scene_view.dart';
 import 'games_screen.dart';
 import 'game_session.dart';
@@ -59,7 +60,10 @@ class _PairsScreenState extends State<PairsScreen>
     await Future.wait([
       for (final dog in PuzzleDeals.poodles)
         precacheImage(
-          ResizeImage(AssetImage('assets/images/poodles/$dog.webp'), width: 320),
+          ResizeImage(
+            AssetImage('assets/images/poodles/$dog.webp'),
+            width: 320,
+          ),
           context,
         ),
     ]);
@@ -217,7 +221,7 @@ class _PairsScreenState extends State<PairsScreen>
             style: AppText.subtitle,
           ),
           const SizedBox(height: AppSpace.xs),
-          LText(
+          CoinText(
             'Premio al completar: ${AppScope.read(context).rules.pairsCoins(widget.pairs)} monedas',
             style: AppText.body,
           ),
@@ -293,7 +297,10 @@ class _MemoryScreenState extends State<MemoryScreen>
     await Future.wait([
       for (final dog in _memoryDogs)
         precacheImage(
-          ResizeImage(AssetImage('assets/images/poodles/$dog.webp'), width: 400),
+          ResizeImage(
+            AssetImage('assets/images/poodles/$dog.webp'),
+            width: 400,
+          ),
           context,
         ),
     ]);
@@ -301,6 +308,8 @@ class _MemoryScreenState extends State<MemoryScreen>
     final c = AppScope.read(context);
     final sim = _sim = MemorySim(
       PuzzleDeals.decode(c.pet.puzzleDeals['memory']!.last),
+      signalDuration: MediaQuery.accessibleNavigationOf(context) ? 2.6 : .6,
+      signalGap: MediaQuery.accessibleNavigationOf(context) ? .4 : .25,
     );
     final fx = AppScope.feedbackOf(context);
     _game = PuzzleGame(
@@ -322,12 +331,6 @@ class _MemoryScreenState extends State<MemoryScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final responding = sim.phase == MemoryPhase.input;
-    final status = switch (sim.phase) {
-      MemoryPhase.showing => 'Mira y escucha',
-      MemoryPhase.input => 'Tu turno: ${sim.inputIndex} / ${sim.length}',
-      MemoryPhase.feedback => '¡Muy bien! Siguiente ronda…',
-      MemoryPhase.finished => '¡Partida terminada!',
-    };
     return ActivityFrame(
       title: GameCatalog.memory.title,
       activityName: 'la partida',
@@ -359,11 +362,7 @@ class _MemoryScreenState extends State<MemoryScreen>
                 horizontal: AppSpace.m,
                 vertical: AppSpace.s,
               ),
-              child: LText(
-                status,
-                style: AppText.subtitle,
-                textAlign: TextAlign.center,
-              ),
+              child: MemorySignalStatus(sim: sim),
             ),
             Expanded(
               child: _PuzzleGrid(
@@ -507,8 +506,43 @@ class _MemoryScreenState extends State<MemoryScreen>
             style: AppText.subtitle,
           ),
           const SizedBox(height: AppSpace.xs),
-          LText('Premio alcanzado: ${sim.coins} monedas', style: AppText.body),
+          CoinText(
+            'Premio alcanzado: ${sim.coins} monedas',
+            style: AppText.body,
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// Una región viva por señal; el ordinal distingue repeticiones consecutivas.
+/// Conserva la señal durante su pausa, evitando anuncios vacíos entre colores.
+class MemorySignalStatus extends StatelessWidget {
+  const MemorySignalStatus({super.key, required this.sim});
+  final MemorySim sim;
+  @override
+  Widget build(BuildContext context) {
+    final signal = sim.shownSignal;
+    final status = switch (sim.phase) {
+      MemoryPhase.showing =>
+        signal == null
+            ? 'Mira y escucha'
+            : '${_memoryNames[signal]}, ${_memoryNotes[signal]}. Paso ${sim.shownCount} de ${sim.length}.',
+      MemoryPhase.input => 'Tu turno: ${sim.inputIndex} / ${sim.length}',
+      MemoryPhase.feedback => '¡Muy bien! Siguiente ronda…',
+      MemoryPhase.finished => '¡Partida terminada!',
+    };
+    return LSemantics(
+      key: const ValueKey('memory-signal'),
+      label: status,
+      container: true,
+      liveRegion: true,
+      excludeSemantics: true,
+      child: LText(
+        status,
+        style: AppText.subtitle,
+        textAlign: TextAlign.center,
       ),
     );
   }
