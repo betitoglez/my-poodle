@@ -9,6 +9,10 @@ import 'package:my_poodle/ui/screens/album_screen.dart';
 import 'package:my_poodle/ui/screens/main_shell.dart';
 import 'package:my_poodle/ui/widgets/celebrations.dart';
 
+import 'package:my_poodle/data/save_codec.dart';
+import 'package:my_poodle/data/save_store.dart';
+import 'package:my_poodle/data/storage_backend.dart';
+
 import '../support.dart';
 import 'app_flow_test.dart' show boot, idle, saved, scrollTo, tapText;
 import 'features_test.dart' show backendWith;
@@ -89,6 +93,63 @@ void main() {
     expect(find.text('¡Has recogido 30 monedas!'), findsOneWidget);
   });
 
+  testWidgets('fallo al guardar el bono: se reintenta y no bloquea el juego', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final backend = _FailOnceBackend()
+      ..files[SaveStore.primary] = SaveCodec(balance).encode(
+        withPhotosPage(
+          PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance),
+        ).copyWith(coins: 5),
+      );
+    await boot(t, backend);
+    await tapText(t, 'Juegos');
+    await t.tap(find.byKey(const Key('album-button')));
+    await idle(t);
+    await showPage(t, AlbumPage.photos);
+    backend.failNextWrite = true;
+    await t.tap(find.byKey(const Key('album-collect-photos')));
+    await idle(t);
+    // El cobro queda pendiente y se ofrece la recuperación común.
+    expect(find.text('No se ha podido guardar'), findsOneWidget);
+    await tapText(t, 'Reintentar');
+    expect(
+      AppScope.read(t.element(find.byType(AlbumScreen))).hasPending,
+      isFalse,
+    );
+    expect(saved(backend).coins, 35);
+    expect(saved(backend).albumCollected, {'photos'});
+    expect(find.text('¡Has recogido 30 monedas!'), findsOneWidget);
+  });
+
+  testWidgets('fallo al guardar el bono: Volver lo descarta sin cobrar', (
+    t,
+  ) async {
+    final balance = loadBalance();
+    final backend = _FailOnceBackend()
+      ..files[SaveStore.primary] = SaveCodec(balance).encode(
+        withPhotosPage(
+          PetState.adopt(validName: 'Miel', nowUtc: t0, balance: balance),
+        ).copyWith(coins: 5),
+      );
+    await boot(t, backend);
+    await tapText(t, 'Juegos');
+    await t.tap(find.byKey(const Key('album-button')));
+    await idle(t);
+    await showPage(t, AlbumPage.photos);
+    backend.failNextWrite = true;
+    await t.tap(find.byKey(const Key('album-collect-photos')));
+    await idle(t);
+    await tapText(t, 'Volver');
+    expect(
+      AppScope.read(t.element(find.byType(AlbumScreen))).hasPending,
+      isFalse,
+    );
+    expect(saved(backend).coins, 5);
+    expect(find.text('Recoger 30 monedas'), findsOneWidget);
+  });
+
   testWidgets('una partida antigua obtiene al abrir lo que ya cumple, sin '
       'aviso ni monedas', (t) async {
     final backend = backendWith(
@@ -150,4 +211,17 @@ void main() {
       expect(t.takeException(), isNull, reason: '${page.name} final');
     }
   });
+}
+
+class _FailOnceBackend extends MemoryBackend {
+  bool failNextWrite = false;
+
+  @override
+  Future<void> write(String name, String text) async {
+    if (failNextWrite) {
+      failNextWrite = false;
+      throw StateError('Error de escritura de prueba');
+    }
+    await super.write(name, text);
+  }
 }

@@ -10,6 +10,7 @@ library;
 
 import 'balance.dart';
 import 'entitlements.dart';
+import 'haircuts.dart';
 import 'pet_state.dart';
 import 'rules.dart';
 
@@ -64,14 +65,18 @@ bool played(PetState s, GameId g) =>
 bool _stars3(PetState s, GameId g) => (s.bestStars[g.name] ?? 0) >= 3;
 
 /// Artículos del armario comprados (no iniciales, solo ranuras de aspecto).
+/// Los cortes por zona (`cut.<zona>.<estilo>`) de pago cuentan como compras.
 int wardrobeBought(PetState s, Balance b) => s.owned.where((id) {
+  if (Haircuts.valid(id)) return Haircuts.cost(id.split('.').last) > 0;
   final item = b.item(id);
   return item != null && !item.initial;
 }).length;
 
+/// Con la misma propiedad que la tienda: un peinado completo se tiene si se
+/// han comprado sus cortes en todas las zonas.
 bool _allFreeWardrobe(PetState s, Balance b) {
   final free = b.styles.where((i) => !i.initial && i.tier == Tier.free);
-  return free.isNotEmpty && free.every((i) => s.owned.contains(i.id));
+  return free.isNotEmpty && free.every((i) => Rules.ownsStyleIn(s, i.id));
 }
 
 bool _decorPlaced(PetState s, Balance b) =>

@@ -6,6 +6,7 @@ import 'package:my_poodle/domain/achievements.dart';
 import 'package:my_poodle/domain/appearance.dart';
 import 'package:my_poodle/domain/balance.dart';
 import 'package:my_poodle/domain/entitlements.dart';
+import 'package:my_poodle/domain/haircuts.dart';
 import 'package:my_poodle/domain/pet_state.dart';
 import 'package:my_poodle/domain/rules.dart';
 
@@ -138,6 +139,30 @@ void main() {
         ids.contains('ach.wardrobe.ten'),
         wardrobeBought(s, balance) >= wardrobeMany,
       );
+    });
+
+    test('cortes por zona: cuentan como compras y completan los gratuitos', () {
+      // Un único corte por zona ya es la primera compra del armario.
+      final one = adopt().copyWith(
+        owned: {...adopt().owned, Haircuts.id(HairZone.tail, 'pom')},
+      );
+      expect(wardrobeBought(one, balance), 1);
+      expect(ach.newlyUnlocked(one, one), contains('ach.wardrobe.first'));
+      // Los peinados gratuitos comprados zona a zona, sin el ID completo.
+      final free = balance.styles
+          .where((i) => !i.initial && i.tier == Tier.free)
+          .map((i) => i.id)
+          .where((id) => !id.startsWith('hair.'));
+      final cuts = {
+        for (final style in ['pom', 'show'])
+          for (final z in HairZone.values) Haircuts.id(z, style),
+      };
+      final s = adopt().copyWith(owned: {...adopt().owned, ...free, ...cuts});
+      expect(
+        s.owned.any((id) => id.startsWith('hair.') && id != 'hair.natural'),
+        isFalse,
+      );
+      expect(ach.newlyUnlocked(s, s), contains('ach.wardrobe.allFree'));
     });
 
     test('fotos: primera y diez', () {

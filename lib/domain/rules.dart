@@ -506,7 +506,11 @@ class Rules {
     GameId.memory => Tier.full,
   };
 
-  bool ownsStyle(PetState s, String id) {
+  bool ownsStyle(PetState s, String id) => ownsStyleIn(s, id);
+
+  /// Propiedad de un artículo de aspecto, incluidos los cortes por zona
+  /// (`cut.<zona>.<estilo>`) y los peinados completos equivalentes.
+  static bool ownsStyleIn(PetState s, String id) {
     if (s.owned.contains(id)) return true;
     if (Haircuts.valid(id)) {
       final style = id.split('.').last;
@@ -515,7 +519,7 @@ class Rules {
     }
     if (id.startsWith('hair.')) {
       return HairZone.values.every(
-        (z) => ownsStyle(s, Haircuts.id(z, Haircuts.styleOf(id))),
+        (z) => ownsStyleIn(s, Haircuts.id(z, Haircuts.styleOf(id))),
       );
     }
     return false;

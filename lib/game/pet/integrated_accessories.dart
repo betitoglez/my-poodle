@@ -40,17 +40,27 @@ class IntegratedAccessories {
     _ => null,
   };
 
-  /// Familia de prenda a medida: todos los colores de una variedad
-  /// comparten la ilustración y se tiñen con su muestra de color.
-  static String? tailoredFamily(String outfit) => outfit == 'outfit.teal'
-      ? 'overalls'
-      : outfit.startsWith('outfit.overalls_')
-      ? 'overalls'
-      : outfit.startsWith('outfit.raincoat_')
-      ? 'raincoat'
-      : outfit.startsWith('outfit.dress_')
-      ? 'dress'
-      : null;
+  /// Familia de prenda a medida: solo los colores lisos que se tiñen sobre
+  /// la ilustración. Los estampados (cebra, rayas, lunares…) y los demás
+  /// colores siguen en PetAccessories, que sí dibuja su patrón.
+  static String? tailoredFamily(String outfit) => switch (outfit) {
+    'outfit.teal' ||
+    'outfit.overalls_red' ||
+    'outfit.overalls_yellow' ||
+    'outfit.overalls_denim' ||
+    'outfit.overalls_pink' => 'overalls',
+    'outfit.raincoat_yellow' ||
+    'outfit.raincoat_blue' ||
+    'outfit.raincoat_pink' ||
+    'outfit.raincoat_red' ||
+    'outfit.raincoat_green' => 'raincoat',
+    'outfit.dress_pink' ||
+    'outfit.dress_lilac' ||
+    'outfit.dress_turquoise' ||
+    'outfit.dress_yellow' ||
+    'outfit.dress_coral' => 'dress',
+    _ => null,
+  };
 
   /// Tono del jersey (la ilustración base es roja).
   static ColorFilter? sweaterFilter(String outfit) => switch (outfit) {
@@ -58,8 +68,6 @@ class IntegratedAccessories {
     'outfit.sweater_mustard' => ColorFilter.matrix(
       PetSprites.hueMatrix(42, light: 1.1),
     ),
-    'outfit.sweater_green' => ColorFilter.matrix(PetSprites.hueMatrix(130)),
-    'outfit.sweater_purple' => ColorFilter.matrix(PetSprites.hueMatrix(275)),
     _ => null,
   };
   static bool supportsPose(String pose) =>

@@ -249,7 +249,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     try {
       final png = await _decoration(context).compose(photo);
       await widget.album.save(png);
-      if (mounted) AppScope.of(context).recordPhotoTaken().ignore();
+      // La foto ya está en el álbum; si el recuento no se guarda, se reintenta
+      // o se descarta con la recuperación común en vez de quedar pendiente.
+      if (mounted) {
+        await saveOrRecover(context, AppScope.read(context).recordPhotoTaken);
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) {

@@ -8,6 +8,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
+import '../widgets/dialogs.dart';
 import '../widgets/stickers.dart';
 
 String albumPageTitle(AlbumPage page) => switch (page) {
@@ -101,26 +102,23 @@ class _AlbumScreenState extends State<AlbumScreen> {
     final result = await c.collectAlbumPage(page);
     if (!mounted) return;
     setState(() => _collecting = false);
+    void celebrate(int coins) {
+      if (!c.reducedMotion) {
+        ConfettiBurst.show(context, reducedMotion: false);
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(text.text('¡Has recogido $coins monedas!'))),
+      );
+    }
+
     switch (result) {
       case Done(:final value):
-        if (!c.reducedMotion) {
-          ConfettiBurst.show(context, reducedMotion: false);
-        }
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              text.text('¡Has recogido ${value.coinsEarned} monedas!'),
-            ),
-          ),
-        );
+        celebrate(value.coinsEarned);
       case SaveFailed():
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              text.text('No se ha podido guardar. Inténtalo de nuevo.'),
-            ),
-          ),
-        );
+        // El cobro queda pendiente: se reintenta o se descarta con la
+        // recuperación de guardado común, para no bloquear cuidados y juegos.
+        final bonus = c.achievements.pageBonus(page);
+        if (await resolveSaveFailure(context) && mounted) celebrate(bonus);
       case Ignored():
         break;
     }
