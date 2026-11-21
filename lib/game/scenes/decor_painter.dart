@@ -46,6 +46,7 @@ abstract final class DecorPainter {
     'plant.cactus',
   ];
   static final _artwork = <String, Image>{};
+  static Rect? _garlandSource;
   static Future<void>? _loading;
   static Future<void> loadAssets() {
     if (_artwork.length == artworkIds.length) return Future.value();
@@ -60,7 +61,35 @@ abstract final class DecorPainter {
           bytes.buffer.asUint8List(),
           targetWidth: 768,
         );
-        _artwork[id] = (await codec.getNextFrame()).image;
+        final image = (await codec.getNextFrame()).image;
+        _artwork[id] = image;
+        if (id == 'wall.garland') {
+          final pixels = await image.toByteData(
+            format: ImageByteFormat.rawRgba,
+          );
+          if (pixels != null) {
+            var left = image.width, top = image.height, right = 0, bottom = 0;
+            for (var y = 0; y < image.height; y++) {
+              for (var x = 0; x < image.width; x++) {
+                if (pixels.getUint8((y * image.width + x) * 4 + 3) <= 8) {
+                  continue;
+                }
+                left = math.min(left, x);
+                top = math.min(top, y);
+                right = math.max(right, x + 1);
+                bottom = math.max(bottom, y + 1);
+              }
+            }
+            if (right > left && bottom > top) {
+              _garlandSource = Rect.fromLTRB(
+                left.toDouble(),
+                top.toDouble(),
+                right.toDouble(),
+                bottom.toDouble(),
+              );
+            }
+          }
+        }
         codec.dispose();
       }),
     );
@@ -141,9 +170,9 @@ abstract final class DecorPainter {
           case 'wall.garland':
             final h = math.min(band.height * 0.45, ps * 0.32);
             return Rect.fromLTWH(
-              v.left + v.width * 0.04,
+              v.left,
               v.top + math.max(4.0, band.height * 0.04),
-              v.width * 0.92,
+              v.width,
               h,
             );
           default:
@@ -196,24 +225,44 @@ abstract final class DecorPainter {
   }) {
     final image = _artwork[id];
     if (image != null) {
-      final source = Rect.fromLTWH(
-        0,
-        0,
-        image.width.toDouble(),
-        image.height.toDouble(),
-      );
+      final source =
+          (id == 'wall.garland' ? _garlandSource : null) ??
+          Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
       // Rugs follow the perspective of the floor; wall art and plants keep their aspect ratio.
       final scale = math.min(
         box.width / source.width,
         box.height / source.height,
       );
-      final target = id.startsWith('rug.')
+      final target = id.startsWith('rug.') || id == 'wall.garland'
           ? box
           : Rect.fromCenter(
               center: box.center,
               width: source.width * scale,
               height: source.height * scale,
             );
+      if (id == 'wall.stars') {
+        // An alpha silhouette follows every star edge, including the real art.
+        // Keep a steady glow when reduced motion is enabled.
+        final strength = reducedMotion ? 1.0 : .9 + .1 * math.sin(t * 2.2);
+        for (final radius in [7.0, 2.0]) {
+          c.saveLayer(
+            target.inflate(radius * 4),
+            Paint()
+              ..imageFilter = ImageFilter.blur(sigmaX: radius, sigmaY: radius),
+          );
+          c.drawImageRect(
+            image,
+            source,
+            target,
+            Paint()
+              ..colorFilter = ColorFilter.mode(
+                Color.fromRGBO(255, 228, 127, .85 * strength),
+                BlendMode.srcIn,
+              ),
+          );
+          c.restore();
+        }
+      }
       c.drawImageRect(
         image,
         source,

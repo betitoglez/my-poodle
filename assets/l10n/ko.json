@@ -738,5 +738,12 @@
   "Vestido verdiblanco": "Vestido · 초록과 하양",
   "Vestido círculos de colores": "Vestido · 알록달록 물방울",
   "{p0}. {p1}": "{p0}. {p1}",
-  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. {p3}개 중 {p2}번째."
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. {p3}개 중 {p2}번째.",
+  "Corte estándar": "기본 컷",
+  "Corte estándar · Cola": "기본 컷 · 꼬리",
+  "Premios": "보상",
+  "4 parejas: 5 monedas": "4쌍: 5코인",
+  "6 parejas: 15 monedas": "6쌍: 15코인",
+  "8 parejas: 25 monedas": "8쌍: 25코인",
+  "Si sales antes de terminar, no hay premio.": "끝나기 전에 나가면 보상이 없어요."
 }

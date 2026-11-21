@@ -1,6 +1,7 @@
 /** Capture the catalogue cards using the bundled WebGL viewer and GLB.
  * Run with Node.js 22 and Chrome installed. Set CHROME_PATH on other platforms.
  */
+import {frameForItem} from './catalog_frames.mjs';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -12,11 +13,22 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const assets = join(root, 'assets/wardrobe_live');
-const output = join(root, 'assets/images/wardrobe_thumbs');
+const fitting = process.argv.includes('--fitting');
+const output = fitting ? (process.env.FIT_OUTPUT ?? join(root, 'build/review/fitting')) : join(root, 'assets/images/wardrobe_thumbs');
 const { styles } = JSON.parse(await readFile(join(root, 'assets/data/balance-v1.json'), 'utf8'));
 const cutStyles = ['natural','teddy','pom','puppy','show','modern'];
 styles.push(...['head','legs','back','tail'].flatMap(zone => cutStyles.map(style => ({id: `cut.${zone}.${style}`, slot: zone === 'head' ? 'head' : zone === 'legs' ? 'paws' : 'hair'}))));
-const requested = new Set(process.argv.slice(2));
+styles.push({id:'cut.tail.standard',slot:'hair'});
+if (fitting) {
+  styles.length = 0;
+  for (let style=0;style<6;style++) for (const model of ['outfit.teal','outfit.sweater_red','outfit.raincoat_blue','outfit.dress_pink']) {
+    for (const [angle,yaw] of [['front',.15],['side',Math.PI/2],['back',Math.PI]]) {
+      styles.push({id:`${cutStyles[style]}-${model}-${angle}`,slot:'hair',yaw,
+        configuration:{cuts:[style,style,style,style],coat:'green',wear:[process.argv.includes('--crown') ? 'head.crown' : 'head.beanie',model,'paws.rain']}});
+    }
+  }
+}
+const requested = new Set(process.argv.slice(2).filter(argument => !['--fitting','--crown'].includes(argument)));
 const bridge = '<script>window.PoodleHost = { ready() { window.viewerReady = true; }, failed() { window.viewerFailed = true; } };</script>';
 const html = await readFile(join(assets, 'index.html'), 'utf8');
 const contentTypes = { js: 'text/javascript', glb: 'model/gltf-binary' };
@@ -57,15 +69,6 @@ function connect(socket) {
   });
 }
 
-const frames = {
-  body: { y: 0.94, size: 0.78, angle: -23 },
-  head: { y: 1.96, size: 1.71, angle: -9 },
-  neck: { y: 1.68, size: 1.85, angle: -7 },
-  paws: { y: 0.87, size: 2.04, angle: -29 },
-};
-const frameFor = {
-  head: 'head', eyes: 'head', neck: 'neck', collar: 'neck', paws: 'paws',
-};
 await mkdir(output, { recursive: true });
 const profile = await mkdtemp(join(tmpdir(), 'mypoodle-thumbs-'));
 let chrome;
@@ -106,7 +109,7 @@ try {
     return result.result.value;
   };
   await call('Emulation.setDeviceMetricsOverride', {
-    width: 256, height: 224, deviceScaleFactor: 1, mobile: false,
+    width: fitting ? 768 : 256, height: fitting ? 672 : 224, deviceScaleFactor: 1, mobile: false,
   });
   await call('Emulation.setDefaultBackgroundColorOverride', {
     color: { r: 0, g: 0, b: 0, a: 0 },
@@ -129,31 +132,57 @@ try {
     }, 50);
   })`);
 
+  // Regression: Three.js renders objects with visible=undefined. Sleep glyphs
+  // must remain explicitly hidden for absent/false flags in catalogue captures.
+  await evaluate(`(async () => {
+    const THREE = await import('three');
+    const {makeSleepGlyphs} = await import('./sleeping.js');
+    const group = new THREE.Group(), head = new THREE.Object3D();
+    group.add(head);
+    const update = makeSleepGlyphs(head,group);
+    const glyphs = group.children.filter(object => object.isSprite);
+    if (glyphs.length !== 3) throw new Error('Missing sleep glyphs');
+    for (const visible of [undefined,null,false,0]) {
+      update(visible,0,true);
+      if (glyphs.some(glyph => glyph.visible !== false)) throw new Error('Sleep glyph leaks into catalogue');
+    }
+    update(true,0,true);
+    if (glyphs.some(glyph => glyph.visible !== true)) throw new Error('Sleeping glyph effect lost');
+    update(false,0,true);
+    for (const glyph of glyphs) { glyph.material.map.dispose(); glyph.material.dispose(); }
+  })()`);
+  const captures = [];
   let count = 0;
-  for (const { id, slot } of styles) {
+  for (const entry of styles) {
+    const {id,slot} = entry;
     if (requested.size && !requested.has(id)) continue;
-    const { y, size, angle } = frames[frameFor[slot] ?? 'body'];
+    const {y,size,yaw:defaultYaw} = frameForItem(id,slot);
+    const yaw = entry.yaw ?? defaultYaw;
     const bits = id.split('.');
     const cut = bits[0] === 'cut';
-    const cuts = cut ? ['head','legs','back','tail'].map(z => z === bits[1] ? cutStyles.indexOf(bits[2]) : 0) : Array(4).fill(slot === 'hair' ? cutStyles.indexOf(bits[1]) : 0);
+    const cuts = cut ? ['head','legs','back','tail'].map(z => z === bits[1] ? (bits[2] === 'standard' ? 6 : cutStyles.indexOf(bits[2])) : 0) : Array(4).fill(slot === 'hair' ? cutStyles.indexOf(bits[1]) : 0);
     const configuration = {
-      x: 0.5, y, size, cuts, reduced: true, resting: false,
+      x: 0.5, y, size, cuts, reduced: true, resting: false, passiveBed:false, sleeping:false, wardrobe:true, idle:false,
       coat: slot === 'coat' ? id.split('.')[1] : 'apricot',
       pom: id === 'hair.pom', puppy: id === 'hair.puppy',
       teddy: id === 'hair.teddy', showCut: id === 'hair.show',
       wear: cut || slot === 'coat' || slot === 'hair' || id.endsWith('.none') ? [] : [id],
+      ...entry.configuration,
     };
     await evaluate(`(async () => {
       poodle.configure(${JSON.stringify(configuration)});
       poodle.front();
-      poodle.rotate(${angle});
+      poodle.rotate(${-yaw/.013});
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     })()`);
     if (browserErrors.length) throw new Error(browserErrors.join('\n'));
     const { data } = await call('Page.captureScreenshot', { format: 'webp', quality: 93 });
     await writeFile(join(output, id + '.webp'), Buffer.from(data, 'base64'));
+    captures.push({id,slot,yaw,cuts:configuration.cuts,wear:configuration.wear});
     count++;
   }
+  await mkdir(join(root,'build/review/catalog'), {recursive:true});
+  await writeFile(fitting ? join(output,'frames.json') : join(root,'build/review/catalog/frames.json'), JSON.stringify({sleepGlyphRegression:'passed',captures},null,2));
   console.log(`${count} catalogue thumbnails from the mobile viewer saved to ${output}`);
 } finally {
   socket?.close();

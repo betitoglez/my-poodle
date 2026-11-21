@@ -738,5 +738,12 @@
   "Vestido verdiblanco": "Vestido · 緑と白",
   "Vestido círculos de colores": "Vestido · カラフルな水玉",
   "{p0}. {p1}": "{p0}. {p1}",
-  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}、{p1}。{p3}ステップ中{p2}番目。"
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}、{p1}。{p3}ステップ中{p2}番目。",
+  "Corte estándar": "標準カット",
+  "Corte estándar · Cola": "標準カット · しっぽ",
+  "Premios": "報酬",
+  "4 parejas: 5 monedas": "4組：5コイン",
+  "6 parejas: 15 monedas": "6組：15コイン",
+  "8 parejas: 25 monedas": "8組：25コイン",
+  "Si sales antes de terminar, no hay premio.": "終了する前にやめると、報酬はもらえません。"
 }

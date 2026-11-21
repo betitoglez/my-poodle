@@ -1,0 +1,1323 @@
+{
+  "sleepGlyphRegression": "passed",
+  "captures": [
+    {
+      "id": "coat.apricot",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.silver",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.lightgray",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.white",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.black",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "hair.natural",
+      "slot": "hair",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "hair.show",
+      "slot": "hair",
+      "yaw": 0.299,
+      "cuts": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "wear": []
+    },
+    {
+      "id": "hair.pom",
+      "slot": "hair",
+      "yaw": 0.299,
+      "cuts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "wear": []
+    },
+    {
+      "id": "hair.teddy",
+      "slot": "hair",
+      "yaw": 0.299,
+      "cuts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "wear": []
+    },
+    {
+      "id": "hair.puppy",
+      "slot": "hair",
+      "yaw": 0.299,
+      "cuts": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "wear": []
+    },
+    {
+      "id": "outfit.none",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "outfit.teal",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.teal"
+      ]
+    },
+    {
+      "id": "outfit.overalls_red",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_red"
+      ]
+    },
+    {
+      "id": "outfit.overalls_yellow",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_yellow"
+      ]
+    },
+    {
+      "id": "outfit.sweater_red",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_red"
+      ]
+    },
+    {
+      "id": "outfit.sweater_blue",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_blue"
+      ]
+    },
+    {
+      "id": "outfit.sweater_mustard",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_mustard"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_yellow",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_yellow"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_blue",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_blue"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_pink",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_pink"
+      ]
+    },
+    {
+      "id": "outfit.dress_pink",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_pink"
+      ]
+    },
+    {
+      "id": "outfit.dress_lilac",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_lilac"
+      ]
+    },
+    {
+      "id": "outfit.dress_turquoise",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_turquoise"
+      ]
+    },
+    {
+      "id": "head.none",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "head.bow",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.bow"
+      ]
+    },
+    {
+      "id": "head.beanie",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.beanie"
+      ]
+    },
+    {
+      "id": "head.crown",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "head.crown"
+      ]
+    },
+    {
+      "id": "eyes.none",
+      "slot": "eyes",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "eyes.round",
+      "slot": "eyes",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "eyes.round"
+      ]
+    },
+    {
+      "id": "eyes.sun",
+      "slot": "eyes",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "eyes.sun"
+      ]
+    },
+    {
+      "id": "eyes.heart",
+      "slot": "eyes",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "eyes.heart"
+      ]
+    },
+    {
+      "id": "collar.none",
+      "slot": "collar",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "collar.tag",
+      "slot": "collar",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "collar.tag"
+      ]
+    },
+    {
+      "id": "collar.bell",
+      "slot": "collar",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "collar.bell"
+      ]
+    },
+    {
+      "id": "collar.pearls",
+      "slot": "collar",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "collar.pearls"
+      ]
+    },
+    {
+      "id": "neck.none",
+      "slot": "neck",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "neck.coral",
+      "slot": "neck",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "neck.coral"
+      ]
+    },
+    {
+      "id": "neck.bowtie",
+      "slot": "neck",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "neck.bowtie"
+      ]
+    },
+    {
+      "id": "neck.knit",
+      "slot": "neck",
+      "yaw": 0.091,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "neck.knit"
+      ]
+    },
+    {
+      "id": "paws.none",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "paws.booties",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "paws.booties"
+      ]
+    },
+    {
+      "id": "paws.sneakers",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "paws.sneakers"
+      ]
+    },
+    {
+      "id": "paws.rain",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "paws.rain"
+      ]
+    },
+    {
+      "id": "hair.modern",
+      "slot": "hair",
+      "yaw": 0.299,
+      "cuts": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.zebra",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.blue",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.green",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.redwhite",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.dalmatian",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "coat.tiger",
+      "slot": "coat",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "outfit.overalls_blue",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_blue"
+      ]
+    },
+    {
+      "id": "outfit.overalls_white",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_white"
+      ]
+    },
+    {
+      "id": "outfit.overalls_black",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_black"
+      ]
+    },
+    {
+      "id": "outfit.overalls_zebra",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_zebra"
+      ]
+    },
+    {
+      "id": "outfit.overalls_redwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_redwhite"
+      ]
+    },
+    {
+      "id": "outfit.overalls_greenwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_greenwhite"
+      ]
+    },
+    {
+      "id": "outfit.overalls_dots",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.overalls_dots"
+      ]
+    },
+    {
+      "id": "outfit.sweater_white",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_white"
+      ]
+    },
+    {
+      "id": "outfit.sweater_black",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_black"
+      ]
+    },
+    {
+      "id": "outfit.sweater_zebra",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_zebra"
+      ]
+    },
+    {
+      "id": "outfit.sweater_redwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_redwhite"
+      ]
+    },
+    {
+      "id": "outfit.sweater_greenwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_greenwhite"
+      ]
+    },
+    {
+      "id": "outfit.sweater_dots",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.sweater_dots"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_white",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_white"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_black",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_black"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_zebra",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_zebra"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_redwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_redwhite"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_greenwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_greenwhite"
+      ]
+    },
+    {
+      "id": "outfit.raincoat_dots",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.raincoat_dots"
+      ]
+    },
+    {
+      "id": "outfit.dress_blue",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_blue"
+      ]
+    },
+    {
+      "id": "outfit.dress_white",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_white"
+      ]
+    },
+    {
+      "id": "outfit.dress_black",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_black"
+      ]
+    },
+    {
+      "id": "outfit.dress_zebra",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_zebra"
+      ]
+    },
+    {
+      "id": "outfit.dress_redwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_redwhite"
+      ]
+    },
+    {
+      "id": "outfit.dress_greenwhite",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_greenwhite"
+      ]
+    },
+    {
+      "id": "outfit.dress_dots",
+      "slot": "outfit",
+      "yaw": 0.299,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": [
+        "outfit.dress_dots"
+      ]
+    },
+    {
+      "id": "cut.head.natural",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.head.teddy",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.head.pom",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.head.puppy",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.head.show",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        4,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.head.modern",
+      "slot": "head",
+      "yaw": 0.11699999999999999,
+      "cuts": [
+        5,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.legs.natural",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.legs.teddy",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.legs.pom",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.legs.puppy",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.legs.show",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        4,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.legs.modern",
+      "slot": "paws",
+      "yaw": 0.377,
+      "cuts": [
+        0,
+        5,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.back.natural",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.back.teddy",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.back.pom",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.back.puppy",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.back.show",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        4,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.back.modern",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        5,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.natural",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.teddy",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.pom",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.puppy",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.show",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.modern",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        5
+      ],
+      "wear": []
+    },
+    {
+      "id": "cut.tail.standard",
+      "slot": "hair",
+      "yaw": 1.5707963267948966,
+      "cuts": [
+        0,
+        0,
+        0,
+        6
+      ],
+      "wear": []
+    }
+  ]
+}

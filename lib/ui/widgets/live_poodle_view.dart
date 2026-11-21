@@ -339,7 +339,7 @@ class _LivePoodleState extends State<LivePoodleView> {
       'showCut': appearance.hair == 'hair.show',
       'cuts': [
         for (final z in HairZone.values)
-          Haircuts.styles.indexOf(appearance.cuts[z]!),
+          Haircuts.renderIndex(appearance.cuts[z]!),
       ],
       'coat': appearance.coat.split('.').last,
       'wear': LivePoodleView._clothes(appearance).toList(),

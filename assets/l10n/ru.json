@@ -738,5 +738,12 @@
   "Vestido verdiblanco": "Vestido · Зелёно-белый",
   "Vestido círculos de colores": "Vestido · Разноцветные кружки",
   "{p0}. {p1}": "{p0}. {p1}",
-  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Шаг {p2} из {p3}."
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Шаг {p2} из {p3}.",
+  "Corte estándar": "Стандартная стрижка",
+  "Corte estándar · Cola": "Стандартная стрижка · Хвост",
+  "Premios": "Награды",
+  "4 parejas: 5 monedas": "4 пары: 5 монет",
+  "6 parejas: 15 monedas": "6 пар: 15 монет",
+  "8 parejas: 25 monedas": "8 пар: 25 монет",
+  "Si sales antes de terminar, no hay premio.": "Если выйти до конца игры, награды не будет."
 }

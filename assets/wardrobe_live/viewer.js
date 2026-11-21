@@ -205,6 +205,7 @@ let dailyDirt = 0;
 const zones = { value: new THREE.Vector4(-1,-1,-1,-1) };
 const coatPattern = { value: 0 };
 const cuts = { value: new THREE.Vector2() };
+const cover = { value: new THREE.Vector3() };
 const collars = [];
 for (const root of items) {
   const wear = root.userData.wear;
@@ -219,7 +220,7 @@ for (const root of items) {
     for (const material of [object.material].flat()) {
       patchCoat(material, {poodleFur: furColor, poodleRecolor: recolor,
         poodleZones: zones, poodlePatternCode: coatPattern, poodleWet: wetness, poodleDirt: coatDirt, poodleCuts: cuts, poodleExtraCurl: extraCurl,
-        poodleMouthOpen: idle.mouthOpen});
+        poodleMouthOpen: idle.mouthOpen, poodleCover: cover});
     }
   });
 }
@@ -350,7 +351,7 @@ function tick(now) {
   const [walkX, walkPan, traveling, sniff] = walkState;
   const sniffing = configuration.walking && sniff >= 0;
   const activePose = configuration.feeding || sniffing ? eatAction : shoeClearance ? rainAction : action;
-  const passive = configuration.passiveBed && (phase > 0 || target > 0);
+  const passive = Boolean(configuration.passiveBed) && (phase > 0 || target > 0);
   const [arrival, blanket, dark] = passive ? [phase, 0, 0] : sleepState;
   const restingInBed = configuration.sleeping || passive;
   const poseProgress = configuration.sleeping ? THREE.MathUtils.smoothstep(arrival, .38, 1) :
@@ -567,6 +568,10 @@ window.poodle = {
       return [model, { fabric, binding, pattern }];
     }));
     wear = new Set(selected.map(id => colourways[id]?.[0] ?? id));
+    cover.value.set(wear.has('head.beanie') ? 1 : wear.has('head.crown') ? 2 : 0,
+      wear.has('outfit.teal') ? 1 : wear.has('outfit.sweater_red') ? 2 :
+      wear.has('outfit.raincoat_blue') ? 3 : wear.has('outfit.dress_pink') ? 4 : 0,
+      wear.has('paws.rain') ? .209 : wear.has('paws.booties') ? .142 : wear.has('paws.sneakers') ? .117 : 0);
     const neckwear = selected.some(id => id.startsWith('neck.'));
     const layeredBoots = wear.has('outfit.teal') && wear.has('paws.rain');
     shoeClearance = !layeredBoots && selected.some(id => id.startsWith('outfit.')) &&

@@ -170,7 +170,8 @@ class PetSprites {
   String _layerId(String id) => _variants[id]?.of ?? id;
   // Aliases share the base texture only: ModernHairMesh supplies the modern
   // silhouette in the 2D painter, including mixed cuts and animated poses.
-  String _hairLayerId(String id) => _hairAliases[id] ?? id;
+  String _hairLayerId(String id) =>
+      id == 'hair.standard' ? 'hair.natural' : _hairAliases[id] ?? id;
 
   /// ¿Se conoce el artículo en el atlas (directo o como variante)?
   bool knowsItem(String id) => _items.containsKey(_layerId(id));

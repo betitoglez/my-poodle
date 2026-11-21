@@ -261,11 +261,21 @@ class _InstructionsScreenState extends State<InstructionsScreen> {
                   icon: Icons.timer_rounded,
                   text: 'Duración: ${def.limitLabel}.',
                 ),
-                _Line(
-                  icon: Icons.savings_rounded,
-                  text:
-                      'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
-                ),
+                if (game == GameId.pairs) ...[
+                  const SizedBox(height: AppSpace.s),
+                  const LText('Premios', style: AppText.subtitle),
+                  for (final line in def.rewardLabel.split('\n'))
+                    _Line(icon: Icons.savings_rounded, text: line),
+                  const LText(
+                    'Si sales antes de terminar, no hay premio.',
+                    style: AppText.body,
+                  ),
+                ] else
+                  _Line(
+                    icon: Icons.savings_rounded,
+                    text:
+                        'Premio: ${def.rewardLabel}. Si sales antes de terminar, no hay premio.',
+                  ),
                 if (game == GameId.pairs) ...[
                   const SizedBox(height: AppSpace.m),
                   const LText('Elige un nivel', style: AppText.subtitle),

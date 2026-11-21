@@ -97,6 +97,7 @@ void main() {
       final backend = backendWith((s) => s);
       await boot(t, backend);
       await openPuzzle(t, 'Juego de parejas');
+      await scrollTo(t, find.text('6 parejas'));
       await tapText(t, '6 parejas');
       await scrollTo(t, find.text('Jugar'));
       await tapText(t, 'Jugar');

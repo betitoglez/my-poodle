@@ -738,5 +738,12 @@
   "Vestido verdiblanco": "Vestido · Grün-Weiß",
   "Vestido círculos de colores": "Vestido · Bunte Punkte",
   "{p0}. {p1}": "{p0}. {p1}",
-  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Schritt {p2} von {p3}."
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Schritt {p2} von {p3}.",
+  "Corte estándar": "Standardschnitt",
+  "Corte estándar · Cola": "Standardschnitt · Schwanz",
+  "Premios": "Belohnungen",
+  "4 parejas: 5 monedas": "4 Paare: 5 Münzen",
+  "6 parejas: 15 monedas": "6 Paare: 15 Münzen",
+  "8 parejas: 25 monedas": "8 Paare: 25 Münzen",
+  "Si sales antes de terminar, no hay premio.": "Wenn du vor dem Ende aufhörst, gibt es keine Belohnung."
 }

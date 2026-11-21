@@ -738,5 +738,12 @@
   "Vestido verdiblanco": "Vestido verdiblanco",
   "Vestido círculos de colores": "Vestido círculos de colores",
   "{p0}. {p1}": "{p0}. {p1}",
-  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Paso {p2} de {p3}."
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Paso {p2} de {p3}.",
+  "Corte estándar": "Corte estándar",
+  "Corte estándar · Cola": "Corte estándar · Cola",
+  "Premios": "Premios",
+  "4 parejas: 5 monedas": "4 parejas: 5 monedas",
+  "6 parejas: 15 monedas": "6 parejas: 15 monedas",
+  "8 parejas: 25 monedas": "8 parejas: 25 monedas",
+  "Si sales antes de terminar, no hay premio.": "Si sales antes de terminar, no hay premio."
 }

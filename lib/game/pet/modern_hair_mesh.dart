@@ -36,6 +36,7 @@ class ModernHairMesh {
     SpritePose pose,
     String poseName,
     Paint fur, {
+    bool standardTail = false,
     Set<HairZone> zones = const {
       HairZone.head,
       HairZone.legs,
@@ -44,10 +45,10 @@ class ModernHairMesh {
     },
   }) {
     final key =
-        '${image.width}/${image.height}/$destination/$poseName/${zones.map((z) => z.name).join(',')}';
+        '${image.width}/${image.height}/$destination/$poseName/$standardTail/${zones.map((z) => z.name).join(',')}';
     final mesh = _meshes.putIfAbsent(
       key,
-      () => _build(image, destination, pose, poseName, zones),
+      () => _build(image, destination, pose, poseName, zones, standardTail),
     );
     final shader = ImageShader(
       image,
@@ -94,6 +95,7 @@ class ModernHairMesh {
     SpritePose pose,
     String poseName,
     Set<HairZone> zones,
+    bool standardTail,
   ) {
     const columns = 32, rows = 64;
     final points = <Offset>[], texture = <Offset>[], indices = <int>[];
@@ -130,7 +132,23 @@ class ModernHairMesh {
             -.13 * crest -
             .065 * spine +
             ((y - tail.center.dy) * .5 - .025) * plume;
-        points.add(Offset(x + dx, y + dy));
+        var point = Offset(x + dx, y + dy);
+        if (standardTail && !tail.isEmpty && tail.contains(Offset(x, y))) {
+          final isBack = poseName == 'back';
+          final root = tail.center + Offset(isBack ? 0 : .05, .13);
+          final axis = isBack ? const Offset(0, -1) : const Offset(-.28, -.96);
+          final normal = Offset(-axis.dy, axis.dx);
+          final relative = Offset(x, y) - root;
+          final along = (relative.dx * axis.dx + relative.dy * axis.dy).clamp(
+            0.0,
+            .245,
+          );
+          final across = relative.dx * normal.dx + relative.dy * normal.dy;
+          final target = root + axis * along + normal * (across * .16);
+          final blend = ((tail.center.dy + .15 - y) / .07).clamp(0.0, 1.0);
+          point += (target - Offset(x, y)) * blend;
+        }
+        points.add(point);
         texture.add(Offset(u * image.width, v * image.height));
         if (row < rows && column < columns) {
           final a = row * (columns + 1) + column, b = a + columns + 1;

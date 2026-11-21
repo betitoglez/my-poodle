@@ -738,5 +738,12 @@
   "Vestido verdiblanco": "Vestido · Biancoverde",
   "Vestido círculos de colores": "Vestido · Cerchi colorati",
   "{p0}. {p1}": "{p0}. {p1}",
-  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Passo {p2} di {p3}."
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Passo {p2} di {p3}.",
+  "Corte estándar": "Taglio standard",
+  "Corte estándar · Cola": "Taglio standard · Coda",
+  "Premios": "Premi",
+  "4 parejas: 5 monedas": "4 coppie: 5 monete",
+  "6 parejas: 15 monedas": "6 coppie: 15 monete",
+  "8 parejas: 25 monedas": "8 coppie: 25 monete",
+  "Si sales antes de terminar, no hay premio.": "Se esci prima di finire, non ricevi alcun premio."
 }

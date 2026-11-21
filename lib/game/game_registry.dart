@@ -63,7 +63,8 @@ abstract final class GameCatalog {
     gesture: 'Toca dos cartas para descubrir sus caniches.',
     limitLabel: '60 segundos · 5 intentos',
     scoreLabel: 'parejas',
-    rewardLabel: '4 parejas: 5 monedas · 6: 15 · 8: 25',
+    rewardLabel:
+        '4 parejas: 5 monedas\n6 parejas: 15 monedas\n8 parejas: 25 monedas',
   );
 
   static const memory = GameDefinition(

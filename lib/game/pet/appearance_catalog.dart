@@ -181,7 +181,7 @@ class AppearanceCatalog {
       });
     }
     for (final zone in HairZone.values) {
-      for (final style in Haircuts.styles) {
+      for (final style in Haircuts.stylesFor(zone)) {
         final id = Haircuts.id(zone, style);
         labels[id] = Haircuts.label(id);
       }

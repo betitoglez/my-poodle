@@ -472,7 +472,8 @@ class Rules {
     if (s.owned.contains(id)) return true;
     if (Haircuts.valid(id)) {
       final style = id.split('.').last;
-      return style == 'natural' || s.owned.contains('hair.$style');
+      return const {'natural', 'standard'}.contains(style) ||
+          s.owned.contains('hair.$style');
     }
     if (id.startsWith('hair.')) {
       return HairZone.values.every(
@@ -494,9 +495,12 @@ class Rules {
           .map((z) => styleCost(s, Haircuts.id(z, Haircuts.styleOf(id))))
           .fold(0, (a, b) => a + b);
     }
-    if (StyleCatalog.specialCoats.contains(id)) {
-      final bought = s.owned.where(StyleCatalog.specialCoats.contains).length;
-      var numerator = 1000, denominator = 1;
+    final family = StyleCatalog.specialFamily(id);
+    if (family != null) {
+      final bought = s.owned
+          .where((owned) => StyleCatalog.specialFamily(owned) == family)
+          .length;
+      var numerator = balance.item(id)!.cost, denominator = 1;
       for (var i = 0; i < bought; i++) {
         numerator *= 6;
         denominator *= 5;

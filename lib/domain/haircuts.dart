@@ -20,7 +20,16 @@ abstract final class Haircuts {
     'puppy': 'Corte cachorro',
     'show': 'Corte de concurso',
     'modern': 'Corte moderno',
+    'standard': 'Corte estándar',
   };
+  static List<String> stylesFor(HairZone zone) => [
+    if (zone == HairZone.tail) 'standard',
+    ...styles,
+  ];
+  static bool supports(HairZone zone, String style) =>
+      stylesFor(zone).contains(style);
+  static int renderIndex(String style) =>
+      style == 'standard' ? 6 : styles.indexOf(style);
   static String id(HairZone zone, String style) => 'cut.${zone.name}.$style';
   static String styleOf(String legacy) =>
       styles.contains(legacy.split('.').last)
@@ -31,10 +40,10 @@ abstract final class Haircuts {
     return bits.length == 3 &&
         bits.first == 'cut' &&
         HairZone.values.any((z) => z.name == bits[1]) &&
-        styles.contains(bits[2]);
+        supports(HairZone.values.byName(bits[1]), bits[2]);
   }
 
-  static int cost(String style) => style == 'natural'
+  static int cost(String style) => const {'natural', 'standard'}.contains(style)
       ? 0
       : style == 'show'
       ? 100

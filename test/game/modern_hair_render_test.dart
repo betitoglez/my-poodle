@@ -113,6 +113,60 @@ void main() {
   }
 
   testWidgets(
+    'cola estándar: la silueta de perfil pierde el pompón y conserva una cola visible',
+    (t) async {
+      final painter = PetPainter(looks)
+        ..sprites = await t.runAsync(() => PetSprites.load(rootBundle));
+      await t.runAsync(() async {
+        final natural = await render(
+          painter,
+          balance.initialAppearance,
+          PetPose.side,
+        );
+        final standard = await render(
+          painter,
+          balance.initialAppearance.withCut(HairZone.tail, 'standard'),
+          PetPose.side,
+        );
+        Future<int> tailPixels(ui.Image image) async {
+          final data = (await image.toByteData())!.buffer.asUint8List();
+          var count = 0;
+          for (var y = 118; y < 198; y++) {
+            for (var x = 65; x < 150; x++) {
+              if (data[(y * image.width + x) * 4 + 3] > 100) count++;
+            }
+          }
+          return count;
+        }
+
+        final before = await tailPixels(natural),
+            after = await tailPixels(standard);
+        expect(after, greaterThan(50));
+        expect(after, lessThan(before * .65), reason: 'Sin volumen de pompón');
+        if (const bool.fromEnvironment('CATALOG_CAPTURE')) {
+          final recorder = ui.PictureRecorder();
+          final canvas = ui.Canvas(recorder)
+            ..drawColor(const ui.Color(0xfff7efdf), ui.BlendMode.src);
+          canvas.drawImage(natural, ui.Offset.zero, ui.Paint());
+          canvas.drawImage(standard, const ui.Offset(450, 0), ui.Paint());
+          final picture = recorder.endRecording();
+          final image = await picture.toImage(900, 450);
+          final file = File('docs/reviews/catalog-tuning/tail-2d.png');
+          await file.parent.create(recursive: true);
+          await file.writeAsBytes(
+            (await image.toByteData(format: ui.ImageByteFormat.png))!.buffer
+                .asUint8List(),
+          );
+          image.dispose();
+          picture.dispose();
+        }
+        natural.dispose();
+        standard.dispose();
+      });
+    },
+  );
+
+  testWidgets(
     'moderno: frente, espalda, correr, saltar, comer y dormir tienen silueta propia',
     (t) async {
       final painter = PetPainter(looks)

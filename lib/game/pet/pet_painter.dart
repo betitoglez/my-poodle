@@ -572,6 +572,7 @@ class PetPainter extends ChangeNotifier {
       }
     } else if (!ids.uniformHair) {
       final dst = rectOf(base.box);
+      final standardTail = ids.cuts[HairZone.tail] == 'standard';
       final modernZones = {
         for (final zone in HairZone.values)
           if (ids.cuts[zone] == 'modern') zone,
@@ -603,7 +604,8 @@ class PetPainter extends ChangeNotifier {
       var baseMask = Path()..addRect(dst.inflate(.16));
       for (final entry in zones.entries) {
         if (ids.cuts[entry.key] != 'natural' &&
-            ids.cuts[entry.key] != 'modern') {
+            ids.cuts[entry.key] != 'modern' &&
+            ids.cuts[entry.key] != 'standard') {
           baseMask = Path.combine(
             PathOperation.difference,
             baseMask,
@@ -615,7 +617,7 @@ class PetPainter extends ChangeNotifier {
       c.clipPath(baseMask);
       // Warp the shared base once, so neighbouring natural zones cannot crop
       // away the crest/plume or leave rectangular seams in the silhouette.
-      if (modernZones.isNotEmpty) {
+      if (modernZones.isNotEmpty || standardTail) {
         _modernHair.paint(
           c,
           base.image,
@@ -624,6 +626,7 @@ class PetPainter extends ChangeNotifier {
           poseName,
           coatPaint,
           zones: modernZones,
+          standardTail: standardTail,
         );
       } else {
         c.drawImageRect(base.image, fullSrc(base.image), dst, coatPaint);
@@ -631,7 +634,8 @@ class PetPainter extends ChangeNotifier {
       c.restore();
       for (final entry in zones.entries) {
         if (ids.cuts[entry.key] == 'natural' ||
-            ids.cuts[entry.key] == 'modern') {
+            ids.cuts[entry.key] == 'modern' ||
+            ids.cuts[entry.key] == 'standard') {
           continue;
         }
         final layer = sp.coatedLayer(
@@ -1023,6 +1027,23 @@ class PetPainter extends ChangeNotifier {
 
   void _tail(_Ctx s) {
     final modern = s.look.ids?.cuts[HairZone.tail] == 'modern';
+    if (s.look.ids?.cuts[HairZone.tail] == 'standard') {
+      final root = s.pose == PetPose.front
+          ? const Offset(.19, -.52)
+          : const Offset(-.25, -.5);
+      final tip = s.pose == PetPose.front
+          ? const Offset(.21, -.74)
+          : const Offset(-.36, -.71);
+      s.c.drawLine(
+        root,
+        tip,
+        Paint()
+          ..color = s.look.coat.base
+          ..strokeWidth = .035
+          ..strokeCap = StrokeCap.round,
+      );
+      return;
+    }
     final wag =
         math.sin(s.t * (s.excited ? 14 : 4)) * (s.excited ? 0.05 : 0.02) * s.m;
     if (s.pose == PetPose.front) {

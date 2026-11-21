@@ -157,6 +157,22 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     _game!.pet.setView(v);
   }
 
+  bool get _sideHair =>
+      _category == _Category.hair &&
+      (_hairZone == HairZone.back || _hairZone == HairZone.tail);
+
+  void _selectHairZone(HairZone? zone) {
+    setState(() => _hairZone = zone);
+    _turn(_sideHair ? PetView.right : PetView.front);
+    _orientHairPreview();
+  }
+
+  void _orientHairPreview() {
+    if (!_live.ready || _category != _Category.hair) return;
+    _live.front();
+    if (_sideHair) _live.rotate(-math.pi / (2 * .013));
+  }
+
   /// Salir con una prueba pendiente: aplicar (con compra) o descartar.
   Future<bool> _confirmLeave() async {
     if (!_dirty) return true;
@@ -253,12 +269,12 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
     if (slot == Slot.hair && _hairZone != null) {
       return [
         _Section(null, [
-          for (final style in Haircuts.styles)
+          for (final style in Haircuts.stylesFor(_hairZone!))
             StyleItem(
               id: Haircuts.id(_hairZone!, style),
               slot: Slot.hair,
               cost: Haircuts.cost(style),
-              initial: style == 'natural',
+              initial: Haircuts.cost(style) == 0,
               tier: Haircuts.tier(style),
             ),
         ]),
@@ -329,7 +345,9 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
           id: selectedId,
           slot: Slot.hair,
           cost: 0,
-          initial: selectedId.endsWith('.natural'),
+          initial:
+              selectedId.endsWith('.natural') ||
+              selectedId == 'cut.tail.standard',
         );
     final owned = c.rules.ownsStyle(pet, selectedId);
     final equipped = _selected(pet.appearance) == selectedId;
@@ -440,7 +458,12 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                       mood: pet.needPoints(Need.mood),
                       energy: pet.needPoints(Need.energy),
                       sick: pet.isSick,
-                      onStatusChanged: () => setState(() {}),
+                      onStatusChanged: () {
+                        if (mounted) {
+                          setState(() {});
+                          _orientHairPreview();
+                        }
+                      },
                     ),
                   ),
                 if (dirty)
@@ -526,8 +549,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                             child: ChoiceChip(
                               label: LText(zone?.label ?? 'Packs'),
                               selected: zone == _hairZone,
-                              onSelected: (_) =>
-                                  setState(() => _hairZone = zone),
+                              onSelected: (_) => _selectHairZone(zone),
                             ),
                           ),
                       ],
@@ -601,6 +623,7 @@ class _WardrobeScreenState extends State<WardrobeScreen> {
                                   : c.looks.label(it.id),
                               swatch: c.looks.swatch(it.id),
                               zoom: zoom,
+                              pose: _sideHair ? PetPose.side : PetPose.front,
                               useModelArtwork: showModel,
                               look: c.looks.resolve(preview),
                               selected: it.id == selectedId,
@@ -747,6 +770,7 @@ class _ItemTile extends StatelessWidget {
     required this.look,
     required this.zoom,
     required this.useModelArtwork,
+    this.pose = PetPose.front,
     required this.selected,
     required this.owned,
     required this.equipped,
@@ -758,6 +782,7 @@ class _ItemTile extends StatelessWidget {
   final Color? swatch;
   final ThumbZoom zoom;
   final bool useModelArtwork;
+  final PetPose pose;
   final PetLook look;
   final bool selected;
   final bool owned;
@@ -768,7 +793,7 @@ class _ItemTile extends StatelessWidget {
   final bool locked;
 
   Widget _thumbnail() {
-    final fallback = PetThumb(look: look, zoom: zoom);
+    final fallback = PetThumb(look: look, zoom: zoom, pose: pose);
     if (!useModelArtwork) return fallback;
     return Image.asset(
       'assets/images/wardrobe_thumbs/${item.id}.webp',

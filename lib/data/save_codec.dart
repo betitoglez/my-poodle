@@ -118,7 +118,7 @@ class SaveCodec {
         for (final z in HairZone.values)
           z:
               ap['cut_${z.name}'] is String &&
-                  Haircuts.styles.contains(ap['cut_${z.name}'])
+                  Haircuts.supports(z, ap['cut_${z.name}'] as String)
               ? ap['cut_${z.name}'] as String
               : Haircuts.styleOf(legacyHair),
       },

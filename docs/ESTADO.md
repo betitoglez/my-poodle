@@ -734,3 +734,16 @@ Inicio en `codex/cuidados-armario-decoracion`, base `3387647`. Alcance del propi
 ## Correcciones de revisión PR #17 · 21-11-2026
 
 Inicio desde `7d468b7`, rama `codex/cuidados-armario-decoracion`. Codex señaló dos P2: corte moderno idéntico al natural en 2D y secuencia de Memory inaudible al lector con efectos apagados. Corregidos con malla 2D diferenciada por zonas sobre la textura común y región viva por señal con ordinal, conservada durante los intervalos apagados; demostración de 2,6 s por señal y 0,4 s de intervalo con lector activo, sin alterar los diez segundos de respuesta. **334 pruebas correctas**, análisis limpio, validadores correctos y 11 × 740 mensajes. Regresiones de compra/recarga/dibujo por zona y pack, animaciones, señales repetidas y respuesta por semántica sin leer el guardado; cuatro pruebas reproducen los fallos al ejecutar el código anterior. [Evidencia y comparativa](reviews/pr17-fixes/README.md). Compilaciones web Release e iOS Profile sin firma correctas con POODLE_LIVE_3D=true; modelo e idiomas empaquetados comprobados. Prueba física con lectores pendiente; no se instala ni distribuye.
+
+
+## Miniaturas, cola uniforme y precios por familia · 21-11-2026
+
+Inicio desde bed4bee. Solicitud: eliminar marca morada de todas las miniaturas; añadir corte de cola uniforme gratuito; perfiles laterales para lomo/cola; aumento del 20 % de especiales solo por compras de especiales de la misma familia/categoría (confirmado por el propietario). Causa de la marca: sprites «z» con visibilidad undefined al capturar catálogo. Implementado: 25 cortes por zona (estándar solo para cola), 101 miniaturas recapturadas, cola gratuita persistente en 3D/2D, previsualización lateral y precios independientes por familia. Verificación final conjunta con los ajustes de pared/ropa de la sección siguiente.
+
+
+## Guirnaldas, estrellas y ajuste de ropa · 21-11-2026
+
+Ampliación durante la validación de catálogo: guirnaldas de extremo a extremo, bordes luminosos de estrellas, tres líneas de premios de Parejas con moneda por nivel y evitar que pelo/peinados atraviesen gorro o ropa (foto del propietario). Se completa antes de instalar la build 37.
+
+
+Validación final del conjunto: análisis limpio, **342 pruebas completas correctas**, contenido válido (76 artículos base/packs, 12 de decoración, 84 imágenes de los catálogos principales), 11 × 747 mensajes y prueba Node de cámaras correcta. Visor real: 101 miniaturas y 74 combinaciones de ajuste de ropa/cabeza sin errores JS/GLSL. Web Release e iOS Profile firmada **0.5.0 (37)** compilados con `POODLE_LIVE_3D=true`; JS, GLB, 101 miniaturas y traducciones empaquetadas coinciden con las fuentes. Sin nuevas dependencias. [Evidencia y comparativas](reviews/catalog-tuning/README.md). Instalación preparada con copia privada; la aceptación física manual completa y revisión lingüística humana siguen pendientes.
