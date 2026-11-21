@@ -8,6 +8,7 @@
 /// sola vez su bono de monedas (`balance.albumPageBonus`).
 library;
 
+import 'appearance.dart';
 import 'balance.dart';
 import 'entitlements.dart';
 import 'haircuts.dart';
@@ -65,12 +66,33 @@ bool played(PetState s, GameId g) =>
 bool _stars3(PetState s, GameId g) => (s.bestStars[g.name] ?? 0) >= 3;
 
 /// Artículos del armario comprados (no iniciales, solo ranuras de aspecto).
-/// Los cortes por zona (`cut.<zona>.<estilo>`) de pago cuentan como compras.
-int wardrobeBought(PetState s, Balance b) => s.owned.where((id) {
-  if (Haircuts.valid(id)) return Haircuts.cost(id.split('.').last) > 0;
-  final item = b.item(id);
-  return item != null && !item.initial;
-}).length;
+/// Los cortes por zona de pago (`cut.<zona>.<estilo>`) cuentan cada uno. El
+/// peinado completo `hair.<estilo>` es un alias que la tienda añade al llevar
+/// el mismo corte en todas las zonas: solo cuenta (como una compra) en
+/// partidas que lo compraron entero sin cortes por zona de ese estilo.
+int wardrobeBought(PetState s, Balance b) {
+  var count = 0;
+  final cutStyles = <String>{};
+  for (final id in s.owned) {
+    if (Haircuts.valid(id)) {
+      final style = id.split('.').last;
+      if (Haircuts.cost(style) > 0) {
+        count++;
+        cutStyles.add(style);
+      }
+    }
+  }
+  for (final id in s.owned) {
+    if (Haircuts.valid(id)) continue;
+    final item = b.item(id);
+    if (item == null || item.initial) continue;
+    if (item.slot == Slot.hair && cutStyles.contains(id.split('.').last)) {
+      continue;
+    }
+    count++;
+  }
+  return count;
+}
 
 /// Con la misma propiedad que la tienda: un peinado completo se tiene si se
 /// han comprado sus cortes en todas las zonas.

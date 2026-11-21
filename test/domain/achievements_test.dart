@@ -165,6 +165,23 @@ void main() {
       expect(ach.newlyUnlocked(s, s), contains('ach.wardrobe.allFree'));
     });
 
+    test('el peinado completo es un alias: no suma compras extra', () {
+      final cuts = {
+        for (final style in ['pom', 'show'])
+          for (final z in HairZone.values) Haircuts.id(z, style),
+      };
+      // La tienda añade hair.pom y hair.show al llevar el corte en todas las
+      // zonas: siguen siendo 8 compras, sin el logro de 10.
+      final s = adopt().copyWith(
+        owned: {...adopt().owned, ...cuts, 'hair.pom', 'hair.show'},
+      );
+      expect(wardrobeBought(s, balance), 8);
+      expect(ach.newlyUnlocked(s, s), isNot(contains('ach.wardrobe.ten')));
+      // Una partida antigua con el peinado comprado entero cuenta una compra.
+      final old = adopt().copyWith(owned: {...adopt().owned, 'hair.pom'});
+      expect(wardrobeBought(old, balance), 1);
+    });
+
     test('fotos: primera y diez', () {
       var s = adopt();
       final got = <String>[];
