@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido · 红白",
   "Vestido verdiblanco": "Vestido · 绿白",
   "Vestido círculos de colores": "Vestido · 彩色圆点",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}，{p1}。第{p2}步，共{p3}步。"
 }

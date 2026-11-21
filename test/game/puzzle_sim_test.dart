@@ -108,6 +108,28 @@ void main() {
     expect(expired.score, 0);
   });
 
+  test('Memory accesible: tiempo para oír la señal sin consumir los diez segundos de respuesta', () {
+    final sim = MemorySim(
+      List.filled(10, 0),
+      signalDuration: 2.6,
+      signalGap: .4,
+    );
+    sim.update(.55);
+    expect(sim.shownSignal, 0);
+    sim.update(2.59);
+    expect(sim.lit, 0);
+    expect(sim.shownCount, 1);
+    expect(sim.remaining, 10);
+    sim.update(.42);
+    expect(sim.shownCount, 2);
+    while (sim.phase == MemoryPhase.showing) {
+      sim.update(.01);
+    }
+    expect(sim.remaining, closeTo(10, .02));
+    sim.update(1);
+    expect(sim.remaining, closeTo(9, .02));
+  });
+
   test('Memory: muestras de luz y sonido, pausa entre señales repetidas', () {
     final sim = MemorySim(List.filled(10, 2));
     final notes = <int>[];

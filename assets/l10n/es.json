@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido rojiblanco",
   "Vestido verdiblanco": "Vestido verdiblanco",
   "Vestido círculos de colores": "Vestido círculos de colores",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Paso {p2} de {p3}."
 }

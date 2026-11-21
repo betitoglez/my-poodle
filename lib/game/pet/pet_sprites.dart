@@ -168,7 +168,8 @@ class PetSprites {
   Iterable<String> get itemIds => [..._items.keys, ..._variants.keys];
 
   String _layerId(String id) => _variants[id]?.of ?? id;
-  // The continental silhouette has a dedicated mesh in the 3D viewer.
+  // Aliases share the base texture only: ModernHairMesh supplies the modern
+  // silhouette in the 2D painter, including mixed cuts and animated poses.
   String _hairLayerId(String id) => _hairAliases[id] ?? id;
 
   /// ¿Se conoce el artículo en el atlas (directo o como variante)?

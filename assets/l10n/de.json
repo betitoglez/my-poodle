@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido · Rot-Weiß",
   "Vestido verdiblanco": "Vestido · Grün-Weiß",
   "Vestido círculos de colores": "Vestido · Bunte Punkte",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Schritt {p2} von {p3}."
 }

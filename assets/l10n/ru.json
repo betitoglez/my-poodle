@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido · Красно-белый",
   "Vestido verdiblanco": "Vestido · Зелёно-белый",
   "Vestido círculos de colores": "Vestido · Разноцветные кружки",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Шаг {p2} из {p3}."
 }

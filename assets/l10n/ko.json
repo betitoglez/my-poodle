@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido · 빨강과 하양",
   "Vestido verdiblanco": "Vestido · 초록과 하양",
   "Vestido círculos de colores": "Vestido · 알록달록 물방울",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. {p3}개 중 {p2}번째."
 }

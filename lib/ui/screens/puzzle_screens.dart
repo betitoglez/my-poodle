@@ -308,6 +308,8 @@ class _MemoryScreenState extends State<MemoryScreen>
     final c = AppScope.read(context);
     final sim = _sim = MemorySim(
       PuzzleDeals.decode(c.pet.puzzleDeals['memory']!.last),
+      signalDuration: MediaQuery.accessibleNavigationOf(context) ? 2.6 : .6,
+      signalGap: MediaQuery.accessibleNavigationOf(context) ? .4 : .25,
     );
     final fx = AppScope.feedbackOf(context);
     _game = PuzzleGame(
@@ -329,12 +331,6 @@ class _MemoryScreenState extends State<MemoryScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final responding = sim.phase == MemoryPhase.input;
-    final status = switch (sim.phase) {
-      MemoryPhase.showing => 'Mira y escucha',
-      MemoryPhase.input => 'Tu turno: ${sim.inputIndex} / ${sim.length}',
-      MemoryPhase.feedback => '¡Muy bien! Siguiente ronda…',
-      MemoryPhase.finished => '¡Partida terminada!',
-    };
     return ActivityFrame(
       title: GameCatalog.memory.title,
       activityName: 'la partida',
@@ -366,11 +362,7 @@ class _MemoryScreenState extends State<MemoryScreen>
                 horizontal: AppSpace.m,
                 vertical: AppSpace.s,
               ),
-              child: LText(
-                status,
-                style: AppText.subtitle,
-                textAlign: TextAlign.center,
-              ),
+              child: MemorySignalStatus(sim: sim),
             ),
             Expanded(
               child: _PuzzleGrid(
@@ -519,6 +511,38 @@ class _MemoryScreenState extends State<MemoryScreen>
             style: AppText.body,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Una región viva por señal; el ordinal distingue repeticiones consecutivas.
+/// Conserva la señal durante su pausa, evitando anuncios vacíos entre colores.
+class MemorySignalStatus extends StatelessWidget {
+  const MemorySignalStatus({super.key, required this.sim});
+  final MemorySim sim;
+  @override
+  Widget build(BuildContext context) {
+    final signal = sim.shownSignal;
+    final status = switch (sim.phase) {
+      MemoryPhase.showing =>
+        signal == null
+            ? 'Mira y escucha'
+            : '${_memoryNames[signal]}, ${_memoryNotes[signal]}. Paso ${sim.shownCount} de ${sim.length}.',
+      MemoryPhase.input => 'Tu turno: ${sim.inputIndex} / ${sim.length}',
+      MemoryPhase.feedback => '¡Muy bien! Siguiente ronda…',
+      MemoryPhase.finished => '¡Partida terminada!',
+    };
+    return LSemantics(
+      key: const ValueKey('memory-signal'),
+      label: status,
+      container: true,
+      liveRegion: true,
+      excludeSemantics: true,
+      child: LText(
+        status,
+        style: AppText.subtitle,
+        textAlign: TextAlign.center,
       ),
     );
   }

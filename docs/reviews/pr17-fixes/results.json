@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-21",
+  "base": "7d468b74e29ae342e358f4caf3b53fe3109d2eea",
+  "fixed_comments": [
+    4648629871,
+    4648629879
+  ],
+  "tests_passed": 334,
+  "analyzer": "clean",
+  "regressions_fail_on_previous_screen_and_renderer": 4,
+  "languages": 11,
+  "messages": 740,
+  "web_release": "passed",
+  "ios_profile_no_codesign": "passed",
+  "POODLE_LIVE_3D": true,
+  "physical_screen_reader_acceptance": "pending"
+}

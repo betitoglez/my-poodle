@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido · Biancorosso",
   "Vestido verdiblanco": "Vestido · Biancoverde",
   "Vestido círculos de colores": "Vestido · Cerchi colorati",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Passo {p2} di {p3}."
 }

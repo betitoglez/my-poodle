@@ -3,12 +3,26 @@ enum MemoryPhase { showing, input, feedback, finished }
 /// Simón: prefijos de una secuencia aleatoria de diez señales. Hay diez
 /// segundos para el turno completo de respuesta; la muestra no consume tiempo.
 class MemorySim {
-  MemorySim(List<int> sequence) : sequence = List.unmodifiable(sequence) {
+  MemorySim(
+    List<int> sequence, {
+    this.signalDuration = .6,
+    this.signalGap = .25,
+  }) : sequence = List.unmodifiable(sequence) {
+    if (!signalDuration.isFinite ||
+        signalDuration <= 0 ||
+        !signalGap.isFinite ||
+        signalGap <= 0) {
+      throw ArgumentError('Cadencia inválida');
+    }
     if (sequence.length != 10 || sequence.any((n) => n < 0 || n > 3)) {
       throw ArgumentError('Secuencia inválida');
     }
   }
   final List<int> sequence;
+  final double signalDuration, signalGap;
+  int get shownCount => (_showIndex + 1).clamp(0, length);
+  int? get shownSignal =>
+      _showIndex >= 0 && _showIndex < length ? sequence[_showIndex] : null;
   MemoryPhase phase = MemoryPhase.showing;
   int length = 3;
   int completed = 0;
@@ -77,12 +91,12 @@ class MemorySim {
           lit = sequence[_showIndex];
           onSignal?.call(lit!);
           _gap = false;
-          _phaseTime += .6;
+          _phaseTime += signalDuration;
         }
       } else {
         lit = null;
         _gap = true;
-        _phaseTime += .25;
+        _phaseTime += signalGap;
       }
     }
     // Un salto de fotograma no regala tiempo extra al entrar en respuesta.

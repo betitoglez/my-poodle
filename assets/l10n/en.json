@@ -737,5 +737,6 @@
   "Vestido rojiblanco": "Vestido · Red and white",
   "Vestido verdiblanco": "Vestido · Green and white",
   "Vestido círculos de colores": "Vestido · Colorful dots",
-  "{p0}. {p1}": "{p0}. {p1}"
+  "{p0}. {p1}": "{p0}. {p1}",
+  "{p0}, {p1}. Paso {p2} de {p3}.": "{p0}, {p1}. Step {p2} of {p3}."
 }
