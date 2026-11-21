@@ -281,6 +281,32 @@ void main() {
       expect(rules.syncAchievements(synced, t0 + 11 * day), isNull);
     });
 
+    test('monedas ganadas: cuenta los cortes por zona sin el alias', () {
+      final cuts = {
+        for (final z in HairZone.values) Haircuts.id(z, 'pom'),
+        Haircuts.id(HairZone.tail, 'show'),
+      };
+      final old = adopt().copyWith(
+        coins: 0,
+        owned: {...adopt().owned, ...cuts, 'hair.pom'},
+      );
+      final loaded = codec.decode(jsonEncode(legacyJson(old)));
+      // 4 cortes pompón y 1 de concurso; hair.pom es el alias de los cuatro.
+      expect(
+        loaded.coinsEarnedTotal,
+        4 * Haircuts.cost('pom') + Haircuts.cost('show') - balance.startCoins,
+      );
+      // Peinado comprado entero, sin cortes por zona: cuenta su precio.
+      final whole = adopt().copyWith(
+        coins: 0,
+        owned: {...adopt().owned, 'hair.pom'},
+      );
+      expect(
+        codec.decode(jsonEncode(legacyJson(whole))).coinsEarnedTotal,
+        balance.item('hair.pom')!.cost - balance.startCoins,
+      );
+    });
+
     test('récord anterior a las estrellas cuenta como primera partida', () {
       final s = adopt().copyWith(bestFruit: 12);
       expect(ach.newlyUnlocked(s, s), contains('ach.game.fruit.first'));

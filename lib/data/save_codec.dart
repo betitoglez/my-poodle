@@ -291,11 +291,24 @@ class SaveCodec {
     }
     var earned = optCount('coinsEarnedTotal');
     if (earned == null) {
+      // Cortes por zona a su precio; el peinado completo `hair.<estilo>` solo
+      // cuenta si no hay cortes por zona de ese estilo (sería un alias).
       var spent = 0;
+      final cutStyles = <String>{};
+      for (final id in owned) {
+        if (!Haircuts.valid(id)) continue;
+        final style = id.split('.').last;
+        spent += Haircuts.cost(style);
+        cutStyles.add(style);
+      }
       for (final id in owned) {
         final style = balance.item(id);
         final decor = balance.decorItem(id);
-        if (style != null && !style.initial) spent += style.cost;
+        if (style != null && !style.initial) {
+          final alias =
+              style.slot == Slot.hair && cutStyles.contains(id.split('.').last);
+          if (!alias) spent += style.cost;
+        }
         if (decor != null && !decor.initial) spent += decor.cost;
       }
       earned = coins + spent - balance.startCoins;
