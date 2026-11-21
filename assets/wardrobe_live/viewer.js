@@ -142,11 +142,13 @@ for (const item of items.filter(item => item.userData.wear !== 'base')) {
   });
 }
 const fabricPatterns = new Map();
+const elfBindings = new Map();
 for (const item of items.filter(item => item.userData.wear.startsWith('outfit.'))) {
   item.traverse(mesh => {
     if (!mesh.isMesh) return;
     for (const material of [mesh.material].flat()) {
       if (material.userData.dyeRole === 'fabric' && !fabricPatterns.has(material)) fabricPatterns.set(material, patchFabric(material));
+      if (item.userData.wear === 'outfit.sweater_red' && material.userData.dyeRole === 'binding' && !elfBindings.has(material)) elfBindings.set(material, patchFabric(material));
     }
   });
 }
@@ -640,6 +642,8 @@ window.poodle = {
           }
           const fabricPattern = fabricPatterns.get(material);
           if (fabricPattern) fabricPattern.value = patternCodes[palette?.pattern] || 0;
+          const elfBinding = elfBindings.get(material);
+          if (elfBinding) elfBinding.value = palette?.pattern === 'elf' ? patternCodes.elf : 0;
           const tint = dyes.get(material);
           if (!tint) continue;
           const { catalogDye, dyeRole, creamPattern } = material.userData;

@@ -1,5 +1,14 @@
 # Estado de la implementación
 
+## Navidad e integración de la copia antigua · 21-11-2026 · implementado y probado en simulador
+
+- Rama `codex/navidad-integracion-pendientes` desde main `fe2fd88`. Flutter 3.50.0 / Dart 3.14.0. Sin dependencias nuevas ni cambios de formato de partida.
+- Tarea: recuperar lo pendiente de la copia antigua y crear Navidad en el armario con un jersey de elfo basado en la foto del propietario (sin marca ni embalaje). Malla de jersey existente y dibujo de punto local, también con respaldo 2D.
+- Precio inicial: 320 monedas, versión completa, siguiendo los jerséis especiales; comparte el incremento del 20 % de su familia. Categoría disponible todo el año, sin caducidad de las compras.
+- Recuperado: validación obligatoria de los tres MP3, documentación de audio y tres registros históricos de instalación (29–31), sin rutas personales. No acreditan una prueba física nueva. La build 31 fue la primera de esos registros con bandera 3D comprobada y confirmación visual del propietario; 29/30 no acreditan 3D activo ni escucha física. Música, navegación y vestuario de la copia anterior ya estaban integrados y mejorados en main.
+- Verificado: **419/419 pruebas Flutter**, incluido el recorrido gratuito/completo a 320×568 (probar no cobra, confirmar cobra una vez, reapertura conserva), precios por familia, guardado y ocho variantes del jersey distinguibles en tres poses 2D. Análisis sin incidencias, 11 × 906 mensajes y catálogo válidos (93 artículos de armario, 21 de decoración, 9 packs de fotos y 3 MP3 obligatorios).
+- Visor WebGL: diez capturas con cortes natural/pompón/concurso, frente/perfil/espalda y tumbado, sin errores de JavaScript/GLSL. Recorrido nativo del **iPad Pro 13 (M5), iOS 26.5**, con `POODLE_LIVE_3D=true`, correcto: cinco capturas 2064×2752, sin excepciones/desbordes y equipamiento comprobado en el guardado. [Diseño, evidencia y reproducción](reviews/navidad/README.md). Build iOS Debug para simulador desde la entrada normal `lib/main.dart` correcta, bandera 3D efectiva y nueve recursos empaquetados comprobados por SHA-256. [Validación](reviews/navidad/validation.json). No acredita prueba ni instalación física nueva en iPhone. Revisión lingüística humana pendiente.
+
 ## Mejoras de juego en rama `feature/mejoras-juego` · 20-11-2026 · implementado, sin probar en dispositivo
 
 - Tarea: siete mejoras propuestas en la revisión del 20-11-2026 (ver [TODO](../TODO.md#mejoras-de-juego-propuestas-revisión-del-20-11-2026)). Flutter 3.50.0 / Dart 3.14. Rama aparte; no fusionada en main.

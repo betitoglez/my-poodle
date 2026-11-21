@@ -13,13 +13,22 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const assets = join(root, 'assets/wardrobe_live');
-const fitting = process.argv.includes('--fitting');
+const christmas = process.argv.includes('--christmas');
+const fitting = christmas || process.argv.includes('--fitting');
 const output = fitting ? (process.env.FIT_OUTPUT ?? join(root, 'build/review/fitting')) : join(root, 'assets/images/wardrobe_thumbs');
 const { styles } = JSON.parse(await readFile(join(root, 'assets/data/balance-v1.json'), 'utf8'));
 const cutStyles = ['natural','teddy','pom','puppy','show','modern'];
 styles.push(...['head','legs','back','tail'].flatMap(zone => cutStyles.map(style => ({id: `cut.${zone}.${style}`, slot: zone === 'head' ? 'head' : zone === 'legs' ? 'paws' : 'hair'}))));
 styles.push({id:'cut.tail.standard',slot:'hair'});
-if (fitting) {
+if (christmas) {
+  styles.length = 0;
+  for (const style of [0,2,4]) for (const [angle,yaw] of [['front',.15],['side',1.15],['back',Math.PI]]) {
+    styles.push({id:`elf-${cutStyles[style]}-${angle}`,slot:'hair',yaw,
+      configuration:{cuts:[style,style,style,style],coat:'apricot',wear:['outfit.sweater_elf']}});
+  }
+  styles.push({id:'elf-resting',slot:'hair',yaw:1.15,
+    configuration:{cuts:[4,4,4,4],coat:'green',wear:['outfit.sweater_elf'],resting:true}});
+} else if (fitting) {
   styles.length = 0;
   for (let style=0;style<6;style++) for (const model of ['outfit.teal','outfit.sweater_red','outfit.raincoat_blue','outfit.dress_pink']) {
     for (const [angle,yaw] of [['front',.15],['side',Math.PI/2],['back',Math.PI]]) {
@@ -28,7 +37,7 @@ if (fitting) {
     }
   }
 }
-const requested = new Set(process.argv.slice(2).filter(argument => !['--fitting','--crown'].includes(argument)));
+const requested = new Set(process.argv.slice(2).filter(argument => !['--fitting','--crown','--christmas'].includes(argument)));
 const bridge = '<script>window.PoodleHost = { ready() { window.viewerReady = true; }, failed() { window.viewerFailed = true; } };</script>';
 const html = await readFile(join(assets, 'index.html'), 'utf8');
 const contentTypes = { js: 'text/javascript', glb: 'model/gltf-binary' };

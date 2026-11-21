@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-19",
+  "version": "0.4.13",
+  "build": 31,
+  "bundleIdentifier": "com.betitoglez.mypoodle",
+  "configuration": "Profile",
+  "dartDefines": {
+    "POODLE_LIVE_3D": "true"
+  },
+  "flagVerification": "passed, decoded effective Generated.xcconfig",
+  "modelPackaged": "assets/wardrobe_live/caniche.glb",
+  "installation": "success, update without uninstall",
+  "launch": "success in foreground",
+  "visualVerification": "passed, owner confirms the poodle appears in 3D on the iPhone",
+  "rootCause": "previous builds omitted POODLE_LIVE_3D=true and displayed 2D fallback",
+  "evidenceType": "historical report recovered from the previous local copy; not a new device test"
+}

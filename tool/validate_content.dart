@@ -37,6 +37,11 @@ const slotSections = {
   Slot.collar: 'collars',
   Slot.paws: 'paws',
 };
+const audioAssets = [
+  'assets/audio/background.mp3',
+  'assets/audio/games.mp3',
+  'assets/audio/activities.mp3',
+];
 final assets = [
   for (final dog in PuzzleDeals.poodles) 'assets/images/poodles/$dog.webp',
   'assets/images/cards/kitchen.jpg',
@@ -313,7 +318,7 @@ void main() {
       }
     }
   }
-  for (final a in assets) {
+  for (final a in [...assets, ...audioAssets]) {
     if (!File(a).existsSync()) errors.add('recurso ausente: $a');
   }
   if (errors.isEmpty) {
@@ -322,7 +327,7 @@ void main() {
       'Contenido válido: ${balance.styles.length} artículos ($free gratis, ${balance.styles.length - free} de la versión completa), '
       '${balance.decor.length} de decoración, '
       '${balance.photoPacks.length} packs de fotos, '
-      'producto ${balance.fullVersionProductId}, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes.',
+      'producto ${balance.fullVersionProductId}, ${spritePoses.length} poses ilustradas, ${assets.length} imágenes, ${audioAssets.length} pistas de música.',
     );
   } else {
     for (final e in errors) {

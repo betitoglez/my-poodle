@@ -650,6 +650,13 @@
       "tier": "full"
     },
     {
+      "id": "outfit.sweater_elf",
+      "slot": "outfit",
+      "cost": 320,
+      "initial": false,
+      "tier": "full"
+    },
+    {
       "id": "outfit.raincoat_white",
       "slot": "outfit",
       "cost": 50,

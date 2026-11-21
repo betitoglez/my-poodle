@@ -5,7 +5,7 @@ Las tres pistas son copias sin modificar de los archivos aportados por el propie
 | Recurso | Uso | Duración aprox. | Archivo original |
 |---|---|---|---|
 | `assets/audio/background.mp3` | Casa, adopción, menús, instrucciones y resultados | 3:12 | `music_172885862187013_9pZourXjs97kk9aDpeursW_xitkrr.mp3` |
-| `assets/audio/games.mp3` | Huerto y Frisbee durante la partida | 1:53 | `music_172891748564993_QXgjk84dEeCAt224CdvZkS_desjat.mp3` |
+| `assets/audio/games.mp3` | Huerto, Frisbee, Parejas y Memory durante la partida | 1:53 | `music_172891748564993_QXgjk84dEeCAt224CdvZkS_desjat.mp3` |
 | `assets/audio/activities.mp3` | Cuidados: comer, beber, bañar, pasear, peluquería, dormir y veterinario | 1:54 | `music_172891748564993_QXgjk84dEeCAt224CdvZkS_mopkzt.mp3` |
 
 Todas son MP3 estéreo, 44,1 kHz, 128 kbit/s. Se reproducen localmente, sin red, en bucle y al 35 % de volumen. No se han editado los empalmes del bucle. Tamaños: Casa 3.079.149 bytes; juegos 1.815.240 bytes; actividades 1.831.959 bytes.
